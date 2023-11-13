@@ -1,0 +1,9 @@
+[submodule "extern/glfw"]
+	path = extern/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "extern/imgui"]
+	path = extern/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "extern/googletest"]
+	path = extern/googletest
+	url = https://github.com/google/googletest.git
