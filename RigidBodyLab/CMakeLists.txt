@@ -5,13 +5,20 @@ project(RigidBodyLab)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Paths to GLFW, ImGui, and Google Test relative to this CMakeLists.txt
+# Set the runtime library for MSVC
+if(MSVC)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+endif()
+
+# Paths to GLFW, ImGui, Google Test, and GLM relative to this CMakeLists.txt
 set(GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/glfw")
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui")
 set(GOOGLETEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/googletest")
+set(GLM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/glm")
 
-# Add the subdirectory for GLFW
+# Add the subdirectories for dependencies
 add_subdirectory(${GLFW_DIR} ${CMAKE_CURRENT_BINARY_DIR}/glfw)
+add_subdirectory(${GOOGLETEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/googletest)
 
 # Manually include ImGui files
 file(GLOB IMGUI_SOURCES "${IMGUI_DIR}/*.cpp" "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp" "${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp")
@@ -19,10 +26,11 @@ file(GLOB IMGUI_HEADERS "${IMGUI_DIR}/*.h" "${IMGUI_DIR}/backends/imgui_impl_glf
 add_library(imgui STATIC ${IMGUI_SOURCES} ${IMGUI_HEADERS})
 
 # Include directories for the main project
-include_directories(include)
 include_directories(${GLFW_DIR}/include)
 include_directories(${IMGUI_DIR})
-include_directories(${IMGUI_DIR}/backends) # Include the backends directory
+include_directories(${IMGUI_DIR}/backends)
+include_directories(${GLM_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/include)
 
 # Add source files for the main project
 file(GLOB_RECURSE PROJECT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/src/*.cpp")
@@ -37,28 +45,29 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 # Link libraries with the main project
 target_link_libraries(${PROJECT_NAME} glfw imgui opengl32)
 
-# Setup for the Google Test
-add_subdirectory(${GOOGLETEST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/googletest)
-
-# Enable testing
-enable_testing()
-
 # Define the test project
 set(TEST_PROJECT_NAME ${PROJECT_NAME}_Test)
 
 # Include directories for the test project
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/include")
+include_directories(${GLM_DIR})
 
 # Add source files for the test project
 file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/tests/*.cpp")
-file(GLOB_RECURSE TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/tests/*.h")
+file(GLOB_RECURSE TEST_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/tests/*.h")
+
+# Group source files for Visual Studio filters
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${TEST_SOURCES} ${TEST_HEADERS})
 
 # Define the executable for the test project
-add_executable(${TEST_PROJECT_NAME} ${TEST_SOURCES})
+add_executable(${TEST_PROJECT_NAME} ${TEST_SOURCES} ${TEST_HEADERS})
 
 # Link libraries with the test project
 target_link_libraries(${TEST_PROJECT_NAME} gtest gtest_main glfw imgui opengl32)
+
+# Enable testing
+enable_testing()
 
 # Add the tests to be run
 add_test(NAME ${TEST_PROJECT_NAME} COMMAND ${TEST_PROJECT_NAME})
