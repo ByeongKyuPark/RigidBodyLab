@@ -1,42 +1,15 @@
-#include "math/Matrix3.h"
+#include "Matrix3.h"
 #include <iostream>
 
 using namespace Math;
 
-Matrix3::Matrix3(float diagonal) {
+
+constexpr Matrix3::Matrix3(float diagonal) {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            entries[j][i] = (i == j) ? diagonal : 0.0f;
+            entries[i][j] = (i == j) ? diagonal : 0.0f;
         }
     }
-}
-
-Matrix3::Matrix3(float diagonal1, float diagonal2, float diagonal3) {
-    entries[0][0] = diagonal1;
-    entries[1][0] = 0.0f;
-    entries[2][0] = 0.0f;
-
-    entries[0][1] = 0.0f;
-    entries[1][1] = diagonal2;
-    entries[2][1] = 0.0f;
-
-    entries[0][2] = 0.0f;
-    entries[1][2] = 0.0f;
-    entries[2][2] = diagonal3;
-}
-
-Matrix3::Matrix3(float e1, float e2, float e3, float e4, float e5, float e6, float e7, float e8, float e9) {
-    entries[0][0] = e1;
-    entries[1][0] = e2;
-    entries[2][0] = e3;
-
-    entries[0][1] = e4;
-    entries[1][1] = e5;
-    entries[2][1] = e6;
-
-    entries[0][2] = e7;
-    entries[1][2] = e8;
-    entries[2][2] = e9;
 }
 
 Matrix3 Matrix3::Transpose() const {
@@ -81,8 +54,8 @@ Matrix3 Matrix3::Inverse() const
 Matrix3 Matrix3::operator+(const Matrix3& other) const {
     Matrix3 result;
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             result.entries[j][i] = entries[j][i] + other.entries[j][i];
         }
     }
@@ -90,8 +63,8 @@ Matrix3 Matrix3::operator+(const Matrix3& other) const {
 }
 
 Matrix3& Matrix3::operator+=(const Matrix3& other) {
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             entries[j][i] += other.entries[j][i];
         }
     }
@@ -101,8 +74,8 @@ Matrix3& Matrix3::operator+=(const Matrix3& other) {
 Matrix3 Matrix3::operator-(const Matrix3& other) const {
     Matrix3 result;
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             result.entries[j][i] = entries[j][i] - other.entries[j][i];
         }
     }
@@ -111,8 +84,8 @@ Matrix3 Matrix3::operator-(const Matrix3& other) const {
 }
 
 Matrix3& Matrix3::operator-=(const Matrix3& other) {
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             entries[j][i] -= other.entries[j][i];
         }
     }
@@ -123,15 +96,15 @@ Matrix3 Matrix3::operator*(const Matrix3& other) const {
     Matrix3 result;
 
     //zero out
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             result.entries[j][i] = 0.f;
         }
     }
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 3; ++k) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
+            for (int k{}; k < 3; ++k) {
                 result.entries[j][i] += entries[k][i] * other.entries[j][k];
             }
         }
@@ -143,22 +116,22 @@ Matrix3& Matrix3::operator*=(const Matrix3& other) {
     Matrix3 result;
 
     // Initialize result matrix with zeros
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             result.entries[j][i] = 0.0f;
         }
     }
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 3; ++k) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
+            for (int k{}; k < 3; ++k) {
                 result.entries[j][i] += this->entries[k][i] * other.entries[j][k];
             }
         }
     }
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             entries[j][i] = result.entries[j][i];
         }
     }
@@ -176,18 +149,18 @@ Vector3 Matrix3::operator*(const Vector3& vec) const {
 
 Matrix3 Matrix3::operator*(const float value) const
 {
-    Matrix3 result;
+    Matrix3 result{*this};
 
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            result.entries[j][i] *= entries[j][i] * value;
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
+            result.entries[j][i] *= value;
         }
     }
     return result;
 }
 
 Matrix3& Matrix3::operator*=(const float value) {
-    for (int i = 0; i < 3; ++i) {
+    for (int i{}; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             entries[j][i] *= value;
         }
@@ -195,19 +168,9 @@ Matrix3& Matrix3::operator*=(const float value) {
     return *this;
 }
 
-Matrix3& Matrix3::operator=(const Matrix3& other)
-{
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            entries[j][i] = other.entries[j][i];
-        }
-    }
-    return *this;
-}
-
 bool Matrix3::operator==(const Matrix3& other) const {
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
             if (entries[j][i] != other.entries[j][i]) {
                 return false;
             }

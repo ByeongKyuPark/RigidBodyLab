@@ -3,4 +3,6 @@
 ################################################################################
 
 *.vcxproj
-/RigidBodyLab/build/.vs/RigidBodyLab/FileContentIndex/047a4383-7533-4b9a-956f-6f9de3c4619f.vsidx
+
+# Exclude the build directory
+/RigidBodyLab/build/

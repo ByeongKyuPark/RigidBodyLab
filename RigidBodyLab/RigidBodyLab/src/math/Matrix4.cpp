@@ -1,5 +1,5 @@
-#include "math/Matrix3.h"
-#include "math/Matrix4.h"
+#include "Matrix3.h"
+#include "Matrix4.h"
 #include <iostream>
 #include <immintrin.h>
 
@@ -83,10 +83,10 @@ Matrix4 Matrix4::Inverse() const
         return *this;
     }
 
-    float invDet = 1.0f / determinant;
+    float invDet = 1.f / determinant;
     Matrix4 result;
 
-    for (int i = 0; i < 16; i++) {
+    for (int i{}; i < 16; i++) {
         result[i] = inv[i] * invDet;
     }
 
@@ -96,7 +96,7 @@ Matrix4 Matrix4::Inverse() const
 Matrix4 Matrix4::operator+(const Matrix4& other) const {
     Matrix4 result;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         result.columns[i] = _mm_add_ps(columns[i], other.columns[i]);
     }
     return result;
@@ -104,7 +104,7 @@ Matrix4 Matrix4::operator+(const Matrix4& other) const {
 
 Matrix4& Matrix4::operator+=(const Matrix4& other)
 {
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         columns[i] = _mm_add_ps(columns[i], other.columns[i]);
     }
     return *this;
@@ -114,7 +114,7 @@ Matrix4 Matrix4::operator-(const Matrix4& other) const
 {
     Matrix4 result;
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         result.columns[i] = _mm_sub_ps(columns[i], other.columns[i]);
     }
 
@@ -123,7 +123,7 @@ Matrix4 Matrix4::operator-(const Matrix4& other) const
 
 Matrix4& Matrix4::operator-=(const Matrix4& other)
 {
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         columns[i] = _mm_sub_ps(columns[i], other.columns[i]);
     }
     return *this;
@@ -132,21 +132,26 @@ Matrix4& Matrix4::operator-=(const Matrix4& other)
 Matrix4 Matrix4::operator*(const Matrix4& other) const {
     Matrix4 result;
 
-    for (int i = 0; i < 4; ++i) { // For each column in the result
-        for (int j = 0; j < 4; ++j) { // For each row in the result
+    for (int i{}; i < 4; ++i) { // columns (in the result)
+        for (int j{}; j < 4; ++j) { // rows (in the result)
 
             __m128 a_row = _mm_set_ps(columns[3].m128_f32[i], columns[2].m128_f32[i], columns[1].m128_f32[i], columns[0].m128_f32[i]);
             __m128 prod = _mm_mul_ps(a_row, other.columns[j]);
 
-            prod = _mm_hadd_ps(prod, prod);  // Horizontally add packed single-precision floating-point values
+            prod = _mm_hadd_ps(prod, prod);  // Horizontal add
             prod = _mm_hadd_ps(prod, prod);
 
-            result.columns[j].m128_f32[i] = _mm_cvtss_f32(prod);
+            // Flip the result both vertically and horizontally
+            // Given that the result is flipped both vertically and horizontally, I've adjust the way the result is stored.
+            result.columns[3 - j].m128_f32[3 - i] = _mm_cvtss_f32(prod);
         }
     }
 
     return result;
 }
+
+
+
 
 
 Matrix4& Matrix4::operator*=(const Matrix4& other) {
@@ -162,7 +167,7 @@ Vector3 Matrix4::operator*(const Vector3& vec) const {
     float z = columns[0].m128_f32[2] * vec.x + columns[1].m128_f32[2] * vec.y + columns[2].m128_f32[2] * vec.z + columns[3].m128_f32[2];
     float w = columns[0].m128_f32[3] * vec.x + columns[1].m128_f32[3] * vec.y + columns[2].m128_f32[3] * vec.z + columns[3].m128_f32[3];
 
-    if (w != 1.0f && w != 0.0f) {
+    if (w != 1.f && w != 0.f) {
         x /= w;
         y /= w;
         z /= w;
@@ -177,7 +182,7 @@ Matrix4 Matrix4::operator*(const float value) const
 
     __m128 scalar = _mm_set1_ps(value);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         result.columns[i] = _mm_mul_ps(columns[i], scalar);
     }
 
@@ -188,7 +193,7 @@ Matrix4& Matrix4::operator*=(const float value)
 {
     __m128 scalar = _mm_set1_ps(value);
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         columns[i] = _mm_mul_ps(columns[i], scalar);
     }
 
@@ -211,7 +216,7 @@ float& Matrix4::operator[](int idx) {
 
 Matrix4& Matrix4::operator=(const Matrix4& other) {
     if (this != &other) {  // Self-assignment check
-        for (int i = 0; i < 4; ++i) {
+        for (int i{}; i < 4; ++i) {
             columns[i] = other.columns[i];
         }
     }
@@ -219,7 +224,7 @@ Matrix4& Matrix4::operator=(const Matrix4& other) {
 }
 
 bool Matrix4::operator==(const Matrix4& other) const {
-    for (int i = 0; i < 4; ++i) {
+    for (int i{}; i < 4; ++i) {
         __m128 col1 = columns[i];
         __m128 col2 = other.columns[i];
 
@@ -239,15 +244,32 @@ bool Matrix4::operator!=(const Matrix4& other) const
     return !(*this == other);
 }
 
+// Get element at (row, column)
+float Math::Matrix4::Get(int row, int column) const {
+    if (row < 0 || row > 3 || column < 0 || column > 3) {
+        throw std::out_of_range("Index out of bounds for Matrix4");
+    }
+    return columns[row].m128_f32[column];
+}
+
+
+// Set element at (row, column)
+void Math::Matrix4::Set(int row, int column, float value) {
+    if (row < 0 || row > 3 || column < 0 || column > 3) {
+        throw std::out_of_range("Index out of bounds for Matrix4");
+    }
+    columns[row].m128_f32[column] = value;
+}
+
 Matrix3 Matrix4::Extract3x3Matrix() const {
     Matrix3 result;
 
     float* matrix3Data = &result.entries[0][0];
-    for (int col = 0; col < 3; ++col) {
+    for (int col{}; col < 3; ++col) {
         float tmp[4];
         _mm_storeu_ps(tmp, columns[col]);
 
-        for (int row = 0; row < 3; ++row) {
+        for (int row{}; row < 3; ++row) {
             matrix3Data[col * 3 + row] = tmp[row];
         }
     }
@@ -261,9 +283,10 @@ glm::mat4 Matrix4::ConvertToGLM() const noexcept {
 
     for (int col = 0; col < 4; ++col) {
         for (int row = 0; row < 4; ++row) {
-            result[col][row] = columns[col].m128_f32[row];
+            result[col][row] = columns[row].m128_f32[col];
         }
     }
 
     return result;
 }
+

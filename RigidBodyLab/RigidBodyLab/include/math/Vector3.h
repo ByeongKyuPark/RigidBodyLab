@@ -11,13 +11,14 @@ namespace Math {
         float y;
         float z;
 
-        Vector3(float _x = 0.f, float _y = 0.f, float _z = 0.f);
+        Vector3(float _x=0.f, float _y=0.f, float _z=0.f);
         Vector3(std::initializer_list<float> list);
 
         float Length() const;
         float LengthSquared() const;
 
         Vector3& Normalize();
+        Vector3 Normalize() const;
         float Dot(const Vector3& rhs) const;
         Vector3 Cross(const Vector3& rhs) const;
 
