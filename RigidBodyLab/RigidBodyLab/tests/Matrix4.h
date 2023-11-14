@@ -35,6 +35,9 @@ namespace Math
         bool operator==(const Matrix4& other)const;
         bool operator!=(const Matrix4& other)const;
 
+        float Get(int row, int column) const;
+        void Set(int row, int column, float value);
+
         Matrix3 Extract3x3Matrix() const;
         glm::mat4 ConvertToGLM()const noexcept;
     };

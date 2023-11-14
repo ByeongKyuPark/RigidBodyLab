@@ -36,6 +36,19 @@ namespace Math {
         return *this;
     }
 
+    Vector3 Vector3::Normalize() const {
+        float length = std::sqrt(x * x + y * y + z * z);
+
+        // Check for division by zero
+        if (length > std::numeric_limits<float>::epsilon()) {
+            return Vector3(x / length, y / length, z / length);
+        }
+        else {
+            // Return zero vector if original length is zero
+            return Vector3(0.0f, 0.0f, 0.0f);
+        }
+    }
+
     float Vector3::Dot(const Vector3& rhs) const {
         return x * rhs.x + y * rhs.y + z * rhs.z;
     }

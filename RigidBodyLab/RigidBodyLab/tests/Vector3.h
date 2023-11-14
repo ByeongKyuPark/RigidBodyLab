@@ -18,6 +18,7 @@ namespace Math {
         float LengthSquared() const;
 
         Vector3& Normalize();
+        Vector3 Normalize() const;
         float Dot(const Vector3& rhs) const;
         Vector3 Cross(const Vector3& rhs) const;
 
