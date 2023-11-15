@@ -1,4 +1,5 @@
 #include"gtest/gtest.h"
+#include "Vector2.h"
 #include "Vector3.h"
 #include "Quaternion.h"
 #include "Matrix3.h"
@@ -9,6 +10,70 @@ constexpr float LOOSE_EPSILON = 1e-3f;
 constexpr float PI = 3.14159265359f;
 
 using namespace Math;
+
+
+// Test for default constructor
+TEST(Vector2Test, DefaultConstructor) {
+    Vector2 v;
+    EXPECT_FLOAT_EQ(v.x, 0.0f);
+    EXPECT_FLOAT_EQ(v.y, 0.0f);
+}
+
+// Test for parameterized constructor
+TEST(Vector2Test, ParameterizedConstructor) {
+    Vector2 v(3.0f, 4.0f);
+    EXPECT_FLOAT_EQ(v.x, 3.0f);
+    EXPECT_FLOAT_EQ(v.y, 4.0f);
+}
+
+// Test for addition
+TEST(Vector2Test, Addition) {
+    Vector2 v1(1.0f, 2.0f);
+    Vector2 v2(3.0f, 4.0f);
+    Vector2 result = v1 + v2;
+    EXPECT_FLOAT_EQ(result.x, 4.0f);
+    EXPECT_FLOAT_EQ(result.y, 6.0f);
+}
+
+// Test for subtraction
+TEST(Vector2Test, Subtraction) {
+    Vector2 v1(5.0f, 6.0f);
+    Vector2 v2(2.0f, 3.0f);
+    Vector2 result = v1 - v2;
+    EXPECT_FLOAT_EQ(result.x, 3.0f);
+    EXPECT_FLOAT_EQ(result.y, 3.0f);
+}
+
+// Test for scalar multiplication
+TEST(Vector2Test, ScalarMultiplication) {
+    Vector2 v(2.0f, 3.0f);
+    float scalar = 2.0f;
+    Vector2 result = v * scalar;
+    EXPECT_FLOAT_EQ(result.x, 4.0f);
+    EXPECT_FLOAT_EQ(result.y, 6.0f);
+}
+
+// Test for dot product
+TEST(Vector2Test, DotProduct) {
+    Vector2 v1(1.f, 2.f);
+    Vector2 v2(3.f, 4.f);
+    float dot = v1.Dot(v2);
+    EXPECT_FLOAT_EQ(dot, 11.f);
+}
+
+// Test for length
+TEST(Vector2Test, Length) {
+    Vector2 v(3.f, 4.f);
+    EXPECT_FLOAT_EQ(v.Length(), 5.f); 
+}
+
+// Test for normalization
+TEST(Vector2Test, Normalize) {
+    Vector2 v(3.0f, 4.0f);
+    v.Normalize();
+    EXPECT_NEAR(v.Length(), 1.0f, EPSILON);
+}
+
 
 TEST(Vector3Test, DefaultConstructor) {
     Vector3 v;
