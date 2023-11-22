@@ -1,4 +1,4 @@
-#include "Quaternion.h"
+#include "math/Quaternion.h"
 #include <glm/glm.hpp> // For glm::radians
 
 using namespace physics;
