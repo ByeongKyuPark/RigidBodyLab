@@ -1,1 +1,1 @@
-# C-RigidBodyLab
+# RigidBodyLab
