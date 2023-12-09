@@ -15,6 +15,8 @@ set(GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/glfw")
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui")
 set(GOOGLETEST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/googletest")
 set(GLM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/glm")
+set(STB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/stb")
+set(GLAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../extern/glad")
 
 # Add the subdirectories for dependencies
 add_subdirectory(${GLFW_DIR} ${CMAKE_CURRENT_BINARY_DIR}/glfw)
@@ -30,6 +32,8 @@ include_directories(${GLFW_DIR}/include)
 include_directories(${IMGUI_DIR})
 include_directories(${IMGUI_DIR}/backends)
 include_directories(${GLM_DIR})
+include_directories(${STB_DIR})
+include_directories(${GLAD_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/include)
 
 # Add source files for the main project
@@ -40,7 +44,7 @@ file(GLOB_RECURSE PROJECT_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/incl
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 
 # Define the executable for the main project
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS})
+add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${PROJECT_HEADERS} "${CMAKE_CURRENT_SOURCE_DIR}/RigidBodyLab/src/glad.c")
 
 # Link libraries with the main project
 target_link_libraries(${PROJECT_NAME} glfw imgui opengl32)
