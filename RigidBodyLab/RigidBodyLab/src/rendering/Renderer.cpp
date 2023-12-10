@@ -348,7 +348,7 @@ GLuint CompileShaders(const char vsFilename[], const char fsFilename[])
     const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fsSource, NULL);
     glCompileShader(fragmentShader);
-    ValidateShader(vertexShader, fsFilename);           /*  Prints any errors */
+    ValidateShader(fragmentShader, fsFilename);           /*  Prints any errors */
 
     const GLuint program = glCreateProgram();
     glAttachShader(program, vertexShader);

@@ -4,7 +4,7 @@
 using namespace Math;
 
 
-constexpr Matrix3::Matrix3(float diagonal) {
+Matrix3::Matrix3(float diagonal) {
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
             entries[i][j] = (i == j) ? diagonal : 0.0f;
