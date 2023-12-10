@@ -45,7 +45,7 @@ void Init() {
 #endif
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(1280, 720, "RigidBodyLab", nullptr, nullptr);
+    window = glfwCreateWindow(800, 720, "RigidBodyLab", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window\n";
@@ -1034,11 +1034,11 @@ void SetUpSkyBoxTexture()
     /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
     /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
     /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[CubeFaceID::FRONT], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::BOTTOM], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::LEFT], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::RIGHT], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::TOP], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::FRONT], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, false, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::BOTTOM], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2* skyboxFaceSize, true, false, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::LEFT], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, false, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::RIGHT], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, false, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::TOP], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
     CopySubTexture(cubeFace[CubeFaceID::BACK], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
 
     glGenTextures(1, &skyboxTexID);
@@ -1736,8 +1736,8 @@ void Render()
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+    //glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
