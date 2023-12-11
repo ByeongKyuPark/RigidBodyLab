@@ -64,6 +64,9 @@ void Init() {
 
     InitRendering(window);     
     InitImGui();
+
+    //need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
+    stbi_set_flip_vertically_on_load(true);
 }
 
 /******************************************************************************/
@@ -122,7 +125,7 @@ GLfloat one = 1.0f;
 
 /*  For color texture */
 GLuint texID[ImageID::NUM_IMAGES];
-const char* objTexFile[ImageID::NUM_IMAGES] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.png" };
+const char* objTexFile[ImageID::NUM_IMAGES] = { "../RigidBodyLab/images/stone.jpg", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
 
 /*  For bump/normal texture */
 const char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
@@ -138,7 +141,7 @@ struct ActiveTexID
 
 
 /*  For environment texture */
-const char* skyboxTexFile = "../RigidBodyLab/images/skybox.png";
+const char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
 GLuint skyboxTexID;
 int skyboxFaceSize;
 
@@ -647,9 +650,12 @@ void ComputeMirrorCamMats()
         //(minor)
         // Setting the far plane to infinity can lead to depth precision issues, causing distant objects to dominate in reflections. 
         // A minimum near plane distance is set to mitigate this, particularly suitable for this static scene scenarios.
-        mirrorCam.nearPlane = std::max(nearDist, 2.5f);
+        //mirrorCam.nearPlane = std::max(nearDist, 2.5f);
+        constexpr float MAX_FAR_PLANE = 100.f;
+        constexpr float MIN_NEAR_PLANE = 0.1f;
 
-        mirrorCam.farPlane = std::numeric_limits<float>::max();
+        mirrorCam.nearPlane = std::max(nearDist, MIN_NEAR_PLANE);
+        mirrorCam.farPlane = MAX_FAR_PLANE;
 
         // Compute planes based on intersections
         Vec3 toNearMirrorCamFrame = mirrorCamViewMirrorFrame * nearDist;//simply 'k' in the note
@@ -672,7 +678,7 @@ void ComputeMirrorCamMats()
         mirrorCam.bottomPlane = -(toNearMirrorCamFrame - bottom).length();
         mirrorCam.topPlane = (toNearMirrorCamFrame - top).length();
 
-        float viewAngleAdjustFactor = 0.31f; //scales down the frustum planes
+        float viewAngleAdjustFactor = 0.8f; //scales down the frustum planes
         mirrorCam.leftPlane *= viewAngleAdjustFactor;
         mirrorCam.rightPlane *= viewAngleAdjustFactor;
         mirrorCam.bottomPlane *= viewAngleAdjustFactor;
@@ -1037,11 +1043,11 @@ void SetUpSkyBoxTexture()
     /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
     /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
     /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[CubeFaceID::FRONT], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, false, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::BOTTOM], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2* skyboxFaceSize, true, false, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::LEFT], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, false, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::RIGHT], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, false, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::TOP], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::FRONT], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::BOTTOM], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::LEFT], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::RIGHT], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[CubeFaceID::TOP], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
     CopySubTexture(cubeFace[CubeFaceID::BACK], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
 
     glGenTextures(1, &skyboxTexID);

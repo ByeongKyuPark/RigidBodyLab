@@ -18,14 +18,14 @@ namespace Rendering
     const int CAM_ANGLE_STEP = 1;
 
     /*  Limit for camera distance from the origin */
-    const int CAM_MAX_RADIUS = 8;
-    const int CAM_MIN_RADIUS = 4;
+    const int CAM_MAX_RADIUS = 20;
+    const int CAM_MIN_RADIUS = 3;
     const int CAM_RADIUS_STEP = 1;
 
-    const int   INIT_ALPHA = 6;
-    const int   INIT_BETA = 18;     /*  90 degrees */
+    const int   INIT_ALPHA = 5;
+    const int   INIT_BETA = 27;     /*  90 degrees */
 
-    const int   INIT_RADIUS = 8;
+    const int   INIT_RADIUS = 9;
 
 
     class Camera
