@@ -16,6 +16,7 @@
 #include <rendering/Renderer.h>
 #include <rendering/Mesh.h>
 #include <rendering/Camera.h>
+#include <input/input.h>
 #include "math/Math.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -57,7 +58,9 @@ void Init() {
 
     // Set callback functions...
     glfwSetFramebufferSizeCallback(window, Resize);
-    //glfwSetKeyCallback(window, Keyboard);
+    glfwSetKeyCallback(window, Keyboard);
+    glfwSetCursorPosCallback(window, MouseMove);
+    glfwSetScrollCallback(window, MouseScroll);
 
     InitRendering(window);     
     InitImGui();
