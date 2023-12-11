@@ -63,10 +63,10 @@ void SetUpScene()
     Object mirrorBase1(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, 0, -0.03f))* Scale(MIRROR_SCL+MIRROR_FRAME_OFFSET, MIRROR_SCL+ MIRROR_FRAME_OFFSET, 0.05f));
     obj.push_back(mirrorBase1);
 
-    Object mirrorBase2(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -4.7, -0.6f)) * Scale(2.0f, 0.1f, 1.0f));
+    Object mirrorBase2(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Scale(3.0f, 0.1f, 1.0f));
     obj.push_back(mirrorBase2);
 
-    Object mirrorBase3(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -2.7, -0.53f)) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.05f, 2.0f));
+    Object mirrorBase3(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.05f, 2.0f));
     obj.push_back(mirrorBase3);
     
     constexpr float SPHERE_RAD = 4.5f;
