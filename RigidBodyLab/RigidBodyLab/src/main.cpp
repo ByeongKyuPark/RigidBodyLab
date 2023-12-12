@@ -8,51 +8,25 @@
 
 #include <rendering/Renderer.h>
 
+using namespace Rendering;
 
-void MainLoop() 
-{
-    while (!glfwWindowShouldClose(window)) {
+void MainLoop(Renderer& renderer){
+    while (!renderer.ShouldClose()) {
         glfwPollEvents();
 
-        // Start the Dear ImGui frame
+        // Start the Dear ImGui frame , TODO::move
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // GUI code
-        // ImGui::ShowDemoWindow(); 
-
         // Rendering
-        //ImGui::Render();
-        Render();
+        renderer.Render();
     }
 }
-
-bool InitGLFW() {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
-        return false;
-    }
-
-    // Set GLFW window hints for version and profile
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Necessary for macOS compatibility
-#endif
-
-    return true;
-}
-//--------------------------------------------------------------------------------------------------
-
 
 int main() {
-    Init();
-    SetUp();
-    MainLoop();
-    CleanUp();
+    Renderer& renderer = Renderer::GetInstance();
+    renderer.SetUpDemoScene();
+    MainLoop(renderer);
     return 0;
 }

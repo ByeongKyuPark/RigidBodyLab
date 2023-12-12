@@ -28,10 +28,10 @@
 
 using namespace Rendering;
 
-// Define the window variable
-GLFWwindow* window = nullptr;
+//// Define the window variable
+//GLFWwindow* window = nullptr;
 
-void Init() {
+void Renderer::Init() {
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
@@ -47,23 +47,26 @@ void Init() {
 #endif
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow* rawWindow = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+    if (!rawWindow) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window\n";
         exit(EXIT_FAILURE);
     }
+    m_window.reset(rawWindow); // Assign rawWindow to m_window
 
     // Make the window's context current
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(m_window.get());
 
     // Set callback functions...
-    glfwSetFramebufferSizeCallback(window, Resize);
-    glfwSetKeyCallback(window, Keyboard);
-    glfwSetCursorPosCallback(window, MouseMove);
-    glfwSetScrollCallback(window, MouseScroll);
+    glfwSetFramebufferSizeCallback(m_window.get(), Renderer::Resize);
+    glfwSetKeyCallback(m_window.get(), Keyboard);
+    glfwSetCursorPosCallback(m_window.get(), MouseMove);
+    glfwSetScrollCallback(m_window.get(), MouseScroll);
+    //Set the user pointer of the GLFW window to point to the Renderer (for the "Keyboard" function in input.cpp)
+    glfwSetWindowUserPointer(m_window.get(), this); 
 
-    InitRendering(window);     
+    InitRendering();     
     InitImGui();
 
     //need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
@@ -157,7 +160,7 @@ struct CubeFaceID
 GLuint sphereTexID;
 
 /*  Toggling sphere reflection/refraction */
-int sphereRef = RefType::REFLECTION_ONLY;
+int sphereRef = TO_INT(RefType::REFLECTION_ONLY);
 
 
 /*  For generating mirror "reflection" texture */
@@ -1222,7 +1225,7 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
         Set up the render program and graphics-related data for rendering.
 */
 /******************************************************************************/
-void SetUp()
+void Renderer::SetUpDemoScene()
 {
     /*  Initialization for fps estimation */
     currTime = clock();
@@ -1302,7 +1305,7 @@ void SetUp()
         Clean up the graphics-related stuffs before shutting down.
 */
 /******************************************************************************/
-void CleanUp()
+void Renderer::CleanUp()
 {
     // ImGui cleanup
     ImGui_ImplOpenGL3_Shutdown();
@@ -1330,14 +1333,16 @@ void CleanUp()
 
     //glDeleteProgram(renderProg);
     //for (int y = 0; y < ProgType::NUM_PROGTYPES; ++y)
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < TO_INT(ProgType::NUM_PROGTYPES); ++i) {
         glDeleteProgram(prog[i]);
+    }
 
     // Cleanup GLFW
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    // Note: glfwDestroyWindow call is removed as it's handled by std::unique_ptr
+    //glfwDestroyWindow(m_window);
 
-    exit(0);    /*  successful run */
+    // Note: glfwTerminate call can remain here if this is the designated point for terminating GLFW
+    //glfwTerminate();
 }
 
 /******************************************************************************/
@@ -1353,7 +1358,7 @@ void CleanUp()
         The new height of the window
 */
 /******************************************************************************/
-void Resize(GLFWwindow* window, int w, int h)
+void Renderer::Resize(GLFWwindow* window, int w, int h)
 {
     mainCam.width = w;
     mainCam.height = h;
@@ -1361,15 +1366,14 @@ void Resize(GLFWwindow* window, int w, int h)
     // Update the viewport and any relevant projection matrices
     glViewport(0, 0, w, h);
 
-    // ... any additional resizing code for your camera ...
+    // TODO:: any additional resizing code for the camera ...
 
-    //glutPostRedisplay();    // Set flag to force re-rendering
     if (window) {
         glfwSetWindowSize(window, w, h);
     }
 }
 
-void InitImGui() {
+void Renderer::InitImGui() {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -1377,11 +1381,11 @@ void InitImGui() {
     ImGui::StyleColorsDark(); // or ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(m_window.get(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
 }
 
-void InitRendering(GLFWwindow* window) {
+void Renderer::InitRendering() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD\n";
         exit(-1);
@@ -1389,7 +1393,7 @@ void InitRendering(GLFWwindow* window) {
 
     // Set up viewport
     int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(m_window.get(), &width, &height);
     glViewport(0, 0, width, height);
 
     // Enable OpenGL features
@@ -1705,7 +1709,7 @@ bool firstFrame = true;
         deferred shading.
 */
 /******************************************************************************/
-void Render()
+void Renderer::Render()
 {
     ComputeMainCamMats();
     ComputeMirrorCamMats();
@@ -1760,11 +1764,16 @@ void Render()
     // Rendering
     ImGui::Render();
     int display_w, display_h;
-    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glfwGetFramebufferSize(m_window.get(), &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     //glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
     //glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(m_window.get());
+}
+
+Rendering::Renderer::~Renderer() {
+    CleanUp(); // free all resources
+    glfwTerminate(); // terminate GLFW after all resources are released
 }
