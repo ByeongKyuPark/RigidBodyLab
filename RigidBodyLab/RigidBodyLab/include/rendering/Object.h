@@ -72,6 +72,8 @@ const int  specularPower = 10;                              /*  specular power o
 
 /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
 extern Vec3 mirrorTranslate;
+extern Vec3 mirrorRotationAxis;
+extern float mirrorRotationAngle;
 extern Vec3 spherePos;
 
 

@@ -15,6 +15,8 @@ std::vector<Object> obj;
 
 /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
 Vec3 mirrorTranslate;
+Vec3 mirrorRotationAxis;
+float mirrorRotationAngle;
 Vec3 spherePos;
 
 
@@ -51,22 +53,24 @@ void SetUpScene()
     obj.push_back(vase);
 
     mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);
+    mirrorRotationAxis = BASIS[Y];
+    mirrorRotationAngle = -EIGHTH_PI;
     /*  The 180-degree rotation about the y-axis is to simulate the mirroring effect.
         Also because of this the mirror normal vectors are pointing backwards and we
         have to switch the culled face to GL_BACK in graphics.cpp
     */                                                                                                                          //flipped the mirror
-    Object mirror(MeshID::PLANE, ImageID::MIRROR_TEX, Translate(mirrorTranslate) * Scale(MIRROR_SCL,MIRROR_SCL,MIRROR_SCL) * Rotate(PI, BASIS[Y]));
+    Object mirror(MeshID::PLANE, ImageID::MIRROR_TEX, Translate(mirrorTranslate) * Scale(MIRROR_SCL, MIRROR_SCL, MIRROR_SCL)* Rotate(PI+mirrorRotationAngle, mirrorRotationAxis));
     obj.push_back(mirror);
 
     /*  These 3 parts are for the base of the mirror */
     constexpr float MIRROR_FRAME_OFFSET = 0.45f;
-    Object mirrorBase1(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, 0, -0.03f))* Scale(MIRROR_SCL+MIRROR_FRAME_OFFSET, MIRROR_SCL+ MIRROR_FRAME_OFFSET, 0.05f));
+    Object mirrorBase1(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, 0, -0.03f)) *Rotate(mirrorRotationAngle, mirrorRotationAxis) * Scale(MIRROR_SCL+MIRROR_FRAME_OFFSET, MIRROR_SCL+ MIRROR_FRAME_OFFSET, 0.05f));
     obj.push_back(mirrorBase1);
 
-    Object mirrorBase2(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Scale(3.0f, 0.1f, 1.0f));
+    Object mirrorBase2(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f));
     obj.push_back(mirrorBase2);
 
-    Object mirrorBase3(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.05f, 2.0f));
+    Object mirrorBase3(MeshID::CUBE, ImageID::WOOD_TEX, Translate(mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f));
     obj.push_back(mirrorBase3);
     
     constexpr float SPHERE_RAD = 4.5f;

@@ -46,7 +46,7 @@ void Init() {
 #endif
 
     // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(800, 720, "RigidBodyLab", nullptr, nullptr);
+    window = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
     if (!window) {
         glfwTerminate();
         std::cerr << "Failed to create GLFW window\n";
@@ -583,7 +583,7 @@ void ComputeMirrorCamMats()
     if (mainCam.moved)
     {
         /*  Computing position of user camera in mirror frame */
-        Vec3 mainCamMirrorFrame = Vec3(Translate(-mirrorTranslate) * Vec4(mainCam.pos, 1.0));
+        Vec3 mainCamMirrorFrame = Vec3(Rotate(-mirrorRotationAngle, mirrorRotationAxis) *Translate(-mirrorTranslate) * Vec4(mainCam.pos, 1.0));
 
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
         if (mainCamMirrorFrame.z <= 0)
@@ -603,9 +603,9 @@ void ComputeMirrorCamMats()
 
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
 
-        mirrorCam.pos = Vec3(Translate(mirrorTranslate) * Vec4(mirrorCamMirrorFrame, 1.0));
+        mirrorCam.pos = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(mirrorCamMirrorFrame, 1.0));
         mirrorCam.upVec = BASIS[Y];
-        mirrorCam.lookAt = Vec3(Translate(mirrorTranslate) * Vec4(0, 0, 0, 1));
+        mirrorCam.lookAt = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(0, 0, 0, 1));
 
         mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
@@ -640,7 +640,7 @@ void ComputeMirrorCamMats()
 
         float nearDist = INFINITY;
         for (Vec3& midPoint : midsPoint) {
-            Vec3 midCamFrame = Vec3(Translate(mirrorTranslate) * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
+            Vec3 midCamFrame = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
             midPoint = midCamFrame - mirrorCam.pos;//mid : cameraFrame -> mirroredCameraFrame
             float projectionLength = Dot(midPoint, mirrorCamViewMirrorFrame);
             nearDist = std::min(nearDist, projectionLength);

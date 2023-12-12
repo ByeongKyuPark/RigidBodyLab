@@ -3,7 +3,7 @@
 
 namespace Rendering 
 {
-
+    constexpr int DISPLAY_SIZE = 1080;
 /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
 /*  The steps for rotation */
@@ -47,7 +47,7 @@ namespace Rendering
             lying along the z-axis at CAM_MAX_RADIUS from origin.
         */
         Camera() :
-            width(800), height(800),
+            width(DISPLAY_SIZE), height(DISPLAY_SIZE),
             resized(true),
             nearPlane(0.1f * CAM_RADIUS_STEP), farPlane(5.0f * CAM_MAX_RADIUS),
             topPlane(nearPlane / 900.0f * height), bottomPlane(-topPlane),
