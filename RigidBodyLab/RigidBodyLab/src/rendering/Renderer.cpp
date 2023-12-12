@@ -27,48 +27,6 @@
 
 using namespace Rendering;
 
-void Renderer::Init() {
-    // Initialize GLFW
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
-        exit(EXIT_FAILURE);
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Specify the GLFW version
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for MacOS
-#endif
-
-    // Create a windowed mode window and its OpenGL context
-    GLFWwindow* rawWindow = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
-    if (!rawWindow) {
-        glfwTerminate();
-        std::cerr << "Failed to create GLFW window\n";
-        exit(EXIT_FAILURE);
-    }
-    m_window.reset(rawWindow); // Assign rawWindow to m_window
-
-    // Make the window's context current
-    glfwMakeContextCurrent(m_window.get());
-
-    // Set callback functions...
-    glfwSetFramebufferSizeCallback(m_window.get(), Renderer::Resize);
-    glfwSetKeyCallback(m_window.get(), Keyboard);
-    glfwSetCursorPosCallback(m_window.get(), MouseMove);
-    glfwSetScrollCallback(m_window.get(), MouseScroll);
-    //Set the user pointer of the GLFW window to point to the Renderer (for the "Keyboard" function in input.cpp)
-    glfwSetWindowUserPointer(m_window.get(), this); 
-
-    InitRendering();     
-    InitImGui();
-
-    //need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
-    stbi_set_flip_vertically_on_load(true);
-}
-
 /******************************************************************************/
 /*!
 \fn     ReadTextFile
@@ -146,9 +104,8 @@ GLuint skyboxTexID;
 int skyboxFaceSize;
 
 /*  6 faces of the texture cube */
-struct CubeFaceID
-{
-    enum { RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT, NUM_FACES };
+enum class CubeFaceID{
+    RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT, NUM_FACES 
 };
 
 
@@ -707,7 +664,7 @@ void Renderer::ComputeSphereCamMats()
         The bottom and top faces are -y and +y.
     */
     // Directions for the cubemap faces
-    Vec3 lookAt[CubeFaceID::NUM_FACES] = {
+    Vec3 lookAt[TO_INT(CubeFaceID::NUM_FACES)] = {
         BASIS[0], // RIGHT
         -BASIS[0], // LEFT
         BASIS[1], // TOP
@@ -722,7 +679,7 @@ void Renderer::ComputeSphereCamMats()
         upVec is pointing backward.
     */
     // Up vectors for the cubemap faces
-    Vec3 upVec[CubeFaceID::NUM_FACES] = {
+    Vec3 upVec[TO_INT(CubeFaceID::NUM_FACES)] = {
         -BASIS[1], // RIGHT flipped
         -BASIS[1], // LEFT flipped
         BASIS[2],  // TOP flipped
@@ -732,7 +689,7 @@ void Renderer::ComputeSphereCamMats()
     };
 
 
-    for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
         sphereCamViewMat[f] = LookAt(m_scene.m_spherePos, m_scene.m_spherePos + lookAt[f], upVec[f]);
         ComputeObjMVMats(sphereCamMVMat[f], sphereCamNormalMVMat[f], sphereCamViewMat[f]);
@@ -1027,7 +984,7 @@ void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,
 /******************************************************************************/
 void SetUpSkyBoxTexture()
 {
-    unsigned char* cubeImgData, * cubeFace[CubeFaceID::NUM_FACES];
+    unsigned char* cubeImgData, * cubeFace[TO_INT(CubeFaceID::NUM_FACES)];
     int imgWidth, imgHeight, numComponents;
 
     cubeImgData = stbi_load(skyboxTexFile, &imgWidth, &imgHeight, &numComponents, 0);
@@ -1040,19 +997,20 @@ void SetUpSkyBoxTexture()
 
     int imgSizeBytes = sizeof(unsigned char) * skyboxFaceSize * skyboxFaceSize * numComponents;
 
-    for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
         cubeFace[f] = (unsigned char*)malloc(imgSizeBytes);
+    }
 
 
     /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
     /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
     /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[CubeFaceID::FRONT], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::BOTTOM], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::LEFT], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::RIGHT], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::TOP], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
-    CopySubTexture(cubeFace[CubeFaceID::BACK], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
 
     glGenTextures(1, &skyboxTexID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
@@ -1071,7 +1029,7 @@ void SetUpSkyBoxTexture()
         format = GL_RGBA;
     }
     // Upload each face of the cubemap
-    for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
         // GL_TEXTURE_CUBE_MAP_POSITIVE_X + f corresponds to the cube map face target
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, skyboxFaceSize, skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f]);
@@ -1089,7 +1047,7 @@ void SetUpSkyBoxTexture()
 
     stbi_image_free(cubeImgData);
 
-    for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
         free(cubeFace[f]);
 }
 
@@ -1141,7 +1099,7 @@ void SetUpSphereTexture(unsigned char* sphereCubeMapData[])
     glGenTextures(1, &sphereTexID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, sphereTexID);
 
-    for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, GL_RGBA8, skyboxFaceSize, skyboxFaceSize,
             0, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapData[f]);
 
@@ -1340,6 +1298,50 @@ void Renderer::CleanUp()
 
     // Note: glfwTerminate call can remain here if this is the designated point for terminating GLFW
     //glfwTerminate();
+}
+
+Rendering::Renderer::Renderer()
+    : m_window{ nullptr,WindowDeleter }, m_fps(0), m_parallaxMappingOn(false), m_sphereRef(RefType::REFLECTION_ONLY)
+{
+	// Initialize GLFW
+	if (!glfwInit()) {
+		std::cerr << "Failed to initialize GLFW\n";
+		exit(EXIT_FAILURE);
+	}
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Specify the GLFW version
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Required for MacOS
+#endif
+
+	// Create a windowed mode window and its OpenGL context
+	GLFWwindow* rawWindow = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	if (!rawWindow) {
+		glfwTerminate();
+		std::cerr << "Failed to create GLFW window\n";
+		exit(EXIT_FAILURE);
+	}
+	m_window.reset(rawWindow); // Assign rawWindow to m_window
+
+	// Make the window's context current
+	glfwMakeContextCurrent(m_window.get());
+
+	// Set callback functions...
+	glfwSetFramebufferSizeCallback(m_window.get(), Renderer::Resize);
+	glfwSetKeyCallback(m_window.get(), Keyboard);
+	glfwSetCursorPosCallback(m_window.get(), MouseMove);
+	glfwSetScrollCallback(m_window.get(), MouseScroll);
+	//Set the user pointer of the GLFW window to point to the Renderer (for the "Keyboard" function in input.cpp)
+	glfwSetWindowUserPointer(m_window.get(), this);
+
+	InitRendering();
+	InitImGui();
+
+	//need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
+	stbi_set_flip_vertically_on_load(true);
 }
 
 Renderer& Rendering::Renderer::GetInstance() {
@@ -1654,7 +1656,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, skyboxFaceSize, skyboxFaceSize,
         0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-    for (int i = 0; i < CubeFaceID::NUM_FACES; ++i)
+    for (int i = 0; i < TO_INT(CubeFaceID::NUM_FACES); ++i)
     {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sphereFrameBufferTexID, 0);
 
@@ -1730,9 +1732,10 @@ void Renderer::Render()
     {
         ComputeSphereCamMats();
 
-        unsigned char* sphereCubeMapData[CubeFaceID::NUM_FACES];
-        for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+        unsigned char* sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
+        for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
             sphereCubeMapData[f] = (unsigned char*)malloc(skyboxFaceSize * skyboxFaceSize * 4 * sizeof(unsigned char));
+        }
 
         /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
             rendering straight to the GPU texture object, similar to what we do for the
@@ -1744,7 +1747,7 @@ void Renderer::Render()
         RenderToSphereCubeMapTexture(sphereCubeMapData);
         SetUpSphereTexture(sphereCubeMapData);
 
-        for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
+        for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
             free(sphereCubeMapData[f]);
 
         firstFrame = false;

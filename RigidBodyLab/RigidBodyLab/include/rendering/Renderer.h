@@ -21,7 +21,6 @@ namespace Rendering {
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
 		Scene m_scene;
 
-		void Init();
 		void InitImGui();
 		void InitRendering();
 
@@ -45,9 +44,7 @@ namespace Rendering {
 		static void WindowDeleter(GLFWwindow* window);
 
 	public:
-		Renderer() : m_window{ nullptr,WindowDeleter }, m_fps(0), m_parallaxMappingOn(false), m_sphereRef(RefType::REFLECTION_ONLY) {
-			Init();
-		}
+		Renderer();
 
 		static Renderer& GetInstance();
 		static void Resize(GLFWwindow* window, int width, int height);
