@@ -1,7 +1,10 @@
 #include <rendering/Object.h>
+#include <utilities/ToUnderlyingEnum.h>
+
+using namespace Rendering;
 
 /*  Pre-defined meshes */
-Mesh mesh[MeshID::NUM_MESHES] =
+Mesh Rendering::mesh[TO_INT(MeshID::NUM_MESHES)] =
 {
     CreateCube(1, 1, 1),
     LoadOBJMesh("../RigidBodyLab/models/vase.obj"),
@@ -9,23 +12,22 @@ Mesh mesh[MeshID::NUM_MESHES] =
     CreateSphere(16, 16)
 };
 
-
 /*  Pre-defined objects */
-std::vector<Object> obj;
+std::vector<Object> Rendering::obj;
 
 /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
-Vec3 mirrorTranslate;
-Vec3 mirrorRotationAxis;
-float mirrorRotationAngle;
-Vec3 spherePos;
+Vec3 Rendering::mirrorTranslate;
+Vec3 Rendering::mirrorRotationAxis;
+float Rendering::mirrorRotationAngle;
+Vec3 Rendering::spherePos;
 
 
 /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
     lighting. In this frame, the vertex positions are not too large, hence the computation
     is normally more accurate.
 */
-Vec3 lightPosWF[NUM_LIGHTS], lightPosVF[NUM_LIGHTS];
-
+Vec3 Rendering::lightPosWF[NUM_LIGHTS];
+Vec3 Rendering::lightPosVF[NUM_LIGHTS];
 
 /*  Setting up the light position */
 void SetUpLight(float height);
@@ -38,7 +40,7 @@ void SetUpLight(float height);
         Set up all objects in the scene.
 */
 /******************************************************************************/
-void SetUpScene()
+void Rendering::SetUpScene()
 {
     constexpr float BASE_POS_Y = -4.5f;
     constexpr float BASE_SCL_Y = 7.5f;
@@ -92,5 +94,5 @@ void SetUpScene()
 /******************************************************************************/
 void SetUpLight(float height)
 {
-    lightPosWF[0] = Vec3(0, height, 0);
+    Rendering::lightPosWF[0] = Vec3(0, height, 0);
 }

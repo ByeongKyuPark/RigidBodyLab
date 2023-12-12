@@ -17,7 +17,8 @@
 #include <rendering/Mesh.h>
 #include <rendering/Camera.h>
 #include <input/input.h>
-#include "math/Math.h"
+#include <math/Math.h>
+#include <utilities/ToUnderlyingEnum.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <ctime>
@@ -124,8 +125,8 @@ GLfloat one = 1.0f;
 
 
 /*  For color texture */
-GLuint texID[ImageID::NUM_IMAGES];
-const char* objTexFile[ImageID::NUM_IMAGES] = { "../RigidBodyLab/images/stone.jpg", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
+GLuint texID[TO_INT(ImageID::NUM_IMAGES)];
+const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.jpg", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
 
 /*  For bump/normal texture */
 const char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
@@ -172,13 +173,16 @@ bool parallaxMappingOn = false;
 
 /*  Matrices for view/projetion transformations */
 /*  Viewer camera */
-Mat4 mainCamViewMat, mainCamProjMat, mainCamMVMat[ObjID::NUM_OBJS], mainCamNormalMVMat[ObjID::NUM_OBJS];
+Mat4 mainCamViewMat, mainCamProjMat, mainCamMVMat[TO_INT(ObjID::NUM_OBJS)], mainCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
 
 /*  Mirror camera */
-Mat4 mirrorCamViewMat, mirrorCamProjMat, mirrorCamMVMat[ObjID::NUM_OBJS], mirrorCamNormalMVMat[ObjID::NUM_OBJS];
+Mat4 mirrorCamViewMat, mirrorCamProjMat, mirrorCamMVMat[TO_INT(ObjID::NUM_OBJS)], mirrorCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
 
 /*  Sphere cameras - we need 6 of them to generate the texture cubemap */
-Mat4 sphereCamViewMat[CubeFaceID::NUM_FACES], sphereCamProjMat, sphereCamMVMat[CubeFaceID::NUM_FACES][ObjID::NUM_OBJS], sphereCamNormalMVMat[CubeFaceID::NUM_FACES][ObjID::NUM_OBJS];
+Mat4 sphereCamViewMat[TO_INT(CubeFaceID::NUM_FACES)], 
+                        sphereCamProjMat, 
+                        sphereCamMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)], 
+                        sphereCamNormalMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)];
 
 
 /*  For indicating which pass we are rendering, since we will use the same shaders to render the whole scene */
@@ -541,9 +545,10 @@ void SendLightProperties()
 /******************************************************************************/
 void ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
 {
-    for (int i = 0; i < ObjID::NUM_OBJS; ++i)
+    const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
+    for (int i = 0; i < OBJ_SIZE; ++i)
     {
-        MVMat[i] = viewMat * obj[i].modelMat;
+        MVMat[i] = viewMat * obj[i].GetModelMatrix();
         NMVMat[i] = Transpose(Inverse(MVMat[i]));
     }
 }
@@ -809,14 +814,15 @@ void SendProjMat(Mat4 projMat, GLint projMatLoc)
 /******************************************************************************/
 void SetUpObjTextures()
 {
-    glGenTextures(ImageID::NUM_IMAGES, texID);
+    glGenTextures(TO_INT(ImageID::NUM_IMAGES), texID);
 
     unsigned char* imgData;
     int imgWidth, imgHeight, numComponents;
 
     /*  Mirror and sphere will not use existing textures so we'll set them up separately */
-    for (int i = 0; i < ImageID::NUM_IMAGES; ++i)
-        if (i != ImageID::MIRROR_TEX && i != ImageID::SPHERE_TEX)
+    size_t NUM_IMGS = TO_INT(ImageID::NUM_IMAGES);
+    for (int i{}; i < NUM_IMGS; ++i)
+        if (i != TO_INT(ImageID::MIRROR_TEX) && i != TO_INT(ImageID::SPHERE_TEX))
         {
             imgData = stbi_load(objTexFile[i], &imgWidth, &imgHeight, &numComponents, 0);
             if (!imgData) {
@@ -1234,8 +1240,10 @@ void SetUp()
 
 
     /*  Send mesh data only */
-    for (int i = 0; i < MeshID::NUM_MESHES; ++i)
+    size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
+    for (int i = 0; i < NUM_MESHES; ++i) {
         SetUpVertexData(mesh[i]);
+    }
 
     /*  Set up textures for objects in the scene */
     SetUpObjTextures();
@@ -1303,14 +1311,15 @@ void CleanUp()
 
     glBindVertexArray(0);
 
-    for (int i = 0; i < MeshID::NUM_MESHES; ++i)
+    size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
+    for (int i = 0; i < NUM_MESHES; ++i)
     {
         glDeleteVertexArrays(1, &mesh[i].VAO);
         glDeleteBuffers(1, &mesh[i].VBO);
         glDeleteBuffers(1, &mesh[i].IBO);
     }
 
-    glDeleteTextures(ImageID::NUM_IMAGES, texID);
+    glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), texID);
     glDeleteTextures(1, &bumpTexID);
     glDeleteTextures(1, &normalTexID);
     glDeleteTextures(1, &skyboxTexID);
@@ -1462,8 +1471,8 @@ void RenderSkybox(const Mat4& viewMat)
 void RenderObj(const Object& obj)
 {
     /*  Tell shader to use obj's VAO for rendering */
-    glBindVertexArray(mesh[obj.meshID].VAO);
-    glDrawElements(GL_TRIANGLES, mesh[obj.meshID].numIndices, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(mesh[TO_INT(obj.GetMeshID())].VAO);
+    glDrawElements(GL_TRIANGLES, mesh[TO_INT(obj.GetMeshID())].numIndices, GL_UNSIGNED_INT, nullptr);
 }
 
 
@@ -1487,10 +1496,10 @@ void RenderSphere()
     SendViewMat(mainCamViewMat, sphereViewMatLoc);
 
     /*  These are for transforming vertices on the sphere */
-    SendMVMat(mainCamMVMat[ObjID::SPHERE], mainCamNormalMVMat[ObjID::SPHERE], sphereMVMatLoc, sphereNMVMatLoc);
+    SendMVMat(mainCamMVMat[TO_INT(ObjID::SPHERE)], mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], sphereMVMatLoc, sphereNMVMatLoc);
     SendProjMat(mainCamProjMat, sphereProjMatLoc);
 
-    RenderObj(obj[ObjID::SPHERE]);
+    RenderObj(obj[TO_INT(ObjID::SPHERE)]);
 }
 
 
@@ -1536,34 +1545,38 @@ void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
     SendProjMat(projMat, mainProjMatLoc);
 
     /*  Send object texture and render them */
-    for (int i = 0; i < ObjID::NUM_OBJS; ++i)
-        if (i == ObjID::SPHERE)
+    size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
+    for (int i = 0; i < NUM_OBJS; ++i)
+        if (i == TO_INT(ObjID::SPHERE)) {
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
-        else
-
+        }
+        else {
             if (renderPass == RenderPass::MIRRORTEX_GENERATION
-                && (i == ObjID::MIRROR || i == ObjID::MIRRORBASE1 || i == ObjID::MIRRORBASE2 || i == ObjID::MIRRORBASE3))
+                && (i == TO_INT(ObjID::MIRROR) || i == TO_INT(ObjID::MIRRORBASE1)
+                    || i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
+            {
                 continue;           /*  Not drawing objects behind mirror & mirror itself */
-            else
-
-                if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == ObjID::MIRROR))
+            }
+            else {
+                if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
                     continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                }
                 else
                 {
-                    if (i == ObjID::MIRROR)
+                    if (i == TO_INT(ObjID::MIRROR))
                     {
                         SendMirrorTexID();
                         glUniform1i(lightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
-                        SendObjTexID(texID[obj[i].imageID], ActiveTexID::COLOR, textureLoc);
+                        SendObjTexID(texID[TO_INT(obj[i].GetImageID())], ActiveTexID::COLOR, textureLoc);
                         glUniform1i(lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
                     SendMVMat(MVMat[i], normalMVMat[i], mainMVMatLoc, mainNMVMatLoc);
 
-                    if (i == ObjID::BASE)   /*  apply normal mapping / parallax mapping for the base */
+                    if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
                     {
                         SendObjTexID(normalTexID, ActiveTexID::NORMAL, normalTexLoc);
                         glUniform1i(normalMappingOnLoc, true);
@@ -1582,15 +1595,19 @@ void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
                         Hence we need to perform front-face culling for it.
                         Other objects use back-face culling as usual.
                     */
-                    if (i == ObjID::MIRROR)
+                    if (i == TO_INT(ObjID::MIRROR)) {
                         glCullFace(GL_FRONT);
+                    }
 
                     RenderObj(obj[i]);
 
                     /*  Trigger back-face culling again */
-                    if (i == ObjID::MIRROR)
+                    if (i == TO_INT(ObjID::MIRROR)) {
                         glCullFace(GL_BACK);
+                    }
                 }
+            }
+        }
 }
 
 
