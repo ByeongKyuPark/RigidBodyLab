@@ -1,4 +1,3 @@
-
 #ifdef _MSC_VER
 #pragma warning(push, 0)  // Microsoft Visual Studio
 #define _CRT_SECURE_NO_WARNINGS
@@ -27,9 +26,6 @@
 #include "backends/imgui_impl_opengl3.h"
 
 using namespace Rendering;
-
-//// Define the window variable
-//GLFWwindow* window = nullptr;
 
 void Renderer::Init() {
     // Initialize GLFW
@@ -486,26 +482,24 @@ void SetUpVertexData(Mesh& mesh)
     }
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void UpdateLightPosViewFrame()
 \brief
-        Compute view-frame light positions and send them to shader when needed.
+Compute view-frame light positions and send them to shader when needed.
 */
 /******************************************************************************/
-void UpdateLightPosViewFrame()
+void Renderer::UpdateLightPosViewFrame()
 {
     if (mainCam.moved)
     {
-        for (int i = 0; i < NUM_LIGHTS; ++i)
-            lightPosVF[i] = Vec3(mainCamViewMat * Vec4(lightPosWF[i], 1.0f));
+        for (int i = 0; i < m_scene.NUM_LIGHTS; ++i) {
+            m_scene.m_lightPosVF[i] = Vec3(mainCamViewMat * Vec4(m_scene.m_lightPosWF[i], 1.0f));
+        }
 
-        glUniform3fv(lightPosLoc, NUM_LIGHTS, ValuePtr(lightPosVF[0]));
+        glUniform3fv(lightPosLoc, m_scene.NUM_LIGHTS, ValuePtr(m_scene.m_lightPosVF[0]));
     }
 }
-
-
 /******************************************************************************/
 /*!
 \fn     void SendLightProperties()
@@ -513,23 +507,23 @@ void UpdateLightPosViewFrame()
         Send numLights and intensities to the rendering program.
 */
 /******************************************************************************/
-void SendLightProperties()
+void Renderer::SendLightProperties()
 {
-    glUniform1i(numLightsLoc, NUM_LIGHTS);
+    glUniform1i(numLightsLoc, m_scene.NUM_LIGHTS);
 
     /*  ambient, diffuse, specular are now reflected components on the object
         surface and can be used directly as intensities in the lighting equation.
     */
     Vec4 ambient, diffuse, specular;
-    ambient = I * ambientAlbedo;
-    diffuse = I * diffuseAlbedo;
-    specular = I * specularAlbedo;
+    ambient = m_scene.m_I * m_scene.m_ambientAlbedo;
+    diffuse = m_scene.m_I * m_scene.m_diffuseAlbedo;
+    specular = m_scene.m_I * m_scene.m_specularAlbedo;
 
     glUniform4fv(ambientLoc, 1, ValuePtr(ambient));
     glUniform4fv(diffuseLoc, 1, ValuePtr(diffuse));
     glUniform4fv(specularLoc, 1, ValuePtr(specular));
 
-    glUniform1i(specularPowerLoc, specularPower);
+    glUniform1i(specularPowerLoc, m_scene.m_specularPower);
 }
 
 
@@ -546,12 +540,12 @@ void SendLightProperties()
         Given view matrix.
 */
 /******************************************************************************/
-void ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
+void Renderer::ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
 {
     const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < OBJ_SIZE; ++i)
     {
-        MVMat[i] = viewMat * obj[i].GetModelMatrix();
+        MVMat[i] = viewMat * m_scene.m_objects[i].GetModelMatrix();
         NMVMat[i] = Transpose(Inverse(MVMat[i]));
     }
 }
@@ -564,7 +558,7 @@ void ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
         Compute the view/projection and other related matrices for user camera.
 */
 /******************************************************************************/
-void ComputeMainCamMats()
+void Renderer::ComputeMainCamMats()
 {
     /*  Update view transform matrix */
     if (mainCam.moved)
@@ -586,12 +580,13 @@ void ComputeMainCamMats()
         Compute the view/projection and other related matrices for mirror camera.
 */
 /******************************************************************************/
-void ComputeMirrorCamMats()
+void Renderer::ComputeMirrorCamMats()
 {
     if (mainCam.moved)
     {
         /*  Computing position of user camera in mirror frame */
-        Vec3 mainCamMirrorFrame = Vec3(Rotate(-mirrorRotationAngle, mirrorRotationAxis) *Translate(-mirrorTranslate) * Vec4(mainCam.pos, 1.0));
+        Vec3 mainCamMirrorFrame = Vec3(Rotate(-m_scene.m_mirrorRotationAngle, m_scene.m_mirrorRotationAxis) 
+                                        *Translate(-m_scene.m_mirrorTranslate) * Vec4(mainCam.pos, 1.0));
 
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
         if (mainCamMirrorFrame.z <= 0)
@@ -611,9 +606,9 @@ void ComputeMirrorCamMats()
 
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
 
-        mirrorCam.pos = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(mirrorCamMirrorFrame, 1.0));
+        mirrorCam.pos = Vec3(Translate(m_scene.m_mirrorTranslate) * Rotate(m_scene.m_mirrorRotationAngle, m_scene.m_mirrorRotationAxis) * Vec4(mirrorCamMirrorFrame, 1.0));
         mirrorCam.upVec = BASIS[Y];
-        mirrorCam.lookAt = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(0, 0, 0, 1));
+        mirrorCam.lookAt = Vec3(Translate(m_scene.m_mirrorTranslate) * Rotate(m_scene.m_mirrorRotationAngle, m_scene.m_mirrorRotationAxis) * Vec4(0, 0, 0, 1));
 
         mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
@@ -648,7 +643,7 @@ void ComputeMirrorCamMats()
 
         float nearDist = INFINITY;
         for (Vec3& midPoint : midsPoint) {
-            Vec3 midCamFrame = Vec3(Translate(mirrorTranslate) * Rotate(mirrorRotationAngle, mirrorRotationAxis) * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
+            Vec3 midCamFrame = Vec3(Translate(m_scene.m_mirrorTranslate) * Rotate(m_scene.m_mirrorRotationAngle, m_scene.m_mirrorRotationAxis) * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
             midPoint = midCamFrame - mirrorCam.pos;//mid : cameraFrame -> mirroredCameraFrame
             float projectionLength = Dot(midPoint, mirrorCamViewMirrorFrame);
             nearDist = std::min(nearDist, projectionLength);
@@ -703,7 +698,7 @@ void ComputeMirrorCamMats()
         Compute the view/projection and other related matrices for sphere camera.
 */
 /******************************************************************************/
-void ComputeSphereCamMats()
+void Renderer::ComputeSphereCamMats()
 {
     /*  Compute the lookAt positions for the 6 faces of the sphere cubemap.
         The sphere camera is at spherePos.
@@ -739,7 +734,7 @@ void ComputeSphereCamMats()
 
     for (int f = 0; f < CubeFaceID::NUM_FACES; ++f)
     {
-        sphereCamViewMat[f] = LookAt(spherePos, spherePos + lookAt[f], upVec[f]);
+        sphereCamViewMat[f] = LookAt(m_scene.m_spherePos, m_scene.m_spherePos + lookAt[f], upVec[f]);
         ComputeObjMVMats(sphereCamMVMat[f], sphereCamNormalMVMat[f], sphereCamViewMat[f]);
     }
 
@@ -1236,7 +1231,7 @@ void Renderer::SetUpDemoScene()
         - Obj attributes, which include mesh type, size, pos, color/texture ...
         - Light positions
     */
-    SetUpScene();
+    //SetUpScene();
 
     for (int i = 0; i < ProgType::NUM_PROGTYPES; ++i)
         prog[i] = CompileShaders(file[i][ShaderType::VERTEX_SHADER], file[i][ShaderType::FRAGMENT_SHADER]);
@@ -1245,7 +1240,8 @@ void Renderer::SetUpDemoScene()
     /*  Send mesh data only */
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
     for (int i = 0; i < NUM_MESHES; ++i) {
-        SetUpVertexData(mesh[i]);
+        Mesh& mesh = m_scene.GetResourceManager().GetMesh(static_cast<MeshID>(i));
+        SetUpVertexData(mesh);
     }
 
     /*  Set up textures for objects in the scene */
@@ -1317,9 +1313,10 @@ void Renderer::CleanUp()
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
     for (int i = 0; i < NUM_MESHES; ++i)
     {
-        glDeleteVertexArrays(1, &mesh[i].VAO);
-        glDeleteBuffers(1, &mesh[i].VBO);
-        glDeleteBuffers(1, &mesh[i].IBO);
+        Mesh& mesh = m_scene.GetResourceManager().GetMesh(static_cast<MeshID>(i));
+        glDeleteVertexArrays(1, &mesh.VAO);
+        glDeleteBuffers(1, &mesh.VBO);
+        glDeleteBuffers(1, &mesh.IBO);
     }
 
     glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), texID);
@@ -1343,6 +1340,11 @@ void Renderer::CleanUp()
 
     // Note: glfwTerminate call can remain here if this is the designated point for terminating GLFW
     //glfwTerminate();
+}
+
+Renderer& Rendering::Renderer::GetInstance() {
+    static Renderer instance;
+    return instance;
 }
 
 /******************************************************************************/
@@ -1413,6 +1415,12 @@ void Renderer::InitRendering() {
     // additional setups such as setting uniforms here
 }
 
+// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
+// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
+
+void Rendering::Renderer::WindowDeleter(GLFWwindow* window) {
+    glfwDestroyWindow(window);
+}
 
 /******************************************************************************/
 /*!
@@ -1421,7 +1429,7 @@ void Renderer::InitRendering() {
         Estimating FPS. This only updates the FPS about once per second.
 */
 /******************************************************************************/
-void EstimateFPS()
+void Renderer::EstimateFPS()
 {
     ++frameCount;
 
@@ -1448,7 +1456,7 @@ void EstimateFPS()
         The view transform matrix to define the orientation of our camera.
 */
 /******************************************************************************/
-void RenderSkybox(const Mat4& viewMat)
+void Renderer::RenderSkybox(const Mat4& viewMat)
 {
     glClearBufferfv(GL_DEPTH, 0, &one);
 
@@ -1472,11 +1480,12 @@ void RenderSkybox(const Mat4& viewMat)
         The object that we want to render.
 */
 /******************************************************************************/
-void RenderObj(const Object& obj)
+void Renderer::RenderObj(const Object& obj)
 {
     /*  Tell shader to use obj's VAO for rendering */
-    glBindVertexArray(mesh[TO_INT(obj.GetMeshID())].VAO);
-    glDrawElements(GL_TRIANGLES, mesh[TO_INT(obj.GetMeshID())].numIndices, GL_UNSIGNED_INT, nullptr);
+    const Mesh& mesh = obj.GetMesh();
+    glBindVertexArray(mesh.VAO);
+    glDrawElements(GL_TRIANGLES, mesh.numIndices, GL_UNSIGNED_INT, nullptr);
 }
 
 
@@ -1487,7 +1496,7 @@ void RenderObj(const Object& obj)
         Render the sphere using its own shader program.
 */
 /******************************************************************************/
-void RenderSphere()
+void Renderer::RenderSphere()
 {
     glUseProgram(prog[ProgType::SPHERE_PROG]);
 
@@ -1503,7 +1512,7 @@ void RenderSphere()
     SendMVMat(mainCamMVMat[TO_INT(ObjID::SPHERE)], mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], sphereMVMatLoc, sphereNMVMatLoc);
     SendProjMat(mainCamProjMat, sphereProjMatLoc);
 
-    RenderObj(obj[TO_INT(ObjID::SPHERE)]);
+    RenderObj(m_scene.GetObject(TO_INT(ObjID::SPHERE)));
 }
 
 
@@ -1533,7 +1542,7 @@ void RenderSphere()
         We need this flag because each pass only render certain objects.
 */
 /******************************************************************************/
-void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
+void Renderer::RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
     int viewportWidth, int viewportHeight,
     int renderPass)
 {
@@ -1574,7 +1583,7 @@ void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
                     }
                     else
                     {
-                        SendObjTexID(texID[TO_INT(obj[i].GetImageID())], ActiveTexID::COLOR, textureLoc);
+                        SendObjTexID(texID[TO_INT(m_scene.GetObject(i).GetImageID())], ActiveTexID::COLOR, textureLoc);
                         glUniform1i(lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
@@ -1603,7 +1612,7 @@ void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
                         glCullFace(GL_FRONT);
                     }
 
-                    RenderObj(obj[i]);
+                    RenderObj(m_scene.GetObject(i));
 
                     /*  Trigger back-face culling again */
                     if (i == TO_INT(ObjID::MIRROR)) {
@@ -1625,7 +1634,7 @@ void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
         Buffers to store the 6 faces of the cubemap texture.
 */
 /******************************************************************************/
-void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[])
+void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[])
 {
     /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
         rendering straight to the GPU cubemap texture object, similar to what we do for the
@@ -1670,7 +1679,7 @@ void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[])
         already bound to mirrorFrameBufferID in SetUpMirrorTexture function.
 */
 /******************************************************************************/
-void RenderToMirrorTexture()
+void Renderer::RenderToMirrorTexture()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mirrorFrameBufferID);
     RenderObjsBg(mirrorCamMVMat, mirrorCamNormalMVMat, mirrorCamViewMat, mirrorCamProjMat,
@@ -1686,7 +1695,7 @@ void RenderToMirrorTexture()
         Render the scene to the default framebuffer.
 */
 /******************************************************************************/
-void RenderToScreen()
+void Renderer::RenderToScreen()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     RenderObjsBg(mainCamMVMat, mainCamNormalMVMat, mainCamViewMat, mainCamProjMat,

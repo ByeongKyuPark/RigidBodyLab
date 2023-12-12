@@ -1,66 +1,49 @@
-//#pragma once
-//
-//#include "Object.h"
-//#include <vector>
-//
-//namespace Rendering {
-//
-//    class Scene {
-//    private:
-//        std::vector<Object> m_objects;
-//        Mesh m_meshes[MeshID::NumMeshes];
-//        Vec3 m_lightPositionsWF[NUM_LIGHTS], m_lightPositionsVF[NUM_LIGHTS];
-//        Vec4 m_ambientAlbedo;
-//        Vec4 m_diffuseAlbedo;
-//        Vec4 m_specularAlbedo;
-//        int m_specularPower;
-//        Vec3 m_mirrorTranslate;
-//        Vec3 m_mirrorRotationAxis;
-//        float m_mirrorRotationAngle;
-//        Vec3 m_spherePos;
-//
-//    public:
-//        Scene() : m_specularPower(10) { /* Initialize default scene values here */ }
-//
-//        // Add an object to the scene
-//        void AddObject(const Object& object) {
-//            m_objects.push_back(object);
-//        }
-//
-//        // Remove an object from the scene by index
-//        void RemoveObject(size_t index) {
-//            if (index < m_objects.size()) {
-//                m_objects.erase(m_objects.begin() + index);
-//            }
-//        }
-//
-//        // Scene setup (initialization)
-//        void SetUpScene() {
-//            // Implementation for setting up the scene
-//        }
-//
-//        // Getters and setters
-//        const std::vector<Object>& GetObjects() const { return m_objects; }
-//        void SetObjects(const std::vector<Object>& objects) { m_objects = objects; }
-//
-//        Vec3 GetMirrorTranslation() const { return m_mirrorTranslate; }
-//        void SetMirrorTranslation(const Vec3& translation) { m_mirrorTranslate = translation; }
-//
-//        Vec3 GetMirrorRotationAxis() const { return m_mirrorRotationAxis; }
-//        void SetMirrorRotationAxis(const Vec3& axis) { m_mirrorRotationAxis = axis; }
-//
-//        float GetMirrorRotationAngle() const { return m_mirrorRotationAngle; }
-//        void SetMirrorRotationAngle(float angle) { m_mirrorRotationAngle = angle; }
-//
-//        Vec3 GetSpherePosition() const { return m_spherePos; }
-//        void SetSpherePosition(const Vec3& position) { m_spherePos = position; }
-//
-//        // ... Additional getters and setters for other properties ...
-//
-//        // Methods to manage lighting, materials, etc.
-//        // ...
-//
-//        // Any other scene-related methods...
-//    };
-//
-//}
+#pragma once
+
+#include "Object.h"
+#include <vector>
+#include <rendering/ResourceManager.h>
+
+namespace Rendering {
+    class Scene {
+        static constexpr int NUM_LIGHTS = 1;
+
+        ResourceManager m_resourceManager;
+        std::vector<Object> m_objects;
+
+        /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
+            lighting. In this frame, the vertex positions are not too large, hence the computation
+            is normally more accurate.
+        */
+        Vec3 m_lightPosWF[NUM_LIGHTS];
+        Vec3 m_lightPosVF[NUM_LIGHTS];
+
+        Vec4 m_I;
+        Vec4 m_ambientAlbedo;
+        Vec4 m_diffuseAlbedo;
+        Vec4 m_specularAlbedo;
+        int m_specularPower;
+
+        /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
+        Vec3 m_mirrorTranslate;
+        Vec3 m_mirrorRotationAxis;
+        float m_mirrorRotationAngle;
+        Vec3 m_spherePos;
+
+    private:
+        void UpdateLightPosViewFrame();
+        void SetUpLight(float height);
+        void SetUpScene();
+
+        friend class Renderer;
+
+    public:
+        Scene();
+
+        Object& GetObject(size_t index);
+        const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
+        const Vec4& GetIntensity() const { return m_I; }
+        const ResourceManager& GetResourceManager() const { return m_resourceManager; }
+        ResourceManager& GetResourceManager(){ return m_resourceManager; }
+    };
+}
