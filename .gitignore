@@ -7,3 +7,4 @@
 # Exclude the build directory
 /RigidBodyLab/build/
 /external/stb
+/extern/freeimage
