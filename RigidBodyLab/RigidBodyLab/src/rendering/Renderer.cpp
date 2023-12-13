@@ -83,7 +83,7 @@ GLfloat one = 1.0f;
 
 /*  For color texture */
 GLuint texID[TO_INT(ImageID::NUM_IMAGES)];
-const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.jpg", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
+const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone_old.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
 
 /*  For bump/normal texture */
 const char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
@@ -1301,7 +1301,7 @@ void Renderer::CleanUp()
 }
 
 Rendering::Renderer::Renderer()
-    : m_window{ nullptr,WindowDeleter }, m_fps(0), m_parallaxMappingOn(false), m_sphereRef(RefType::REFLECTION_ONLY)
+    : m_window{ nullptr,WindowDeleter }, m_fps(0), m_parallaxMappingOn(true), m_sphereRef(RefType::REFLECTION_ONLY)
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -1407,14 +1407,6 @@ void Renderer::InitRendering() {
     glFrontFace(GL_CCW); // Front faces are counter-clockwise
     glEnable(GL_BLEND); // Enable blending (for transparency)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Load shaders
-    //LoadShaders(); // Placeholder - gonna replace with actual shader loading code
-
-    // Load textures
-    //LoadTextures(); // Placeholder - gonna replace with actual texture loading code
-
-    // additional setups such as setting uniforms here
 }
 
 // GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
@@ -1772,6 +1764,15 @@ void Renderer::Render()
     mainCam.resized = false;
 
     EstimateFPS();
+
+    // Displaying FPS
+    ImGui::SetNextWindowPos(ImVec2(DISPLAY_SIZE, 0));
+    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH * 2.f));    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
+    // Sphere reflection & refraction
+    const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
+    ImGui::Combo("Sphere", &sphereRef, refTypes, IM_ARRAYSIZE(refTypes)); // Assuming sphereRef is an int variable
+    // Parallax mapping toggling
+    ImGui::Checkbox("Parallax Mapping", &parallaxMappingOn); // Assuming parallaxMappingOn is a bool variable
 
     // Rendering
     ImGui::Render();
