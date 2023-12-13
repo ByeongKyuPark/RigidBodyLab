@@ -65,6 +65,7 @@ namespace Rendering {
 		void Render();
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
+		bool& GetParallaxMapping() { return m_parallaxMappingOn; }
 		void SetParallaxMapping(bool on) { m_parallaxMappingOn = on; }
 
 		bool ShouldClose()const { return glfwWindowShouldClose(m_window.get()); }

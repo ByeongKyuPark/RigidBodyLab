@@ -47,6 +47,5 @@ namespace Rendering {
 
     private:
         std::array<Mesh, TO_INT(MeshID::NUM_MESHES)> meshes;
-        // Initialize your meshes and images here
     };
 }

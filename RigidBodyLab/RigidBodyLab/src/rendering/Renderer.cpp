@@ -18,6 +18,7 @@
 #include <input/input.h>
 #include <math/Math.h>
 #include <utilities/ToUnderlyingEnum.h>
+#include "../../extern/freeimage/image_io.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <ctime>
@@ -83,7 +84,7 @@ GLfloat one = 1.0f;
 
 /*  For color texture */
 GLuint texID[TO_INT(ImageID::NUM_IMAGES)];
-const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone_old.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
+const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
 
 /*  For bump/normal texture */
 const char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
@@ -121,10 +122,6 @@ GLuint mirrorTexID, mirrorFrameBufferID;
 
 /*  For turning off generating mirror "reflection" texture when mirror is not visible */
 bool mirrorVisible;
-
-
-/*  Toggling parallax mapping */
-bool parallaxMappingOn = false;
 
 
 /*  Matrices for view/projetion transformations */
@@ -872,13 +869,17 @@ void SetUpBaseBumpNormalTextures()
     int imgWidth, imgHeight, numComponents;
 
     /*  Load bump image */
-    bumpImgData = stbi_load(bumpTexFile, &imgWidth, &imgHeight, &numComponents,0);
-    if (!bumpImgData)
+    //bumpImgData = stbi_load(bumpTexFile, &imgWidth, &imgHeight, &numComponents,0);
+    //if (!bumpImgData)
+    //{
+    //    std::cerr << "Reading " << bumpTexFile << " failed.\n";
+    //    exit(1);
+    //}
+    if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0)
     {
         std::cerr << "Reading " << bumpTexFile << " failed.\n";
         exit(1);
     }
-
     /*  Create normal image */
     normalImgData = (unsigned char*)malloc(imgWidth * imgHeight * 3 * sizeof(unsigned char));
 
@@ -1587,10 +1588,11 @@ void Renderer::RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4
                     {
                         SendObjTexID(normalTexID, ActiveTexID::NORMAL, normalTexLoc);
                         glUniform1i(normalMappingOnLoc, true);
-                        glUniform1i(parallaxMappingOnLoc, parallaxMappingOn);
+                        glUniform1i(parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
-                        if (parallaxMappingOn)
+                        if (Renderer::GetInstance().IsParallaxMappingOn()) {
                             SendObjTexID(bumpTexID, ActiveTexID::BUMP, bumpTexLoc);
+                        }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
                     {
@@ -1771,14 +1773,14 @@ void Renderer::Render()
 
     // Displaying FPS
     ImGui::SetNextWindowPos(ImVec2(DISPLAY_SIZE-GUI_WIDTH, 0));
-    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH*0.5));    
+    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH*0.3));    
     ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
     // Sphere reflection & refraction
     const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
-    ImGui::Combo("Sphere", &sphereRef, refTypes, IM_ARRAYSIZE(refTypes)); // Assuming sphereRef is an int variable
+    ImGui::Combo("Sphere", &sphereRef, refTypes, IM_ARRAYSIZE(refTypes));
     // Parallax mapping toggling
-    ImGui::Checkbox("Parallax Mapping", &parallaxMappingOn); // Assuming parallaxMappingOn is a bool variable
-
+    ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
+    
     // Rendering
     ImGui::Render();
     int display_w, display_h;
