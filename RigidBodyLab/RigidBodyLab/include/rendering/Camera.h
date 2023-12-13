@@ -4,7 +4,7 @@
 namespace Rendering 
 {
     constexpr int DISPLAY_SIZE = 1080;
-    constexpr int GUI_WIDTH = 200;
+    constexpr int GUI_WIDTH = 250;
 /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
 /*  The steps for rotation */

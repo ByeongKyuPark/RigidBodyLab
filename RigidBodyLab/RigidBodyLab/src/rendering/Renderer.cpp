@@ -1765,9 +1765,14 @@ void Renderer::Render()
 
     EstimateFPS();
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
     // Displaying FPS
-    ImGui::SetNextWindowPos(ImVec2(DISPLAY_SIZE, 0));
-    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH * 2.f));    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
+    ImGui::SetNextWindowPos(ImVec2(DISPLAY_SIZE-GUI_WIDTH, 0));
+    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH*0.5));    
+    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
     // Sphere reflection & refraction
     const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
     ImGui::Combo("Sphere", &sphereRef, refTypes, IM_ARRAYSIZE(refTypes)); // Assuming sphereRef is an int variable

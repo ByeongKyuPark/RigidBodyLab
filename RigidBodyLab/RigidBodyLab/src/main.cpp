@@ -14,11 +14,6 @@ void MainLoop(Renderer& renderer){
     while (!renderer.ShouldClose()) {
         glfwPollEvents();
 
-        // Start the Dear ImGui frame , TODO::move
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
         // Rendering
         renderer.Render();
     }
