@@ -1,12 +1,3 @@
-///*  Pre-defined lights */
-//const int NUM_LIGHTS = 1;
-//
-///*  Light pos are defined in world frame, but we need to compute their pos in view frame for
-//    lighting. In this frame, the vertices are not too scattered, hence the computation
-//    is normally more accurate.
-//*/
-//Vec3 lightPosWF[NUM_LIGHTS], lightPosVF[NUM_LIGHTS];
-
 #pragma once
 
 #include <math/Math.h>
@@ -26,7 +17,8 @@ namespace Rendering {
         Vec3 m_Direction;      // Used for directional and spotlights
         Vec4 m_Color;          // RGBA color of the light
         float m_Intensity;     // Intensity of the light
-        // Additional attributes like attenuation factors for point and spotlights
+
+        //TODO:: Additional attributes like attenuation factors for point and spotlights
 
     public:
         Light(LightType type, const Vec3& position, const Vec3& direction, const Vec4& color, float intensity)
@@ -47,9 +39,6 @@ namespace Rendering {
 
         float GetIntensity() const { return m_Intensity; }
         void SetIntensity(float intensity) { m_Intensity = intensity; }
-
-        // ... Additional methods for light behavior ...
-
     };
 
 }
