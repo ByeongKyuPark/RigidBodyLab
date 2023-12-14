@@ -10,7 +10,6 @@
 #pragma warning(pop)
 #endif
 
-
 #include <glad/glad.h>
 #include <rendering/Renderer.h>
 #include <rendering/Mesh.h>
@@ -18,7 +17,7 @@
 #include <input/input.h>
 #include <math/Math.h>
 #include <utilities/ToUnderlyingEnum.h>
-#include "../../extern/freeimage/image_io.h"
+#include <image_io.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <ctime>
@@ -27,46 +26,6 @@
 #include "backends/imgui_impl_opengl3.h"
 
 using namespace Rendering;
-
-/******************************************************************************/
-/*!
-\fn     ReadTextFile
-\brief
-        Read the content of a text file.
-\param  const char fn[]
-        Text filename.
-\return
-        The content of the given text file.
-*/
-/******************************************************************************/
-const char* ReadTextFile(const char fn[])
-{
-    FILE* fp;
-    char* content = NULL;
-    int count = 0;
-
-    if (fn != NULL)
-    {
-        fp = fopen(fn, "rt");
-        if (fp != NULL)
-        {
-            fseek(fp, 0, SEEK_END);
-            count = ftell(fp);
-            rewind(fp);
-
-            if (count > 0)
-            {
-                content = new char[count + 1];
-                count = fread(content, sizeof(char), count, fp);
-                content[count] = '\0';
-            }
-
-            fclose(fp);
-        }
-    }
-    return content;
-}
-
 
 /******************************************************************************/
 /*  Graphics-related variables                                                */
@@ -138,52 +97,6 @@ Mat4 sphereCamViewMat[TO_INT(CubeFaceID::NUM_FACES)],
                         sphereCamNormalMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)];
 
 
-/*  For indicating which pass we are rendering, since we will use the same shaders to render the whole scene */
-/*  SPHERETEX_GENERATION: Generating the scene texture for the sphere reflection/refraction */
-/*  MIRRORTEX_GENERATION: Generating the scene texture for the mirror reflection */
-/*  NORMAL              : Render the final scene as normal */
-struct RenderPass
-{
-    enum { SPHERETEX_GENERATION, MIRRORTEX_GENERATION, NORMAL };
-};
-
-
-/*  We need 3 set of shaders programs */
-/*  MAIN_PROG   : Render all the objects in the scene, used for the above 3 passes */
-/*  SKYBOX_PROG : Render the background */
-/*  SPHERE_PROG : Render the relective/refractive sphere */
-struct ProgType
-{
-    enum { MAIN_PROG = 0, SKYBOX_PROG, SPHERE_PROG, NUM_PROGTYPES };
-};
-
-struct ShaderType
-{
-    enum { VERTEX_SHADER = 0, FRAGMENT_SHADER, NUM_SHADERTYPES };
-};
-
-/*  Shader filenames */
-const char file[ProgType::NUM_PROGTYPES][ShaderType::NUM_SHADERTYPES][100] =
-{
-    {
-        { "../RigidBodyLab/shaders/main.vs" },
-        { "../RigidBodyLab/shaders/main.fs" }
-    },
-    {
-        { "../RigidBodyLab/shaders/skybox.vs" },
-        { "../RigidBodyLab/shaders/skybox.fs" }
-    },
-    {
-        { "../RigidBodyLab/shaders/sphere.vs" },
-        { "../RigidBodyLab/shaders/sphere.fs" }
-    }
-};
-
-/*  ID of the shader programs that we'll use */
-GLuint prog[ProgType::NUM_PROGTYPES];
-
-
-
 /*  Locations of the variables in the shader. */
 /*  Locations of transform matrices */
 GLint mainMVMatLoc, mainNMVMatLoc, mainProjMatLoc;  /*  used for main program */
@@ -207,124 +120,6 @@ GLint normalMappingOnLoc, parallaxMappingOnLoc;
 GLint numLightsLoc, lightPosLoc;
 GLint lightOnLoc;
 GLint ambientLoc, diffuseLoc, specularLoc, specularPowerLoc;
-
-
-
-/******************************************************************************/
-/*!
-\fn     void ValidateShader(GLuint shader, const char *file)
-\brief
-        Check whether shader files can be compiled successfully.
-\param  shader
-        ID of the shader
-\param  file
-        Shader file name
-*/
-/******************************************************************************/
-void ValidateShader(GLuint shader, const char* file)
-{
-    const unsigned int BUFFER_SIZE = 512;
-    char buffer[BUFFER_SIZE];
-
-    GLsizei length = 0;
-    GLint result;
-
-    glGetShaderInfoLog(shader, 512, &length, buffer);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
-
-    if (result != GL_TRUE && length > 0)
-    {
-        std::cerr << "Shader " << file << " compilation error: " << buffer << "\n";
-        exit(1);
-    }
-    else
-        std::cout << "Shader " << file << " compilation successful.\n";
-}
-
-
-/******************************************************************************/
-/*!
-\fn     void ValidateProgram(GLuint program)
-\brief
-        Check whether shader program can be linked successfully.
-\param  program
-        ID of the shader program
-*/
-/******************************************************************************/
-void ValidateProgram(GLuint program)
-{
-    const unsigned int BUFFER_SIZE = 512;
-    char buffer[BUFFER_SIZE];
-    memset(buffer, 0, BUFFER_SIZE);
-    GLsizei length = 0;
-    GLint status;
-
-    /*  Ask OpenGL to give us the log associated with the program */
-    glGetProgramInfoLog(program, BUFFER_SIZE, &length, buffer);
-    glGetProgramiv(program, GL_LINK_STATUS, &status);
-
-    if (status != GL_TRUE && length > 0)
-    {
-        std::cerr << "Program " << program << " link error: " << buffer << "\n";
-        exit(1);
-    }
-    else
-        std::cout << "Program " << program << " link successful.\n";
-
-    /*  Ask OpenGL to validate the program */
-    glValidateProgram(program);
-    glGetProgramiv(program, GL_VALIDATE_STATUS, &status);
-    if (status == GL_FALSE)
-    {
-        std::cerr << "Error validating shader " << program << ".\n";
-        exit(1);
-    }
-    else
-    {
-        std::cout << "Program " << program << " validation successful.\n";
-    }
-}
-
-
-/******************************************************************************/
-/*!
-\fn     GLuint CompileShaders(char vsFilename[], char fsFilename[])
-\brief
-        Read the shader files, compile and link them into a program for render.
-\param  const char vsFilename[]
-        Vertex shader filename.
-\param  const char fsFilename[]
-        Fragment shader filename.
-\return
-        The rendering program ID.
-*/
-/******************************************************************************/
-GLuint CompileShaders(const char vsFilename[], const char fsFilename[])
-{
-    const char* vsSource = ReadTextFile(vsFilename);
-    const GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vsSource, NULL);
-    glCompileShader(vertexShader);
-    ValidateShader(vertexShader, vsFilename);           /*  Prints any errors */
-
-    const char* fsSource = ReadTextFile(fsFilename);
-    const GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fsSource, NULL);
-    glCompileShader(fragmentShader);
-    ValidateShader(fragmentShader, fsFilename);           /*  Prints any errors */
-
-    const GLuint program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-    ValidateProgram(program);                           /*  Print any errors */
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    return program;
-}
-
 
 /******************************************************************************/
 /*!
@@ -483,7 +278,7 @@ void Renderer::SendLightProperties()
 
 /******************************************************************************/
 /*!
-\fn     ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
+\fn     ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], const Mat4& viewMat)
 \brief
         Compute the modelview matrices for positions and normals.
 \param  MVMat
@@ -494,7 +289,7 @@ void Renderer::SendLightProperties()
         Given view matrix.
 */
 /******************************************************************************/
-void Renderer::ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat)
+void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat)
 {
     const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < OBJ_SIZE; ++i)
@@ -884,9 +679,6 @@ void SetUpBaseBumpNormalTextures()
     normalImgData = (unsigned char*)malloc(imgWidth * imgHeight * 3 * sizeof(unsigned char));
 
     Bump2Normal(bumpImgData, normalImgData, imgWidth, imgHeight);
-    /*  Can use this to test normal image */
-    //SaveImageFile("stone_normal.png", normalImgData, imgWidth, imgHeight, 3);
-
 
     /*  Generate texture ID for bump image and copy it to GPU */
     /*  Bump image will be used to compute the offset in parallax mapping */
@@ -1052,7 +844,6 @@ void SetUpSkyBoxTexture()
         free(cubeFace[f]);
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void SetUpMirrorTexture()
@@ -1087,7 +878,6 @@ void SetUpMirrorTexture()
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mirrorTexID, 0);
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void SetUpSphereTexture(unsigned char *sphereCubeMapData[])
@@ -1114,7 +904,6 @@ void SetUpSphereTexture(unsigned char* sphereCubeMapData[])
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void SendCubeTexID(int texID, GLint texCubeLoc)
@@ -1133,7 +922,6 @@ void SendCubeTexID(int texID, GLint texCubeLoc)
     glUniform1i(texCubeLoc, 0);
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void SendMirrorTexID()
@@ -1147,7 +935,6 @@ void SendMirrorTexID()
     glBindTexture(GL_TEXTURE_2D, mirrorTexID);
     glUniform1i(textureLoc, 0);
 }
-
 
 /******************************************************************************/
 /*!
@@ -1170,8 +957,6 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
 }
 
 
-
-
 /******************************************************************************/
 /*!
 \fn     void SetUp()
@@ -1186,15 +971,9 @@ void Renderer::SetUpDemoScene()
     frameCount = 0;
     secCount = 0;
 
-    /*  Set Up Scene:
-        - Obj attributes, which include mesh type, size, pos, color/texture ...
-        - Light positions
-    */
-    //SetUpScene();
-
-    for (int i = 0; i < ProgType::NUM_PROGTYPES; ++i)
-        prog[i] = CompileShaders(file[i][ShaderType::VERTEX_SHADER], file[i][ShaderType::FRAGMENT_SHADER]);
-
+    for (const auto& pair : shaderFileMap) {
+        shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
+    }
 
     /*  Send mesh data only */
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
@@ -1219,24 +998,18 @@ void Renderer::SetUpDemoScene()
 
 
     /*  Look up for the locations of the uniform variables in the shader programs */
-    glUseProgram(prog[ProgType::SKYBOX_PROG]);
-    SetUpSkyBoxUniformLocations(prog[ProgType::SKYBOX_PROG]);
+    // For SKYBOX_PROG
+    shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
+    SetUpSkyBoxUniformLocations(shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
 
-    glUseProgram(prog[ProgType::SPHERE_PROG]);
-    SetUpSphereUniformLocations(prog[ProgType::SPHERE_PROG]);
+    // For SPHERE_PROG
+    shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
+    SetUpSphereUniformLocations(shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
 
-    glUseProgram(prog[ProgType::MAIN_PROG]);
-    SetUpMainUniformLocations(prog[ProgType::MAIN_PROG]);
-
-
-    /*  Send light info to the programs.
-        Vertex data and textures are copied to the graphics memory, which are mapped to the
-        corresponding variables in shaders when needed. Hence, no program needs to be specified yet.
-        However, uniform light data is sent directly to shaders, hence we have to indicate the
-        programs to be sent to.
-    */
+    // For MAIN_PROG
+    shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
+    SetUpMainUniformLocations(shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
     SendLightProperties();
-
 
     /*  Drawing using filled mode */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1286,19 +1059,6 @@ void Renderer::CleanUp()
     glDeleteTextures(1, &sphereTexID);
 
     glDeleteFramebuffers(1, &mirrorFrameBufferID);
-
-    //glDeleteProgram(renderProg);
-    //for (int y = 0; y < ProgType::NUM_PROGTYPES; ++y)
-    for (int i = 0; i < TO_INT(ProgType::NUM_PROGTYPES); ++i) {
-        glDeleteProgram(prog[i]);
-    }
-
-    // Cleanup GLFW
-    // Note: glfwDestroyWindow call is removed as it's handled by std::unique_ptr
-    //glfwDestroyWindow(m_window);
-
-    // Note: glfwTerminate call can remain here if this is the designated point for terminating GLFW
-    //glfwTerminate();
 }
 
 Rendering::Renderer::Renderer()
@@ -1343,6 +1103,10 @@ Rendering::Renderer::Renderer()
 
 	//need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
 	stbi_set_flip_vertically_on_load(true);
+
+    shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
+    shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
+    shaderFileMap[ProgType::SPHERE_PROG] = { "../RigidBodyLab/shaders/sphere.vs", "../RigidBodyLab/shaders/sphere.fs" };
 }
 
 Renderer& Rendering::Renderer::GetInstance() {
@@ -1412,8 +1176,7 @@ void Renderer::InitRendering() {
 
 // GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 // therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
-
-void Rendering::Renderer::WindowDeleter(GLFWwindow* window) {
+void Renderer::WindowDeleter(GLFWwindow* window) {
     glfwDestroyWindow(window);
 }
 
@@ -1455,7 +1218,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 {
     glClearBufferfv(GL_DEPTH, 0, &one);
 
-    glUseProgram(prog[ProgType::SKYBOX_PROG]);
+    shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
     SendCubeTexID(skyboxTexID, skyboxTexCubeLoc);
     SendViewMat(viewMat, skyboxViewMatLoc);
@@ -1493,7 +1256,7 @@ void Renderer::RenderObj(const Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere()
 {
-    glUseProgram(prog[ProgType::SPHERE_PROG]);
+    shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
     SendCubeTexID(sphereTexID, sphereTexCubeLoc);
 
@@ -1537,9 +1300,9 @@ void Renderer::RenderSphere()
         We need this flag because each pass only render certain objects.
 */
 /******************************************************************************/
-void Renderer::RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat,
+void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const Mat4& viewMat, const Mat4& projMat,
     int viewportWidth, int viewportHeight,
-    int renderPass)
+    RenderPass renderPass)
 {
     /*  We need to set this here because the onscreen rendering will use a bigger viewport than
         the rendering of sphere/mirror reflection/refraction texture
@@ -1548,7 +1311,8 @@ void Renderer::RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4
 
     RenderSkybox(viewMat);
 
-    glUseProgram(prog[ProgType::MAIN_PROG]);
+    shaders[TO_INT(ProgType::MAIN_PROG)].Use();
+
     UpdateLightPosViewFrame();
     SendProjMat(projMat, mainProjMatLoc);
 
@@ -1699,11 +1463,6 @@ void Renderer::RenderToScreen()
         RenderPass::NORMAL);
 }
 
-
-
-
-bool firstFrame = true;
-
 /******************************************************************************/
 /*!
 \fn     void Render()
@@ -1722,6 +1481,7 @@ void Renderer::Render()
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
     */
+    static bool firstFrame = true;
     if (firstFrame)
     {
         ComputeSphereCamMats();

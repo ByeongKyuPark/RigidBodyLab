@@ -2,8 +2,38 @@
 #include <GLFW/glfw3.h>
 #include <utilities/ToUnderlyingEnum.h>
 #include <rendering/Scene.h>
+#include <rendering/Shader.h>
+#include <unordered_map>
+#include <array>
 #include "Object.h"
+
 namespace Rendering {
+
+	/*  For indicating which pass we are rendering, since we will use the same shaders to render the whole scene */
+	/*  SPHERETEX_GENERATION: Generating the scene texture for the sphere reflection/refraction */
+	/*  MIRRORTEX_GENERATION: Generating the scene texture for the mirror reflection */
+	/*  NORMAL              : Render the final scene as normal */
+	enum class RenderPass{
+		SPHERETEX_GENERATION=0, 
+		MIRRORTEX_GENERATION, 
+		NORMAL 
+	};
+
+	/*  We need 3 set of shaders programs */
+	/*  MAIN_PROG   : Render all the objects in the scene, used for the above 3 passes */
+	/*  SKYBOX_PROG : Render the background */
+	/*  SPHERE_PROG : Render the relective/refractive sphere */
+	enum class ProgType{
+		MAIN_PROG = 0, 
+		SKYBOX_PROG, 
+		SPHERE_PROG, 
+		NUM_PROGTYPES 
+	};
+	enum class ShaderType{ 
+		VERTEX_SHADER = 0, 
+		FRAGMENT_SHADER, 
+		NUM_SHADERTYPES 
+	};
 
 	/*  For toggling the reflection/refraction of the sphere */
 	enum class RefType{
@@ -14,6 +44,8 @@ namespace Rendering {
 	};
 
 	class Renderer {
+		std::unordered_map<ProgType, ShaderInfo> shaderFileMap;  // Central map for shader file paths
+		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > shaders;
 									//custom deleter
 		std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> m_window;// Pointer to the window
 		float m_fps;                  // Frame rate
@@ -28,12 +60,12 @@ namespace Rendering {
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Object& obj);
 		void RenderSphere();
-		void RenderObjsBg(Mat4 MVMat[], Mat4 normalMVMat[], Mat4 viewMat, Mat4 projMat, int viewportWidth, int viewportHeight, int renderPass);
+		void RenderObjsBg(const Mat4* MVMat, const Mat4* normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass);
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[]);
 		void RenderToMirrorTexture();
 		void RenderToScreen();
 		void SendLightProperties();
-		void ComputeObjMVMats(Mat4 MVMat[], Mat4 NMVMat[], Mat4 viewMat);
+		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat);
 		void ComputeMainCamMats();
 		void ComputeMirrorCamMats();
 		void ComputeSphereCamMats();
