@@ -3,9 +3,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -41,14 +38,6 @@ float fps;
 GLfloat one = 1.0f;
 
 
-/*  For color texture */
-GLuint texID[TO_INT(ImageID::NUM_IMAGES)];
-const char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
-
-/*  For bump/normal texture */
-const char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
-GLuint bumpTexID, normalTexID;
-
 /*  For activating the texture ID. We need these 3 separate IDs because
     they are used at the same time for the base
 */
@@ -58,26 +47,8 @@ enum class ActiveTexID{
     BUMP 
 };
 
-/*  For environment texture */
-const char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
-GLuint skyboxTexID;
-int skyboxFaceSize;
-
-/*  6 faces of the texture cube */
-enum class CubeFaceID{
-    RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT, NUM_FACES 
-};
-
-
-/*  For generating sphere "reflection/refraction" texture */
-GLuint sphereTexID;
-
 /*  Toggling sphere reflection/refraction */
 int sphereRef = TO_INT(RefType::REFLECTION_ONLY);
-
-
-/*  For generating mirror "reflection" texture */
-GLuint mirrorTexID, mirrorFrameBufferID;
 
 /*  For turning off generating mirror "reflection" texture when mirror is not visible */
 bool mirrorVisible;
@@ -231,24 +202,6 @@ void SetUpVertexData(Mesh& mesh)
     }
 }
 
-/******************************************************************************/
-/*!
-\fn     void UpdateLightPosViewFrame()
-\brief
-Compute view-frame light positions and send them to shader when needed.
-*/
-/******************************************************************************/
-void Renderer::UpdateLightPosViewFrame()
-{
-    if (mainCam.moved)
-    {
-        for (int i = 0; i < m_scene.NUM_LIGHTS; ++i) {
-            m_scene.m_lightPosVF[i] = Vec3(mainCamViewMat * Vec4(m_scene.m_lightPosWF[i], 1.0f));
-        }
-
-        glUniform3fv(lightPosLoc, m_scene.NUM_LIGHTS, ValuePtr(m_scene.m_lightPosVF[0]));
-    }
-}
 /******************************************************************************/
 /*!
 \fn     void SendLightProperties()
@@ -550,359 +503,58 @@ void SendProjMat(Mat4 projMat, GLint projMatLoc)
 }
 
 
-/******************************************************************************/
-/*!
-\fn     void SetUpObjTextures()
-\brief
-        Read texture images from files, then copy them to graphics memory.
-        These textures will be combined with light colors for the objects
-        in the scene.
-*/
-/******************************************************************************/
-void SetUpObjTextures()
-{
-    glGenTextures(TO_INT(ImageID::NUM_IMAGES), texID);
+///******************************************************************************/
+///*!
+//\fn     void SetUpObjTextures()
+//\brief
+//        Read texture images from files, then copy them to graphics memory.
+//        These textures will be combined with light colors for the objects
+//        in the scene.
+//*/
+///******************************************************************************/
+//void SetUpObjTextures()
+//{
+//    glGenTextures(TO_INT(ImageID::NUM_IMAGES), texID);
+//
+//    unsigned char* imgData;
+//    int imgWidth, imgHeight, numComponents;
+//
+//    /*  Mirror and sphere will not use existing textures so we'll set them up separately */
+//    size_t NUM_IMGS = TO_INT(ImageID::NUM_IMAGES);
+//    for (int i{}; i < NUM_IMGS; ++i)
+//        if (i != TO_INT(ImageID::MIRROR_TEX) && i != TO_INT(ImageID::SPHERE_TEX))
+//        {
+//            imgData = stbi_load(objTexFile[i], &imgWidth, &imgHeight, &numComponents, 0);
+//            if (!imgData) {
+//                std::cerr << "Reading " << objTexFile[i] << " failed.\n";
+//                exit(1);
+//            }
+//
+//            /*  Bind corresponding texture ID */
+//            glBindTexture(GL_TEXTURE_2D, texID[i]);
+//
+//            /*  Copy image data to graphics memory */
+//            if (numComponents == 3)
+//                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
+//                    GL_RGB, GL_UNSIGNED_BYTE, imgData);
+//            else
+//                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imgWidth, imgHeight, 0,
+//                    GL_RGBA, GL_UNSIGNED_BYTE, imgData);
+//
+//            /*  Done with raw image data so delete it */
+//            stbi_image_free(imgData);
+//
+//            /*  Generate texture mipmaps. */
+//            glGenerateMipmap(GL_TEXTURE_2D);
+//
+//            /*  Set up texture behaviors */
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//        }
+//}
 
-    unsigned char* imgData;
-    int imgWidth, imgHeight, numComponents;
-
-    /*  Mirror and sphere will not use existing textures so we'll set them up separately */
-    size_t NUM_IMGS = TO_INT(ImageID::NUM_IMAGES);
-    for (int i{}; i < NUM_IMGS; ++i)
-        if (i != TO_INT(ImageID::MIRROR_TEX) && i != TO_INT(ImageID::SPHERE_TEX))
-        {
-            imgData = stbi_load(objTexFile[i], &imgWidth, &imgHeight, &numComponents, 0);
-            if (!imgData) {
-                std::cerr << "Reading " << objTexFile[i] << " failed.\n";
-                exit(1);
-            }
-
-            /*  Bind corresponding texture ID */
-            glBindTexture(GL_TEXTURE_2D, texID[i]);
-
-            /*  Copy image data to graphics memory */
-            if (numComponents == 3)
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
-                    GL_RGB, GL_UNSIGNED_BYTE, imgData);
-            else
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imgWidth, imgHeight, 0,
-                    GL_RGBA, GL_UNSIGNED_BYTE, imgData);
-
-            /*  Done with raw image data so delete it */
-            stbi_image_free(imgData);
-
-            /*  Generate texture mipmaps. */
-            glGenerateMipmap(GL_TEXTURE_2D);
-
-            /*  Set up texture behaviors */
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        }
-}
-
-
-/******************************************************************************/
-/*!
-\fn     void Bump2Normal(   const unsigned char *bumpImg,
-                            unsigned char *normalImg,
-                            int width, int height)
-\brief
-        Compute normal map from bump map.
-\param  bumpImg
-        Given 1D bump map.
-\param  normalImg
-        3D normal map to be computed.
-\param  width
-        Width of the texture map.
-\param  height
-        Height of the texture map.
-*/
-/******************************************************************************/
-void Bump2Normal(const unsigned char* bumpImg, unsigned char* normalImg, int width, int height)
-{
-    float a = 40.0f;
-    float scale = 1.0f / 255.0f; //normalize bumps from [0,255] to [0,1] for the normal computation
-
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-
-            // Calculate indices with border check
-            int index_x0 = x - 1 < 0 ? x : x - 1;
-            int index_x2 = x + 1 >= width ? x : x + 1;
-            int index_y0 = y - 1 < 0 ? y : y - 1;
-            int index_y2 = y + 1 >= height ? y : y + 1;
-
-            // Get the surrounding bump values and compute the tangents
-            float bu = (bumpImg[y * width + index_x2] - bumpImg[y * width + index_x0]) * scale * (index_x0 == index_x2 ? a : 0.5f * a);
-            float bv = (bumpImg[index_y2 * width + x] - bumpImg[index_y0 * width + x]) * scale * (index_y0 == index_y2 ? a : 0.5f * a);
-
-            // Compute the normal
-            Vec3 normal{ -bu,-bv,1.f };
-            normal = Normalize(normal);
-
-            // Map to RGB space
-            normalImg[(y * width + x) * 3 + 0] = static_cast<unsigned char>(std::max(0, std::min(255, static_cast<int>((normal.x + 1.0f) * 127.5f))));
-            normalImg[(y * width + x) * 3 + 1] = static_cast<unsigned char>(std::max(0, std::min(255, static_cast<int>((normal.y + 1.0f) * 127.5f))));
-            normalImg[(y * width + x) * 3 + 2] = static_cast<unsigned char>(std::max(0, std::min(255, static_cast<int>((normal.z + 1.0f) * 127.5f))));
-        }
-    }
-}
-
-
-/******************************************************************************/
-/*!
-\fn     void SetUpBaseBumpNormalTextures()
-\brief
-        Set up the bump map and normal map for normal mapping and parallax mapping.
-*/
-/******************************************************************************/
-void SetUpBaseBumpNormalTextures()
-{
-    unsigned char* bumpImgData, * normalImgData;
-    int imgWidth, imgHeight, numComponents;
-
-    /*  Load bump image */
-    //bumpImgData = stbi_load(bumpTexFile, &imgWidth, &imgHeight, &numComponents,0);
-    //if (!bumpImgData)
-    //{
-    //    std::cerr << "Reading " << bumpTexFile << " failed.\n";
-    //    exit(1);
-    //}
-    if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0)
-    {
-        std::cerr << "Reading " << bumpTexFile << " failed.\n";
-        exit(1);
-    }
-    /*  Create normal image */
-    normalImgData = (unsigned char*)malloc(imgWidth * imgHeight * 3 * sizeof(unsigned char));
-
-    Bump2Normal(bumpImgData, normalImgData, imgWidth, imgHeight);
-
-    /*  Generate texture ID for bump image and copy it to GPU */
-    /*  Bump image will be used to compute the offset in parallax mapping */
-    glGenTextures(1, &bumpTexID);
-    glBindTexture(GL_TEXTURE_2D, bumpTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imgWidth, imgHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bumpImgData);
-
-    stbi_image_free(bumpImgData);
-
-    /*  Generate texture mipmaps. */
-    glGenerateMipmap(GL_TEXTURE_2D);
-    /*  Set up texture behaviors */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-
-    /*  Generate texture ID for normal image and copy it to GPU */
-    glGenTextures(1, &normalTexID);
-    glBindTexture(GL_TEXTURE_2D, normalTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
-        GL_RGB, GL_UNSIGNED_BYTE, normalImgData);
-
-    stbi_image_free(normalImgData);
-
-    /*  Generate texture mipmaps. */
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    /*  Set up texture behaviors */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-}
-
-
-/******************************************************************************/
-/*!
-\fn     void CopySubTexture(    unsigned char *destTex, const unsigned char *srcTex,
-                                int size, int imgWidth,
-                                int verticalOffset, int horizontalOffset,
-                                bool verticalFlip, bool horizontalFlip,
-                                int numComponents)
-\brief
-        Copy from an area from srcTex to destTex.
-        The destTex has dimensions size*size.
-        The columns in srcTex will be from verticalOffset to verticalOffset + size - 1.
-        The rows in srcTex will be from horizontalOffset to horizontalOffset + size - 1.
-        If verticalFlip/horizontalFlip is true then we have to flip the columns/rows within
-        the copied range vertically/horizontally.
-\param  size
-        Dimension of the copied area.
-\param  imgWidth
-        Width of srcTex.
-\param  verticalOffset
-        First column of the copied area in srcTex.
-\param  horizontalOffset
-        First row of the copied area in srcTex.
-\param  verticalFlip
-        Whether we need to flip the columns within the copied area.
-\param  horizontalFlip
-        Whether we need to flip the rows within the copied area.
-*/
-/******************************************************************************/
-void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,
-    int size, int imgWidth,
-    int verticalOffset, int horizontalOffset,
-    bool verticalFlip, bool horizontalFlip,
-    int numComponents)
-{
-    /*  Copy from srcTex to destTex and flip if needed */
-    if (destTex == nullptr || srcTex == nullptr) {
-        throw std::invalid_argument("Null pointer provided for textures");
-    }
-    for (int row = 0; row < size; ++row) {
-        for (int col = 0; col < size; ++col) {
-            int srcRow = verticalFlip ? (size - 1 - row) : row;
-            int srcCol = horizontalFlip ? (size - 1 - col) : col;
-
-            int destIndex = (row * size + col) * numComponents;
-            int srcIndex = ((srcRow + horizontalOffset) * imgWidth + (srcCol + verticalOffset)) * numComponents;
-
-            memcpy(&destTex[destIndex], &srcTex[srcIndex], numComponents);
-        }
-    }
-}
-
-
-/******************************************************************************/
-/*!
-\fn     void SetUpSkyBoxTexture()
-\brief
-        Set up the cubemap texture from the skybox image.
-*/
-/******************************************************************************/
-void SetUpSkyBoxTexture()
-{
-    unsigned char* cubeImgData, * cubeFace[TO_INT(CubeFaceID::NUM_FACES)];
-    int imgWidth, imgHeight, numComponents;
-
-    cubeImgData = stbi_load(skyboxTexFile, &imgWidth, &imgHeight, &numComponents, 0);
-    if (!cubeImgData) {
-        std::cerr << "Reading " << skyboxTexFile << " failed.\n";
-        exit(1);
-    }
-
-    skyboxFaceSize = imgHeight / 3;
-
-    int imgSizeBytes = sizeof(unsigned char) * skyboxFaceSize * skyboxFaceSize * numComponents;
-
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-        cubeFace[f] = (unsigned char*)malloc(imgSizeBytes);
-    }
-
-
-    /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
-    /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
-    /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-
-    glGenTextures(1, &skyboxTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
-
-
-    /*  Copy the 6 textures to the GPU cubemap texture object, and set appropriate texture parameters */
-    GLuint internalFormat, format;
-    if (numComponents == 3)
-    {
-        internalFormat = GL_RGB8;
-        format = GL_RGB;
-    }
-    else
-    {
-        internalFormat = GL_RGBA8;
-        format = GL_RGBA;
-    }
-    // Upload each face of the cubemap
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
-    {
-        // GL_TEXTURE_CUBE_MAP_POSITIVE_X + f corresponds to the cube map face target
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, skyboxFaceSize, skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f]);
-    }
-
-    // Set the texture parameters
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    // Generate mipmaps for the cubemap
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-    stbi_image_free(cubeImgData);
-
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
-        free(cubeFace[f]);
-}
-
-/******************************************************************************/
-/*!
-\fn     void SetUpMirrorTexture()
-\brief
-        Set up texture and frame buffer objects for rendering mirror reflection.
-*/
-/******************************************************************************/
-void SetUpMirrorTexture()
-{
-    glGenTextures(1, &mirrorTexID);
-    glBindTexture(GL_TEXTURE_2D, mirrorTexID);
-
-    /*  Some graphics drivers don't support glTexStorage2D */
-    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, mirrorCam.width, mirrorCam.height);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mirrorCam.width, mirrorCam.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    /*  Calling glTexImage2D with levels = 0 will only generate one level of texture,
-        so let's not use mipmaps here.
-        The visual difference in this case is hardly recognizable.
-    */
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    glGenFramebuffers(1, &mirrorFrameBufferID);
-    glBindFramebuffer(GL_FRAMEBUFFER, mirrorFrameBufferID);
-
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mirrorTexID, 0);
-}
-
-/******************************************************************************/
-/*!
-\fn     void SetUpSphereTexture(unsigned char *sphereCubeMapData[])
-\brief
-        Set up texture object for rendering sphere reflection/refraction.
-*/
-/******************************************************************************/
-void SetUpSphereTexture(unsigned char* sphereCubeMapData[])
-{
-    glGenTextures(1, &sphereTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sphereTexID);
-
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, GL_RGBA8, skyboxFaceSize, skyboxFaceSize,
-            0, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapData[f]);
-
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-}
 
 /******************************************************************************/
 /*!
@@ -929,10 +581,10 @@ void SendCubeTexID(int texID, GLint texCubeLoc)
         Send mirror texture ID to the corresponding variable.
 */
 /******************************************************************************/
-void SendMirrorTexID()
+void Renderer::SendMirrorTexID()
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, mirrorTexID);
+    glBindTexture(GL_TEXTURE_2D, m_scene.GetResourceManager().mirrorTexID);
     glUniform1i(textureLoc, 0);
 }
 
@@ -982,20 +634,7 @@ void Renderer::SetUpDemoScene()
         SetUpVertexData(mesh);
     }
 
-    /*  Set up textures for objects in the scene */
-    SetUpObjTextures();
-
-    /*  Set up bump map and normal map for the base object */
-    SetUpBaseBumpNormalTextures();
-
-    /*  Set up skybox texture for background rendering */
-    SetUpSkyBoxTexture();
-
-    /*  Set up texture object for mirror reflection. This texture object hasn't stored any data yet.
-        We will render the reflected data for this texture on the fly.
-    */
-    SetUpMirrorTexture();
-
+    m_scene.GetResourceManager().SetUpTextures();
 
     /*  Look up for the locations of the uniform variables in the shader programs */
     // For SKYBOX_PROG
@@ -1051,18 +690,21 @@ void Renderer::CleanUp()
         glDeleteBuffers(1, &mesh.IBO);
     }
 
-    glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), texID);
-    glDeleteTextures(1, &bumpTexID);
-    glDeleteTextures(1, &normalTexID);
-    glDeleteTextures(1, &skyboxTexID);
-    glDeleteTextures(1, &mirrorTexID);
-    glDeleteTextures(1, &sphereTexID);
+    glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), m_scene.GetResourceManager().textureIDs.data());
+    glDeleteTextures(1, &m_scene.GetResourceManager().bumpTexID);
+    glDeleteTextures(1, &m_scene.GetResourceManager().normalTexID);
+    glDeleteTextures(1, &m_scene.GetResourceManager().skyboxTexID);
+    glDeleteTextures(1, &m_scene.GetResourceManager().mirrorTexID);
+    glDeleteTextures(1, &m_scene.GetResourceManager().sphereTexID);
 
-    glDeleteFramebuffers(1, &mirrorFrameBufferID);
+    glDeleteFramebuffers(1, &m_scene.GetResourceManager().mirrorFrameBufferID);
+
 }
 
 Rendering::Renderer::Renderer()
-    : m_window{ nullptr,WindowDeleter }, m_fps(0), m_parallaxMappingOn(true), m_sphereRef(RefType::REFLECTION_ONLY)
+    : m_window{ nullptr,WindowDeleter }, m_fps(0)
+    , m_sphereRef(RefType::REFLECTION_ONLY)
+    , m_parallaxMappingOn(true)
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -1102,7 +744,6 @@ Rendering::Renderer::Renderer()
 	InitImGui();
 
 	//need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
-	stbi_set_flip_vertically_on_load(true);
 
     shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
     shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
@@ -1174,10 +815,23 @@ void Renderer::InitRendering() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+void Rendering::Renderer::UpdateLightPosViewFrame()
+{
+    if (mainCam.moved)
+    {
+        for (int i = 0; i < m_scene.NUM_LIGHTS; ++i) {
+            m_scene.m_lightPosVF[i] = Vec3(mainCamViewMat * Vec4(m_scene.m_lightPosWF[i], 1.0f));
+        }
+
+        glUniform3fv(lightPosLoc, m_scene.NUM_LIGHTS, ValuePtr(m_scene.m_lightPosVF[0]));
+    }
+}
+
 // GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 // therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 void Renderer::WindowDeleter(GLFWwindow* window) {
     glfwDestroyWindow(window);
+    glfwTerminate();// terminate GLFW after all resources are released
 }
 
 /******************************************************************************/
@@ -1220,7 +874,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 
     shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
-    SendCubeTexID(skyboxTexID, skyboxTexCubeLoc);
+    SendCubeTexID(m_scene.GetResourceManager().skyboxTexID, skyboxTexCubeLoc);
     SendViewMat(viewMat, skyboxViewMatLoc);
 
     /*  Just trigger the skybox shaders, which hard-code the full-screen quad drawing */
@@ -1258,7 +912,7 @@ void Renderer::RenderSphere()
 {
     shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
-    SendCubeTexID(sphereTexID, sphereTexCubeLoc);
+    SendCubeTexID(m_scene.GetResourceManager().sphereTexID, sphereTexCubeLoc);
 
     /*  Indicate whether we want reflection/refraction or both */
     glUniform1i(sphereRefLoc, sphereRef);
@@ -1342,7 +996,7 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
                     }
                     else
                     {
-                        SendObjTexID(texID[TO_INT(m_scene.GetObject(i).GetImageID())], TO_INT(ActiveTexID::COLOR), textureLoc);
+                        SendObjTexID(m_scene.GetResourceManager().GetTexture(m_scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), textureLoc);
                         glUniform1i(lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
@@ -1350,12 +1004,12 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
                     if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
                     {
-                        SendObjTexID(normalTexID, TO_INT(ActiveTexID::NORMAL), normalTexLoc);
+                        SendObjTexID(m_scene.GetResourceManager().normalTexID, TO_INT(ActiveTexID::NORMAL), normalTexLoc);
                         glUniform1i(normalMappingOnLoc, true);
                         glUniform1i(parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
                         if (Renderer::GetInstance().IsParallaxMappingOn()) {
-                            SendObjTexID(bumpTexID, TO_INT(ActiveTexID::BUMP), bumpTexLoc);
+                            SendObjTexID(m_scene.GetResourceManager().bumpTexID, TO_INT(ActiveTexID::BUMP), bumpTexLoc);
                         }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
@@ -1411,7 +1065,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
     GLuint sphereFrameBufferTexID;
     glGenTextures(1, &sphereFrameBufferTexID);
     glBindTexture(GL_TEXTURE_2D, sphereFrameBufferTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, skyboxFaceSize, skyboxFaceSize,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_scene.GetResourceManager().skyboxFaceSize, m_scene.GetResourceManager().skyboxFaceSize,
         0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     for (int i = 0; i < TO_INT(CubeFaceID::NUM_FACES); ++i)
@@ -1419,11 +1073,11 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sphereFrameBufferTexID, 0);
 
         RenderObjsBg(sphereCamMVMat[i], sphereCamNormalMVMat[i], sphereCamViewMat[i], sphereCamProjMat,
-            skyboxFaceSize, skyboxFaceSize,
+            m_scene.GetResourceManager().skyboxFaceSize, m_scene.GetResourceManager().skyboxFaceSize,
             RenderPass::SPHERETEX_GENERATION);
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
-        glReadPixels(0, 0, skyboxFaceSize, skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapTexture[i]);
+        glReadPixels(0, 0, m_scene.GetResourceManager().skyboxFaceSize, m_scene.GetResourceManager().skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapTexture[i]);
     }
 
     glDeleteTextures(1, &sphereFrameBufferTexID);
@@ -1441,7 +1095,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
 /******************************************************************************/
 void Renderer::RenderToMirrorTexture()
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, mirrorFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_scene.GetResourceManager().mirrorFrameBufferID);
     RenderObjsBg(mirrorCamMVMat, mirrorCamNormalMVMat, mirrorCamViewMat, mirrorCamProjMat,
         mirrorCam.width, mirrorCam.height,
         RenderPass::MIRRORTEX_GENERATION);
@@ -1488,7 +1142,7 @@ void Renderer::Render()
 
         unsigned char* sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
         for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-            sphereCubeMapData[f] = (unsigned char*)malloc(skyboxFaceSize * skyboxFaceSize * 4 * sizeof(unsigned char));
+            sphereCubeMapData[f] = (unsigned char*)malloc(m_scene.GetResourceManager().skyboxFaceSize * m_scene.GetResourceManager().skyboxFaceSize * 4 * sizeof(unsigned char));
         }
 
         /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
@@ -1499,7 +1153,7 @@ void Renderer::Render()
             then copy that data to the GPU texture object.
         */
         RenderToSphereCubeMapTexture(sphereCubeMapData);
-        SetUpSphereTexture(sphereCubeMapData);
+        m_scene.GetResourceManager().SetUpSphereTexture(sphereCubeMapData);
 
         for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
             free(sphereCubeMapData[f]);
@@ -1555,5 +1209,4 @@ void Renderer::Render()
 
 Rendering::Renderer::~Renderer() {
     CleanUp(); // free all resources
-    glfwTerminate(); // terminate GLFW after all resources are released
 }

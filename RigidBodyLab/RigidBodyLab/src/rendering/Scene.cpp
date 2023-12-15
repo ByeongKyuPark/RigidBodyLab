@@ -1,4 +1,6 @@
 #include <rendering/Scene.h>
+#include <rendering/Camera.h>
+
 using namespace Rendering;
 
 Scene::Scene() 

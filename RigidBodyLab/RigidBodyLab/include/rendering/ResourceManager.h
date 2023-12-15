@@ -40,12 +40,52 @@ namespace Rendering {
 		NUM_OBJS
 	};
 
+	/*  6 faces of the texture cube */
+	enum class CubeFaceID {
+		RIGHT = 0, LEFT, TOP, BOTTOM, BACK, FRONT, NUM_FACES
+	};
+
+
     class ResourceManager {
-    public:
+        std::array<Mesh, TO_INT(MeshID::NUM_MESHES)> meshes;
+		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> textureIDs;
+		GLuint bumpTexID, normalTexID;
+		GLuint skyboxTexID;
+		/*  For generating sphere "reflection/refraction" texture */
+		GLuint sphereTexID;
+		/*  For generating mirror "reflection" texture */
+		GLuint mirrorTexID;
+		GLuint mirrorFrameBufferID;
+		
+		int skyboxFaceSize;
+
+
+		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
+		/*  For bump/normal texture */
+		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
+		/*  For environment texture */
+		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
+
+		friend class Renderer;
+	public:
         ResourceManager();
+
         Mesh& GetMesh(MeshID id);
+		GLuint GetTexture(ImageID id);
+		void SetUpTextures();
 
     private:
-        std::array<Mesh, TO_INT(MeshID::NUM_MESHES)> meshes;
+		void SetUpObjTextures();
+		void SetUpBaseBumpNormalTextures();
+		void SetUpMirrorTexture();
+		void SetUpSkyBoxTexture();
+		void SetUpSphereTexture(unsigned char* sphereCubeMapData[]);
+
+		void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,
+			int size, int imgWidth,
+			int verticalOffset, int horizontalOffset,
+			bool verticalFlip, bool horizontalFlip,
+			int numComponents);
+		void Bump2Normal(const unsigned char* bumpImg, unsigned char* normalImg, int width, int height);
     };
 }

@@ -31,7 +31,7 @@ namespace Rendering {
         Vec3 m_spherePos;
 
     private:
-        void UpdateLightPosViewFrame();
+        //void UpdateLightPosViewFrame();
         void SetUpLight(float height);
         void SetUpScene();
 
