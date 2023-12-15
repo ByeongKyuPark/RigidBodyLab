@@ -44,14 +44,16 @@ namespace Rendering {
 	};
 
 	class Renderer {
-		std::unordered_map<ProgType, ShaderInfo> shaderFileMap;  // Central map for shader file paths
-		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > shaders;
+		Scene m_scene;
+		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
+		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
 									//custom deleter
 		std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> m_window;// Pointer to the window
-		Scene m_scene;
+		float m_sphereRefIndex;
 		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
+		bool m_mirrorVisible;
 
 		void InitImGui();
 		void InitRendering();
@@ -70,6 +72,7 @@ namespace Rendering {
 		void ComputeMirrorCamMats();
 		void ComputeSphereCamMats();
 		void UpdateLightPosViewFrame();
+		void RenderGui();
 
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
@@ -104,7 +107,7 @@ namespace Rendering {
 		void CleanUp();
 
 		// Getter and setter for sphere reflection/refraction type
-		RefType GetSphereRef() const { return m_sphereRef; }
+		int GetSphereRef() const { return TO_INT(m_sphereRef); }
 		void SetSphereRef(RefType type) { m_sphereRef = type; }
 		void SendMirrorTexID();
 	};

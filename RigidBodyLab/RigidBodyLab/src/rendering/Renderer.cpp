@@ -47,13 +47,6 @@ enum class ActiveTexID{
     BUMP 
 };
 
-/*  Toggling sphere reflection/refraction */
-int sphereRef = TO_INT(RefType::REFLECTION_ONLY);
-
-/*  For turning off generating mirror "reflection" texture when mirror is not visible */
-bool mirrorVisible;
-
-
 /*  Matrices for view/projetion transformations */
 /*  Viewer camera */
 Mat4 mainCamViewMat, mainCamProjMat, mainCamMVMat[TO_INT(ObjID::NUM_OBJS)], mainCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
@@ -80,6 +73,7 @@ GLint sphereTexCubeLoc;                 /*  Texture cubemap for the sphere refle
 GLint skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
 GLint sphereRefLoc;                     /*  For sending reflection/refraction status */
+GLint sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
 
 /*  Location of bump/normal textures */
 GLint normalTexLoc, bumpTexLoc;
@@ -159,6 +153,7 @@ void SetUpSphereUniformLocations(GLuint prog)
 
     sphereTexCubeLoc = glGetUniformLocation(prog, "texCube");
     sphereRefLoc = glGetUniformLocation(prog, "sphereRef");
+    sphereRefIndexLoc=glGetUniformLocation(prog, "sphereRefIndex");
 }
 
 
@@ -293,11 +288,11 @@ void Renderer::ComputeMirrorCamMats()
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
         if (mainCamMirrorFrame.z <= 0)
         {
-            mirrorVisible = false;
+            m_mirrorVisible = false;
             return;
         }
         else
-            mirrorVisible = true;
+            m_mirrorVisible = true;
 
         /*  In mirror frame, mirror camera position is defined as (x, y, -z) in which (x, y, z) is the
             user camera position in mirror frame.
@@ -452,6 +447,24 @@ void Renderer::ComputeSphereCamMats()
     sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
+inline void Rendering::Renderer::RenderGui() {
+    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
+    // Displaying FPS
+    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
+
+    int refTypeInt = static_cast<int>(m_sphereRef);
+    const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
+    if (ImGui::Combo("Sphere", &refTypeInt, refTypes, IM_ARRAYSIZE(refTypes))) {
+        m_sphereRef = static_cast<RefType>(refTypeInt); // Cast back to enum class after ImGui interaction
+    }
+
+    ImGui::SliderFloat("Sphere Refractive Index", &m_sphereRefIndex, 1.0f, 2.5f); // Adjust the range as needed
+    // Parallax mapping toggling
+    ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
+
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendMVMat(const Object &obj)
@@ -569,8 +582,8 @@ void Renderer::SetUpDemoScene()
     frameCount = 0;
     secCount = 0;
 
-    for (const auto& pair : shaderFileMap) {
-        shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
+    for (const auto& pair : m_shaderFileMap) {
+        m_shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
     }
 
     /*  Send mesh data only */
@@ -584,16 +597,16 @@ void Renderer::SetUpDemoScene()
 
     /*  Look up for the locations of the uniform variables in the shader programs */
     // For SKYBOX_PROG
-    shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
-    SetUpSkyBoxUniformLocations(shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
+    m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
+    SetUpSkyBoxUniformLocations(m_shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
 
     // For SPHERE_PROG
-    shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
-    SetUpSphereUniformLocations(shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
+    m_shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
+    SetUpSphereUniformLocations(m_shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
 
     // For MAIN_PROG
-    shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
-    SetUpMainUniformLocations(shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
+    m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
+    SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
     SendLightProperties();
 
     /*  Drawing using filled mode */
@@ -650,7 +663,7 @@ void Renderer::CleanUp()
 Rendering::Renderer::Renderer()
     : m_window{ nullptr,WindowDeleter }, m_fps(0)
     , m_sphereRef(RefType::REFLECTION_ONLY)
-    , m_parallaxMappingOn(true)
+    , m_parallaxMappingOn(true), m_sphereRefIndex{1.33}//water by default
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -691,9 +704,9 @@ Rendering::Renderer::Renderer()
 
 	//need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
 
-    shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
-    shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
-    shaderFileMap[ProgType::SPHERE_PROG] = { "../RigidBodyLab/shaders/sphere.vs", "../RigidBodyLab/shaders/sphere.fs" };
+    m_shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
+    m_shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
+    m_shaderFileMap[ProgType::SPHERE_PROG] = { "../RigidBodyLab/shaders/sphere.vs", "../RigidBodyLab/shaders/sphere.fs" };
 }
 
 Renderer& Rendering::Renderer::GetInstance() {
@@ -818,7 +831,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 {
     glClearBufferfv(GL_DEPTH, 0, &one);
 
-    shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
+    m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
     SendCubeTexID(m_scene.GetResourceManager().skyboxTexID, skyboxTexCubeLoc);
     SendViewMat(viewMat, skyboxViewMatLoc);
@@ -856,12 +869,15 @@ void Renderer::RenderObj(const Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere()
 {
-    shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
+    m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
     SendCubeTexID(m_scene.GetResourceManager().sphereTexID, sphereTexCubeLoc);
 
     /*  Indicate whether we want reflection/refraction or both */
-    glUniform1i(sphereRefLoc, sphereRef);
+    glUniform1i(sphereRefLoc, TO_INT(m_sphereRef));
+
+    /*  Set refractive index of the sphere */
+    glUniform1f(sphereRefIndexLoc, m_sphereRefIndex);
 
     /*  We need view mat to know our camera orientation */
     SendViewMat(mainCamViewMat, sphereViewMatLoc);
@@ -911,7 +927,7 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
     RenderSkybox(viewMat);
 
-    shaders[TO_INT(ProgType::MAIN_PROG)].Use();
+    m_shaders[TO_INT(ProgType::MAIN_PROG)].Use();
 
     UpdateLightPosViewFrame();
     SendProjMat(projMat, mainProjMatLoc);
@@ -1111,7 +1127,7 @@ void Renderer::Render()
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving
     */
-    if (mirrorVisible && mainCam.moved)
+    if (m_mirrorVisible && mainCam.moved)
         RenderToMirrorTexture();
 
     /*  Render the scene, except the sphere to the screen */
@@ -1131,23 +1147,13 @@ void Renderer::Render()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Displaying FPS
-    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE- Camera::GUI_WIDTH, 0));
-    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH*0.3));
-    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
-    // Sphere reflection & refraction
-    const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
-    ImGui::Combo("Sphere", &sphereRef, refTypes, IM_ARRAYSIZE(refTypes));
-    // Parallax mapping toggling
-    ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
-    
-    // Rendering
+    RenderGui();
+
+    // Rendering    
     ImGui::Render();
     int display_w, display_h;
     glfwGetFramebufferSize(m_window.get(), &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    //glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
-    //glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(m_window.get());
