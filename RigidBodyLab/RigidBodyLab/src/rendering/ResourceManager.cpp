@@ -188,7 +188,7 @@ void Rendering::ResourceManager::SetUpMirrorTexture()
 
 	/*  Some graphics drivers don't support glTexStorage2D */
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, mirrorCam.width, mirrorCam.height);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mirrorCam.width, mirrorCam.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, mirrorCam.GetWidth(), mirrorCam.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

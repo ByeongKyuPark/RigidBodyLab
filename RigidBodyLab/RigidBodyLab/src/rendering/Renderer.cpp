@@ -502,60 +502,6 @@ void SendProjMat(Mat4 projMat, GLint projMatLoc)
     glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, ValuePtr(projMat));
 }
 
-
-///******************************************************************************/
-///*!
-//\fn     void SetUpObjTextures()
-//\brief
-//        Read texture images from files, then copy them to graphics memory.
-//        These textures will be combined with light colors for the objects
-//        in the scene.
-//*/
-///******************************************************************************/
-//void SetUpObjTextures()
-//{
-//    glGenTextures(TO_INT(ImageID::NUM_IMAGES), texID);
-//
-//    unsigned char* imgData;
-//    int imgWidth, imgHeight, numComponents;
-//
-//    /*  Mirror and sphere will not use existing textures so we'll set them up separately */
-//    size_t NUM_IMGS = TO_INT(ImageID::NUM_IMAGES);
-//    for (int i{}; i < NUM_IMGS; ++i)
-//        if (i != TO_INT(ImageID::MIRROR_TEX) && i != TO_INT(ImageID::SPHERE_TEX))
-//        {
-//            imgData = stbi_load(objTexFile[i], &imgWidth, &imgHeight, &numComponents, 0);
-//            if (!imgData) {
-//                std::cerr << "Reading " << objTexFile[i] << " failed.\n";
-//                exit(1);
-//            }
-//
-//            /*  Bind corresponding texture ID */
-//            glBindTexture(GL_TEXTURE_2D, texID[i]);
-//
-//            /*  Copy image data to graphics memory */
-//            if (numComponents == 3)
-//                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
-//                    GL_RGB, GL_UNSIGNED_BYTE, imgData);
-//            else
-//                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, imgWidth, imgHeight, 0,
-//                    GL_RGBA, GL_UNSIGNED_BYTE, imgData);
-//
-//            /*  Done with raw image data so delete it */
-//            stbi_image_free(imgData);
-//
-//            /*  Generate texture mipmaps. */
-//            glGenerateMipmap(GL_TEXTURE_2D);
-//
-//            /*  Set up texture behaviors */
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//        }
-//}
-
-
 /******************************************************************************/
 /*!
 \fn     void SendCubeTexID(int texID, GLint texCubeLoc)
@@ -721,7 +667,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(DISPLAY_SIZE, DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1186,8 +1132,8 @@ void Renderer::Render()
     ImGui::NewFrame();
 
     // Displaying FPS
-    ImGui::SetNextWindowPos(ImVec2(DISPLAY_SIZE-GUI_WIDTH, 0));
-    ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, GUI_WIDTH*0.3));    
+    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE- Camera::GUI_WIDTH, 0));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH*0.3));
     ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
     // Sphere reflection & refraction
     const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };

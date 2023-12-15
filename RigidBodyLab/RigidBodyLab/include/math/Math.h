@@ -19,22 +19,22 @@ using Mat4 = glm::mat4;
 
 
 /*  Useful constants */
-const float  PI             = 3.14159f;
-const float  TWO_PI         = 2.0f * PI;
-const float  HALF_PI        = 0.5f * PI;
-const float  QUARTER_PI     = 0.25f * PI;
-const float  EIGHTH_PI      = 0.125f * PI;
-const float  FIFTHTEENTH_PI = 0.0667f * PI;
-const float  SIXTEENTH_PI   = 0.0625f * PI;
+constexpr float  PI             = 3.14159f;
+constexpr float  TWO_PI         = 2.0f * PI;
+constexpr float  HALF_PI        = 0.5f * PI;
+constexpr float  QUARTER_PI     = 0.25f * PI;
+constexpr float  EIGHTH_PI      = 0.125f * PI;
+constexpr float  FIFTHTEENTH_PI = 0.0667f * PI;
+constexpr float  SIXTEENTH_PI   = 0.0625f * PI;
 
-const float  DEG_TO_RAD = PI / 180.0f;
-const float  RAD_TO_DEG = 180.0f / PI;
+constexpr float  DEG_TO_RAD = PI / 180.0f;
+constexpr float  RAD_TO_DEG = 180.0f / PI;
 
-const float  EPSILON = 0.00001f;
+constexpr float  EPSILON = 0.00001f;
 
-const int X = 0;
-const int Y = 1;
-const int Z = 2;
+constexpr int X = 0;
+constexpr int Y = 1;
+constexpr int Z = 2;
 
 const Vec3 BASIS[3]{    Vec3(1.0f, 0.0f, 0.0f),
                         Vec3(0.0f, 1.0f, 0.0f),
