@@ -52,11 +52,11 @@ GLuint bumpTexID, normalTexID;
 /*  For activating the texture ID. We need these 3 separate IDs because
     they are used at the same time for the base
 */
-struct ActiveTexID
-{
-    enum { COLOR = 0, NORMAL, BUMP };
+enum class ActiveTexID{
+    COLOR = 0, 
+    NORMAL, 
+    BUMP 
 };
-
 
 /*  For environment texture */
 const char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
@@ -1342,7 +1342,7 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
                     }
                     else
                     {
-                        SendObjTexID(texID[TO_INT(m_scene.GetObject(i).GetImageID())], ActiveTexID::COLOR, textureLoc);
+                        SendObjTexID(texID[TO_INT(m_scene.GetObject(i).GetImageID())], TO_INT(ActiveTexID::COLOR), textureLoc);
                         glUniform1i(lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
@@ -1350,12 +1350,12 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
                     if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
                     {
-                        SendObjTexID(normalTexID, ActiveTexID::NORMAL, normalTexLoc);
+                        SendObjTexID(normalTexID, TO_INT(ActiveTexID::NORMAL), normalTexLoc);
                         glUniform1i(normalMappingOnLoc, true);
                         glUniform1i(parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
                         if (Renderer::GetInstance().IsParallaxMappingOn()) {
-                            SendObjTexID(bumpTexID, ActiveTexID::BUMP, bumpTexLoc);
+                            SendObjTexID(bumpTexID, TO_INT(ActiveTexID::BUMP), bumpTexLoc);
                         }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */

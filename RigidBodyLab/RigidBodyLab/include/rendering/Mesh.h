@@ -50,7 +50,7 @@ namespace Rendering {
     /*  Mesh format, only contains geometric data but not color/texture */
     struct Mesh
     {
-        Mesh() : numVertices(0), numTris(0), numIndices(0)
+        Mesh() : numVertices(0), numTris(0), numIndices(0), VAO{}, VBO{}, IBO{}
         {
             vertexBuffer.clear();
             indexBuffer.clear();
