@@ -4,5 +4,5 @@
 #define TO_INT(e) static_cast<std::underlying_type_t<decltype(e)>>(e)
 
 /* (usage example)
-	mainCamMVMat[TO_INT(ObjID::SPHERE)]
+	m_mainCamMVMat[TO_INT(ObjID::SPHERE)]
 */

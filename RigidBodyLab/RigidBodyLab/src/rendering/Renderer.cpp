@@ -24,67 +24,7 @@
 
 using namespace Rendering;
 
-/******************************************************************************/
-/*  Graphics-related variables                                                */
-/******************************************************************************/
 
-/*  For displaying FPS */
-clock_t currTime, prevTime;
-int frameCount;
-float secCount;        /*  Num of seconds from prevTime to currTime */
-float fps;
-
-/*  For clearing depth buffer */
-GLfloat one = 1.0f;
-
-
-/*  For activating the texture ID. We need these 3 separate IDs because
-    they are used at the same time for the base
-*/
-enum class ActiveTexID{
-    COLOR = 0, 
-    NORMAL, 
-    BUMP 
-};
-
-/*  Matrices for view/projetion transformations */
-/*  Viewer camera */
-Mat4 mainCamViewMat, mainCamProjMat, mainCamMVMat[TO_INT(ObjID::NUM_OBJS)], mainCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
-
-/*  Mirror camera */
-Mat4 mirrorCamViewMat, mirrorCamProjMat, mirrorCamMVMat[TO_INT(ObjID::NUM_OBJS)], mirrorCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
-
-/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
-Mat4 sphereCamViewMat[TO_INT(CubeFaceID::NUM_FACES)], 
-                        sphereCamProjMat, 
-                        sphereCamMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)], 
-                        sphereCamNormalMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)];
-
-
-/*  Locations of the variables in the shader. */
-/*  Locations of transform matrices */
-GLint mainMVMatLoc, mainNMVMatLoc, mainProjMatLoc;  /*  used for main program */
-GLint skyboxViewMatLoc;                             /*  used for skybox program */
-GLint sphereMVMatLoc, sphereNMVMatLoc, sphereProjMatLoc, sphereViewMatLoc;  /*  used for sphere program */
-
-/*  Location of color textures */
-GLint textureLoc;                       /*  Normal object texture */
-GLint sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
-GLint skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
-
-GLint sphereRefLoc;                     /*  For sending reflection/refraction status */
-GLint sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
-
-/*  Location of bump/normal textures */
-GLint normalTexLoc, bumpTexLoc;
-
-/*  For indicating whether object has normal map, and parallax mapping status */
-GLint normalMappingOnLoc, parallaxMappingOnLoc;
-
-/*  Location of light data */
-GLint numLightsLoc, lightPosLoc;
-GLint lightOnLoc;
-GLint ambientLoc, diffuseLoc, specularLoc, specularPowerLoc;
 
 /******************************************************************************/
 /*!
@@ -95,10 +35,10 @@ GLint ambientLoc, diffuseLoc, specularLoc, specularPowerLoc;
         The given skybox shader program ID.
 */
 /******************************************************************************/
-void SetUpSkyBoxUniformLocations(GLuint prog)
+void Renderer::SetUpSkyBoxUniformLocations(GLuint prog)
 {
-    skyboxViewMatLoc = glGetUniformLocation(prog, "viewMat");
-    skyboxTexCubeLoc = glGetUniformLocation(prog, "texCube");
+    m_skyboxViewMatLoc = glGetUniformLocation(prog, "viewMat");
+    m_skyboxTexCubeLoc = glGetUniformLocation(prog, "texCube");
 }
 
 
@@ -111,27 +51,27 @@ void SetUpSkyBoxUniformLocations(GLuint prog)
         The given shader program ID.
 */
 /******************************************************************************/
-void SetUpMainUniformLocations(GLuint prog)
+void Renderer::SetUpMainUniformLocations(GLuint prog)
 {
-    mainMVMatLoc = glGetUniformLocation(prog, "mvMat");
-    mainNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
-    mainProjMatLoc = glGetUniformLocation(prog, "projMat");
+    m_mainMVMatLoc = glGetUniformLocation(prog, "mvMat");
+    m_mainNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
+    m_mainProjMatLoc = glGetUniformLocation(prog, "projMat");
 
-    textureLoc = glGetUniformLocation(prog, "colorTex");
+    m_textureLoc = glGetUniformLocation(prog, "colorTex");
 
-    numLightsLoc = glGetUniformLocation(prog, "numLights");
-    lightPosLoc = glGetUniformLocation(prog, "lightPosVF");
-    lightOnLoc = glGetUniformLocation(prog, "lightOn");
+    m_numLightsLoc = glGetUniformLocation(prog, "numLights");
+    m_lightPosLoc = glGetUniformLocation(prog, "lightPosVF");
+    m_lightOnLoc = glGetUniformLocation(prog, "lightOn");
 
-    ambientLoc = glGetUniformLocation(prog, "ambient");
-    diffuseLoc = glGetUniformLocation(prog, "diffuse");
-    specularLoc = glGetUniformLocation(prog, "specular");
-    specularPowerLoc = glGetUniformLocation(prog, "specularPower");
+    m_ambientLoc = glGetUniformLocation(prog, "ambient");
+    m_diffuseLoc = glGetUniformLocation(prog, "diffuse");
+    m_specularLoc = glGetUniformLocation(prog, "specular");
+    m_specularPowerLoc = glGetUniformLocation(prog, "specularPower");
 
-    bumpTexLoc = glGetUniformLocation(prog, "bumpTex");
-    normalTexLoc = glGetUniformLocation(prog, "normalTex");
-    normalMappingOnLoc = glGetUniformLocation(prog, "normalMappingOn");
-    parallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
+    m_bumpTexLoc = glGetUniformLocation(prog, "bumpTex");
+    m_normalTexLoc = glGetUniformLocation(prog, "normalTex");
+    m_normalMappingOnLoc = glGetUniformLocation(prog, "normalMappingOn");
+    m_parallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
 }
 
 
@@ -144,16 +84,16 @@ void SetUpMainUniformLocations(GLuint prog)
         The given sphere shader program ID.
 */
 /******************************************************************************/
-void SetUpSphereUniformLocations(GLuint prog)
+void Renderer::SetUpSphereUniformLocations(GLuint prog)
 {
-    sphereMVMatLoc = glGetUniformLocation(prog, "mvMat");
-    sphereNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
-    sphereProjMatLoc = glGetUniformLocation(prog, "projMat");
-    sphereViewMatLoc = glGetUniformLocation(prog, "viewMat");
+    m_sphereMVMatLoc = glGetUniformLocation(prog, "mvMat");
+    m_sphereNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
+    m_sphereProjMatLoc = glGetUniformLocation(prog, "projMat");
+    m_sphereViewMatLoc = glGetUniformLocation(prog, "viewMat");
 
-    sphereTexCubeLoc = glGetUniformLocation(prog, "texCube");
-    sphereRefLoc = glGetUniformLocation(prog, "sphereRef");
-    sphereRefIndexLoc=glGetUniformLocation(prog, "sphereRefIndex");
+    m_sphereTexCubeLoc = glGetUniformLocation(prog, "texCube");
+    m_sphereRefLoc = glGetUniformLocation(prog, "sphereRef");
+    m_sphereRefIndexLoc=glGetUniformLocation(prog, "sphereRefIndex");
 }
 
 
@@ -169,8 +109,8 @@ void SetUpSphereUniformLocations(GLuint prog)
         will be sent to shaders.
 */
 /******************************************************************************/
-void SetUpVertexData(Mesh& mesh)
-{
+void Renderer::SetUpVertexData(Mesh& mesh)
+{ 
     glGenVertexArrays(1, &mesh.VAO);
     glBindVertexArray(mesh.VAO);
 
@@ -206,7 +146,7 @@ void SetUpVertexData(Mesh& mesh)
 /******************************************************************************/
 void Renderer::SendLightProperties()
 {
-    glUniform1i(numLightsLoc, m_scene.NUM_LIGHTS);
+    glUniform1i(m_numLightsLoc, m_scene.NUM_LIGHTS);
 
     /*  ambient, diffuse, specular are now reflected components on the object
         surface and can be used directly as intensities in the lighting equation.
@@ -216,11 +156,11 @@ void Renderer::SendLightProperties()
     diffuse = m_scene.m_I * m_scene.m_diffuseAlbedo;
     specular = m_scene.m_I * m_scene.m_specularAlbedo;
 
-    glUniform4fv(ambientLoc, 1, ValuePtr(ambient));
-    glUniform4fv(diffuseLoc, 1, ValuePtr(diffuse));
-    glUniform4fv(specularLoc, 1, ValuePtr(specular));
+    glUniform4fv(m_ambientLoc, 1, ValuePtr(ambient));
+    glUniform4fv(m_diffuseLoc, 1, ValuePtr(diffuse));
+    glUniform4fv(m_specularLoc, 1, ValuePtr(specular));
 
-    glUniform1i(specularPowerLoc, m_scene.m_specularPower);
+    glUniform1i(m_specularPowerLoc, m_scene.m_specularPower);
 }
 
 
@@ -260,13 +200,13 @@ void Renderer::ComputeMainCamMats()
     /*  Update view transform matrix */
     if (mainCam.moved)
     {
-        mainCamViewMat = mainCam.ViewMat();
-        ComputeObjMVMats(mainCamMVMat, mainCamNormalMVMat, mainCamViewMat);
+        m_mainCamViewMat = mainCam.ViewMat();
+        ComputeObjMVMats(m_mainCamMVMat, m_mainCamNormalMVMat, m_mainCamViewMat);
     }
 
     /*  Update projection matrix */
     if (mainCam.resized)
-        mainCamProjMat = mainCam.ProjMat();
+        m_mainCamProjMat = mainCam.ProjMat();
 }
 
 
@@ -298,7 +238,7 @@ void Renderer::ComputeMirrorCamMats()
             user camera position in mirror frame.
             We also need to compute mirrorCam.pos, mirrorCam.upVec, mirrorCam.lookAt are defined in world
             frame to compute mirror cam's view matrix.
-            function to compute mirrorCamViewMat
+            function to compute m_mirrorCamViewMat
         */
 
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
@@ -307,9 +247,9 @@ void Renderer::ComputeMirrorCamMats()
         mirrorCam.upVec = BASIS[Y];
         mirrorCam.lookAt = Vec3(Translate(m_scene.m_mirrorTranslate) * Rotate(m_scene.m_mirrorRotationAngle, m_scene.m_mirrorRotationAxis) * Vec4(0, 0, 0, 1));
 
-        mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
+        m_mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
-        ComputeObjMVMats(mirrorCamMVMat, mirrorCamNormalMVMat, mirrorCamViewMat);
+        ComputeObjMVMats(m_mirrorCamMVMat, m_mirrorCamNormalMVMat, m_mirrorCamViewMat);
         /*  Compute mirror camera projection matrix */
         /*  In mirror frame, the mirror camera view direction is towards the center of the mirror,
             which is the origin of this frame.
@@ -383,7 +323,7 @@ void Renderer::ComputeMirrorCamMats()
         mirrorCam.rightPlane *= viewAngleAdjustFactor;
         mirrorCam.bottomPlane *= viewAngleAdjustFactor;
         mirrorCam.topPlane *= viewAngleAdjustFactor;
-        mirrorCamProjMat = mirrorCam.ProjMat();
+        m_mirrorCamProjMat = mirrorCam.ProjMat();
     }
 }
 
@@ -431,12 +371,12 @@ void Renderer::ComputeSphereCamMats()
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
-        sphereCamViewMat[f] = LookAt(m_scene.m_spherePos, m_scene.m_spherePos + lookAt[f], upVec[f]);
-        ComputeObjMVMats(sphereCamMVMat[f], sphereCamNormalMVMat[f], sphereCamViewMat[f]);
+        m_sphereCamViewMat[f] = LookAt(m_scene.m_spherePos, m_scene.m_spherePos + lookAt[f], upVec[f]);
+        ComputeObjMVMats(m_sphereCamMVMat[f], m_sphereCamNormalMVMat[f], m_sphereCamViewMat[f]);
     }
 
 
-    /*  Use Perspective function to ompute the projection matrix sphereCamProjMat so that
+    /*  Use Perspective function to ompute the projection matrix m_sphereCamProjMat so that
         from the camera position at the cube center, we see a complete face of the cube.
         The near plane distance is 0.01f. The far plane distance is equal to mainCam's farPlane.
     */
@@ -444,7 +384,7 @@ void Renderer::ComputeSphereCamMats()
     float fov = PI / 2.f; // 90 degrees in radians
     float aspectRatio = 1.0f;
     float nearPlane = 0.01f; // near plane is 0.01, and far plane is the same as the main camera's far plane
-    sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
+    m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
 inline void Rendering::Renderer::RenderGui() {
@@ -544,7 +484,7 @@ void Renderer::SendMirrorTexID()
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_scene.GetResourceManager().mirrorTexID);
-    glUniform1i(textureLoc, 0);
+    glUniform1i(m_textureLoc, 0);
 }
 
 /******************************************************************************/
@@ -779,10 +719,10 @@ void Rendering::Renderer::UpdateLightPosViewFrame()
     if (mainCam.moved)
     {
         for (int i = 0; i < m_scene.NUM_LIGHTS; ++i) {
-            m_scene.m_lightPosVF[i] = Vec3(mainCamViewMat * Vec4(m_scene.m_lightPosWF[i], 1.0f));
+            m_scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(m_scene.m_lightPosWF[i], 1.0f));
         }
 
-        glUniform3fv(lightPosLoc, m_scene.NUM_LIGHTS, ValuePtr(m_scene.m_lightPosVF[0]));
+        glUniform3fv(m_lightPosLoc, m_scene.NUM_LIGHTS, ValuePtr(m_scene.m_lightPosVF[0]));
     }
 }
 
@@ -833,8 +773,8 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 
     m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
-    SendCubeTexID(m_scene.GetResourceManager().skyboxTexID, skyboxTexCubeLoc);
-    SendViewMat(viewMat, skyboxViewMatLoc);
+    SendCubeTexID(m_scene.GetResourceManager().skyboxTexID, m_skyboxTexCubeLoc);
+    SendViewMat(viewMat, m_skyboxViewMatLoc);
 
     /*  Just trigger the skybox shaders, which hard-code the full-screen quad drawing */
     /*  No vertices are actually sent */
@@ -871,20 +811,20 @@ void Renderer::RenderSphere()
 {
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
-    SendCubeTexID(m_scene.GetResourceManager().sphereTexID, sphereTexCubeLoc);
+    SendCubeTexID(m_scene.GetResourceManager().sphereTexID, m_sphereTexCubeLoc);
 
     /*  Indicate whether we want reflection/refraction or both */
-    glUniform1i(sphereRefLoc, TO_INT(m_sphereRef));
+    glUniform1i(m_sphereRefLoc, TO_INT(m_sphereRef));
 
     /*  Set refractive index of the sphere */
-    glUniform1f(sphereRefIndexLoc, m_sphereRefIndex);
+    glUniform1f(m_sphereRefIndexLoc, m_sphereRefIndex);
 
     /*  We need view mat to know our camera orientation */
-    SendViewMat(mainCamViewMat, sphereViewMatLoc);
+    SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
     /*  These are for transforming vertices on the sphere */
-    SendMVMat(mainCamMVMat[TO_INT(ObjID::SPHERE)], mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], sphereMVMatLoc, sphereNMVMatLoc);
-    SendProjMat(mainCamProjMat, sphereProjMatLoc);
+    SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
+    SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
 
     RenderObj(m_scene.GetObject(TO_INT(ObjID::SPHERE)));
 }
@@ -930,7 +870,7 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
     m_shaders[TO_INT(ProgType::MAIN_PROG)].Use();
 
     UpdateLightPosViewFrame();
-    SendProjMat(projMat, mainProjMatLoc);
+    SendProjMat(projMat, m_mainProjMatLoc);
 
     /*  Send object texture and render them */
     size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
@@ -954,30 +894,30 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
                     if (i == TO_INT(ObjID::MIRROR))
                     {
                         SendMirrorTexID();
-                        glUniform1i(lightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
-                        SendObjTexID(m_scene.GetResourceManager().GetTexture(m_scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), textureLoc);
-                        glUniform1i(lightOnLoc, 1);     /*  enable lighting for other objects */
+                        SendObjTexID(m_scene.GetResourceManager().GetTexture(m_scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
+                        glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
-                    SendMVMat(MVMat[i], normalMVMat[i], mainMVMatLoc, mainNMVMatLoc);
+                    SendMVMat(MVMat[i], normalMVMat[i], m_mainMVMatLoc, m_mainNMVMatLoc);
 
                     if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
                     {
-                        SendObjTexID(m_scene.GetResourceManager().normalTexID, TO_INT(ActiveTexID::NORMAL), normalTexLoc);
-                        glUniform1i(normalMappingOnLoc, true);
-                        glUniform1i(parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
+                        SendObjTexID(m_scene.GetResourceManager().normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
+                        glUniform1i(m_normalMappingOnLoc, true);
+                        glUniform1i(m_parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
                         if (Renderer::GetInstance().IsParallaxMappingOn()) {
-                            SendObjTexID(m_scene.GetResourceManager().bumpTexID, TO_INT(ActiveTexID::BUMP), bumpTexLoc);
+                            SendObjTexID(m_scene.GetResourceManager().bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
                         }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
                     {
-                        glUniform1i(normalMappingOnLoc, false);
-                        glUniform1i(parallaxMappingOnLoc, false);
+                        glUniform1i(m_normalMappingOnLoc, false);
+                        glUniform1i(m_parallaxMappingOnLoc, false);
                     }
 
                     /*  The mirror surface is rendered to face away to simulate the flipped effect.
@@ -1034,7 +974,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
     {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sphereFrameBufferTexID, 0);
 
-        RenderObjsBg(sphereCamMVMat[i], sphereCamNormalMVMat[i], sphereCamViewMat[i], sphereCamProjMat,
+        RenderObjsBg(m_sphereCamMVMat[i], m_sphereCamNormalMVMat[i], m_sphereCamViewMat[i], m_sphereCamProjMat,
             m_scene.GetResourceManager().skyboxFaceSize, m_scene.GetResourceManager().skyboxFaceSize,
             RenderPass::SPHERETEX_GENERATION);
 
@@ -1058,7 +998,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
 void Renderer::RenderToMirrorTexture()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_scene.GetResourceManager().mirrorFrameBufferID);
-    RenderObjsBg(mirrorCamMVMat, mirrorCamNormalMVMat, mirrorCamViewMat, mirrorCamProjMat,
+    RenderObjsBg(m_mirrorCamMVMat, m_mirrorCamNormalMVMat, m_mirrorCamViewMat, m_mirrorCamProjMat,
         mirrorCam.width, mirrorCam.height,
         RenderPass::MIRRORTEX_GENERATION);
 }
@@ -1074,7 +1014,7 @@ void Renderer::RenderToMirrorTexture()
 void Renderer::RenderToScreen()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    RenderObjsBg(mainCamMVMat, mainCamNormalMVMat, mainCamViewMat, mainCamProjMat,
+    RenderObjsBg(m_mainCamMVMat, m_mainCamNormalMVMat, m_mainCamViewMat, m_mainCamProjMat,
         mainCam.width, mainCam.height,
         RenderPass::NORMAL);
 }

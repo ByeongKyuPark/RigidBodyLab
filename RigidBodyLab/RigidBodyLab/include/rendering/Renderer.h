@@ -55,10 +55,75 @@ namespace Rendering {
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
 
+
+		/******************************************************************************/
+		/*  Graphics-related variables                                                */
+		/******************************************************************************/
+		/*  For displaying FPS */
+		clock_t currTime, prevTime;
+		int frameCount;
+		float secCount;        /*  Num of seconds from prevTime to currTime */
+		float fps;
+
+		/*  For clearing depth buffer */
+		GLfloat one = 1.0f;
+
+
+		/*  For activating the texture ID. We need these 3 separate IDs because
+			they are used at the same time for the base
+		*/
+		enum class ActiveTexID {
+			COLOR = 0,
+			NORMAL,
+			BUMP
+		};
+
+		/*  Matrices for view/projetion transformations */
+		/*  Viewer camera */
+		Mat4 m_mainCamViewMat, m_mainCamProjMat, m_mainCamMVMat[TO_INT(ObjID::NUM_OBJS)], m_mainCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
+
+		/*  Mirror camera */
+		Mat4 m_mirrorCamViewMat, m_mirrorCamProjMat, m_mirrorCamMVMat[TO_INT(ObjID::NUM_OBJS)], m_mirrorCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
+
+		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
+		Mat4 m_sphereCamViewMat[TO_INT(CubeFaceID::NUM_FACES)],
+			m_sphereCamProjMat,
+			m_sphereCamMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)],
+			m_sphereCamNormalMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)];
+
+
+		/*  Locations of the variables in the shader. */
+		/*  Locations of transform matrices */
+		GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
+		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
+		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
+
+		/*  Location of color textures */
+		GLint m_textureLoc;                       /*  Normal object texture */
+		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
+		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
+
+		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
+		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
+
+		/*  Location of bump/normal textures */
+		GLint m_normalTexLoc, m_bumpTexLoc;
+
+		/*  For indicating whether object has normal map, and parallax mapping status */
+		GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
+
+		/*  Location of light data */
+		GLint m_numLightsLoc, m_lightPosLoc;
+		GLint m_lightOnLoc;
+		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
+	private:
+
 		void InitImGui();
 		void InitRendering();
 
 		void EstimateFPS();
+		void UpdateLightPosViewFrame();
+
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Object& obj);
 		void RenderSphere();
@@ -66,13 +131,18 @@ namespace Rendering {
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[]);
 		void RenderToMirrorTexture();
 		void RenderToScreen();
-		void SendLightProperties();
+		void RenderGui();
+
 		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat);
 		void ComputeMainCamMats();
 		void ComputeMirrorCamMats();
 		void ComputeSphereCamMats();
-		void UpdateLightPosViewFrame();
-		void RenderGui();
+
+		void SendLightProperties();
+		void SetUpSkyBoxUniformLocations(GLuint prog);
+		void SetUpMainUniformLocations(GLuint prog);
+		void SetUpSphereUniformLocations(GLuint prog); 
+		void SetUpVertexData(Mesh& mesh);
 
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
