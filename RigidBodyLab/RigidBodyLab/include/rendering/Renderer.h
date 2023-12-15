@@ -42,6 +42,14 @@ namespace Rendering {
 		REFLECTION_REFRACTION, 
 		NUM_REFTYPES 
 	};
+	/*  For activating the texture ID. We need these 3 separate IDs because
+		they are used at the same time for the base
+	*/
+	enum class ActiveTexID {
+		COLOR = 0,
+		NORMAL,
+		BUMP
+	};
 
 	class Renderer {
 		Scene m_scene;
@@ -67,16 +75,6 @@ namespace Rendering {
 
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
-
-
-		/*  For activating the texture ID. We need these 3 separate IDs because
-			they are used at the same time for the base
-		*/
-		enum class ActiveTexID {
-			COLOR = 0,
-			NORMAL,
-			BUMP
-		};
 
 		/*  Matrices for view/projetion transformations */
 		/*  Viewer camera */
