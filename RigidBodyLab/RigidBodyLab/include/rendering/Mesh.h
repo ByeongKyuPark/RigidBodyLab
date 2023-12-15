@@ -15,7 +15,6 @@ namespace Rendering {
         Vec3 pos, nrm, tan, bitan;
         Vec2 uv;
     };
-
     const int vertexSize = sizeof(Vertex);
     const int indexSize = sizeof(int);
 
@@ -43,9 +42,8 @@ namespace Rendering {
     const int layoutSize = sizeof(VertexLayout);
     const int numAttribs = sizeof(vLayout) / layoutSize;
 
-
-    typedef std::vector<Vertex> VertexBufferType;
-    typedef std::vector<int> IndexBufferType;
+    using VertexBuffer=std::vector<Vertex>;
+    using IndexBuffer=std::vector<int>;
 
     /*  Mesh format, only contains geometric data but not color/texture */
     struct Mesh
@@ -57,8 +55,8 @@ namespace Rendering {
         }
 
         /*  Storing the actual vertex/index data */
-        VertexBufferType vertexBuffer;
-        IndexBufferType indexBuffer;
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
 
         int numVertices;
         int numTris;

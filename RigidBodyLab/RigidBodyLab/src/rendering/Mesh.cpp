@@ -10,7 +10,7 @@ using namespace Rendering;
 void BuildIndexBuffer(int stacks, int slices, Mesh& mesh);
 void addVertex(Mesh& mesh, const Vertex& v);
 void addIndex(Mesh& mesh, int index);
-void ComputeTangentsBitangents(VertexBufferType& vertices, const IndexBufferType& indices);
+void ComputeTangentsBitangents(VertexBuffer& vertices, const IndexBuffer& indices);
 void ComputeNormals(Mesh& mesh);
 void ComputeUVs(Mesh& mesh);
 
@@ -304,7 +304,7 @@ void addIndex(Mesh& mesh, int index)
 
 /******************************************************************************/
 /*!
-\fn     void ComputeTangentsBitangents(VertexBufferType &vertices, const IndexBufferType &indices)
+\fn     void ComputeTangentsBitangents(VertexBuffer &vertices, const IndexBuffer &indices)
 \brief
         Compute the tangent and bitangent at each vertex of the mesh
 \param  vertices
@@ -313,7 +313,7 @@ void addIndex(Mesh& mesh, int index)
         The index list of the mesh
 */
 /******************************************************************************/
-void ComputeTangentsBitangents(VertexBufferType& vertices, const IndexBufferType& indices)
+void ComputeTangentsBitangents(VertexBuffer& vertices, const IndexBuffer& indices)
 {
     int numVertices = vertices.size();
     int numIndices = indices.size();
