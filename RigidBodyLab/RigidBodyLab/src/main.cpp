@@ -15,11 +15,13 @@ void MainLoop(ApplicationState& appState){
     while (!renderer.ShouldClose()) {
         glfwPollEvents();
 
+        appState.UpdateTime();
+        float deltaTime = appState.GetDeltaTime();
         // 1. physics update
         //appState.getScene().updatePhysics(deltaTime);
 
         // 2. render
-        renderer.Render(appState.getScene());
+        renderer.Render(appState.getScene(),appState.GetFPS());
     }
 }
 

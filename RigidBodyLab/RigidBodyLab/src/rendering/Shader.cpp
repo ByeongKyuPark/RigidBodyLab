@@ -47,7 +47,7 @@ string Shader::ReadShaderFile(const string& filePath) {
         shaderFile.close();
         return shaderStream.str();
     }
-    catch (std::ifstream::failure& e) {
+    catch ([[maybe_unused]]std::ifstream::failure& e) {
         std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << filePath << std::endl;
         return "";
     }

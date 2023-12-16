@@ -68,11 +68,6 @@ namespace Rendering {
 		/******************************************************************************/
 		/*  Graphics-related variables                                                */
 		/******************************************************************************/
-		/*  For displaying FPS */
-		clock_t currTime, prevTime;
-		int frameCount;
-		float secCount;        /*  Num of seconds from prevTime to currTime */
-		float fps;
 
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
@@ -120,7 +115,6 @@ namespace Rendering {
 		void InitImGui();
 		void InitRendering();
 
-		void EstimateFPS();
 		void UpdateLightPosViewFrame(Scene& scene);
 
 		void RenderSkybox(const Mat4& viewMat);
@@ -130,7 +124,7 @@ namespace Rendering {
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
-		void RenderGui();
+		void RenderGui(float fps);
 
 		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat, const Scene& scene);
 		void ComputeMainCamMats(const Scene& scene);
@@ -166,7 +160,7 @@ namespace Rendering {
 
 		// Methods for the Renderer class
 		void AttachScene(const Scene& scene);
-		void Render(Scene& scene);
+		void Render(Scene& scene, float fps);
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
 		bool& GetParallaxMapping() { return m_parallaxMappingOn; }

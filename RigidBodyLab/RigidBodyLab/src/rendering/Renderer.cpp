@@ -389,7 +389,7 @@ void Renderer::ComputeSphereCamMats(const Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
-inline void Rendering::Renderer::RenderGui() {
+inline void Rendering::Renderer::RenderGui(float fps) {
     ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
     ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
     // Displaying FPS
@@ -519,11 +519,6 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
 /******************************************************************************/
 void Renderer::AttachScene(const Scene& scene)
 {
-    /*  Initialization for fps estimation */
-    currTime = clock();
-    frameCount = 0;
-    secCount = 0;
-
     for (const auto& pair : m_shaderFileMap) {
         m_shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
     }
@@ -607,7 +602,7 @@ void Renderer::CleanUp()
 Rendering::Renderer::Renderer()
     : m_window{ nullptr,WindowDeleter }, m_fps(0)
     , m_sphereRef(RefType::REFLECTION_ONLY)
-    , m_parallaxMappingOn(true), m_sphereRefIndex{1.33}//water by default
+    , m_parallaxMappingOn(true), m_sphereRefIndex{1.33f}//water by default
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -736,31 +731,6 @@ void Renderer::WindowDeleter(GLFWwindow* window) {
     glfwDestroyWindow(window);
     glfwTerminate();// terminate GLFW after all resources are released
 }
-
-/******************************************************************************/
-/*!
-\fn     void EstimateFPS()
-\brief
-        Estimating FPS. This only updates the FPS about once per second.
-*/
-/******************************************************************************/
-void Renderer::EstimateFPS()
-{
-    ++frameCount;
-
-    prevTime = currTime;
-    currTime = clock();
-    secCount += 1.0f * (currTime - prevTime) / CLOCKS_PER_SEC;
-
-    if (secCount > 1.0f)
-    {
-        fps = frameCount / secCount;
-
-        frameCount = 0;
-        secCount = 0;
-    }
-}
-
 
 /******************************************************************************/
 /*!
@@ -1035,7 +1005,7 @@ void Renderer::RenderToScreen(Scene& scene)
         deferred shading.
 */
 /******************************************************************************/
-void Renderer::Render(Scene& scene)
+void Renderer::Render(Scene& scene, float fps)
 {
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
@@ -1089,13 +1059,11 @@ void Renderer::Render(Scene& scene)
     mainCam.moved = false;
     mainCam.resized = false;
 
-    EstimateFPS();
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    RenderGui();
+    RenderGui(fps);
 
     // Rendering    
     ImGui::Render();
