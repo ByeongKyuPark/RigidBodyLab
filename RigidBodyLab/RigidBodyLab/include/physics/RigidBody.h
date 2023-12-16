@@ -78,6 +78,6 @@ namespace Physics
         Vector3 GetAngularVelocity() const;
         Vector3 GetAcceleration() const;
         float GetLinearDamping() const;
-        Matrix4 GetLocalToWorldMatrix() const;
+        glm::mat4 GetLocalToWorldMatrix() const;
     }; 
 }

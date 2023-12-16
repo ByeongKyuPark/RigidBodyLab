@@ -281,9 +281,9 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
 glm::mat4 Matrix4::ConvertToGLM() const noexcept {
     glm::mat4 result;
 
-    for (int col = 0; col < 4; ++col) {
-        for (int row = 0; row < 4; ++row) {
-            result[col][row] = columns[row].m128_f32[col];
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            result[row][col] = columns[row].m128_f32[col];
         }
     }
 

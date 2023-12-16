@@ -184,7 +184,8 @@ void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, c
     const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < OBJ_SIZE; ++i)
     {
-        MVMat[i] = viewMat * scene.m_objects[i]->GetModelToWorldMatrix();
+        Mat4 objMat = scene.m_objects[i]->GetModelToWorldMatrix();
+        MVMat[i] = viewMat * objMat;
         NMVMat[i] = Transpose(Inverse(MVMat[i]));
     }
 }
