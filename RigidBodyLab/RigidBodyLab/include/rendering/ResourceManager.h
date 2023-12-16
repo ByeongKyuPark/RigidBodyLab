@@ -69,6 +69,7 @@ namespace Rendering {
 		friend class Renderer;
 	public:
         ResourceManager();
+		static ResourceManager& GetInstance();
 
         Mesh& GetMesh(MeshID id);
 		GLuint GetTexture(ImageID id);

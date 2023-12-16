@@ -29,6 +29,11 @@ ResourceManager::ResourceManager()
     //SetUpMirrorTexture();
 }
 
+ResourceManager& ResourceManager::GetInstance()
+{
+    static ResourceManager instance;
+    return instance;
+}
 
 Mesh& ResourceManager::GetMesh(MeshID id) {
     return meshes[TO_INT(id)];

@@ -2,13 +2,11 @@
 
 #include "Object.h"
 #include <vector>
-#include <rendering/ResourceManager.h>
 
 namespace Rendering {
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
 
-        ResourceManager m_resourceManager;
         std::vector<Object> m_objects;
 
         /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
@@ -41,9 +39,8 @@ namespace Rendering {
         Scene();
 
         Object& GetObject(size_t index);
+        const Object& GetObject(size_t index) const;
         const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetIntensity() const { return m_I; }
-        const ResourceManager& GetResourceManager() const { return m_resourceManager; }
-        ResourceManager& GetResourceManager(){ return m_resourceManager; }
     };
 }

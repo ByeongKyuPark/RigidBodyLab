@@ -1,7 +1,6 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <utilities/ToUnderlyingEnum.h>
-#include <rendering/Scene.h>
 #include <rendering/Shader.h>
 #include <unordered_map>
 #include <array>
@@ -50,9 +49,11 @@ namespace Rendering {
 		NORMAL,
 		BUMP
 	};
+	
+	class Scene;
+	class ResourceManager;
 
 	class Renderer {
-		Scene m_scene;
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
 									//custom deleter
@@ -120,23 +121,23 @@ namespace Rendering {
 		void InitRendering();
 
 		void EstimateFPS();
-		void UpdateLightPosViewFrame();
+		void UpdateLightPosViewFrame(Scene& scene);
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Object& obj);
-		void RenderSphere();
-		void RenderObjsBg(const Mat4* MVMat, const Mat4* normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass);
-		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[]);
-		void RenderToMirrorTexture();
-		void RenderToScreen();
+		void RenderSphere(const Scene& scene);
+		void RenderObjsBg(const Mat4* MVMat, const Mat4* normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass, Scene& scene);
+		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
+		void RenderToMirrorTexture(Scene& scene);
+		void RenderToScreen(Scene& scene);
 		void RenderGui();
 
-		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat);
-		void ComputeMainCamMats();
-		void ComputeMirrorCamMats();
-		void ComputeSphereCamMats();
+		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat, const Scene& scene);
+		void ComputeMainCamMats(const Scene& scene);
+		void ComputeMirrorCamMats(const Scene& scene);
+		void ComputeSphereCamMats(const Scene& scene);
 
-		void SendLightProperties();
+		void SendLightProperties(const Scene& scene);
 		void SetUpSkyBoxUniformLocations(GLuint prog);
 		void SetUpMainUniformLocations(GLuint prog);
 		void SetUpSphereUniformLocations(GLuint prog); 
@@ -164,8 +165,8 @@ namespace Rendering {
 		Renderer& operator=(Renderer&&) = default;
 
 		// Methods for the Renderer class
-		void SetUpDemoScene();
-		void Render();
+		void AttachScene(const Scene& scene);
+		void Render(Scene& scene);
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
 		bool& GetParallaxMapping() { return m_parallaxMappingOn; }
