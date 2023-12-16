@@ -17,7 +17,7 @@ namespace Physics
 
         Matrix3 inverseInertiaTensor; //local
         Matrix3 inverseInertiaTensorWorld; //world
-        Matrix4 localToWorldCoord;
+        Matrix4 localToWorld;
 
         Vector3 position;
         Quaternion orientation;

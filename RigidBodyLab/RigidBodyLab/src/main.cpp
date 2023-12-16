@@ -18,7 +18,7 @@ void MainLoop(ApplicationState& appState){
         appState.UpdateTime();
         float deltaTime = appState.GetDeltaTime();
         // 1. physics update
-        //appState.getScene().updatePhysics(deltaTime);
+        appState.getScene().Update(deltaTime);
 
         // 2. render
         renderer.Render(appState.getScene(),appState.GetFPS());

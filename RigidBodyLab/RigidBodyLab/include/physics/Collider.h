@@ -1,7 +1,6 @@
-#include <math/Vector3.h>
+#pragma once
+#include <math/Math.h>
 namespace Physics{
-
-	using Math::Vector3;
 
 	//abstract class
 	class Collider {
@@ -11,12 +10,13 @@ namespace Physics{
 
 	//(1) box collider
 	class BoxCollider : public Collider {
-	    Vector3 size; // the dimensions of the box
+	    Vec3 size; // the dimensions of the box
 
 	public:
-	    BoxCollider(const Vector3& size) : size(size) {}
+	    BoxCollider(const Vec3& size) : size(size) {}
 
 	    bool IsCollidingWith(const Collider& other) const override final{
+			return false;
 	    }
 	};
 	
@@ -28,6 +28,7 @@ namespace Physics{
 	    SphereCollider(float radius) : radius(radius) {}
 
 	    bool IsCollidingWith(const Collider& other) const override final{
+			return false;
 	    }
 	};
 
