@@ -39,7 +39,7 @@ namespace Core {
 		ImageID GetImageID() const { return m_imageID; }
 		void SetImageID(ImageID id) { m_imageID = id; }
 
-		void Update(float deltaTime);
+		void Integrate(float deltaTime);
 	};
 
 }

@@ -97,7 +97,7 @@ void SetUpLight(float height);
 //    Rendering::lightPosWF[0] = Vec3(0, height, 0);
 //}
 
-void Core::Object::Update(float deltaTime) {
+void Core::Object::Integrate(float deltaTime) {
 	if (m_rigidBody) {
 		m_rigidBody->Integrate(deltaTime);
 		// Update m_modelToWorldMatrix based on m_rigidBody's state

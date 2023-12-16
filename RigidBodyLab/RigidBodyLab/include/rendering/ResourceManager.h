@@ -31,12 +31,12 @@ namespace Rendering {
 	/*  Types of objects */
 	enum class ObjID {
 		BASE = 0,
-		VASE,
-		MIRROR,
+		//VASE,
+		//MIRROR,
 		//MIRRORBASE1,
 		//MIRRORBASE2,
 		//MIRRORBASE3,
-		SPHERE,
+		//SPHERE,
 		NUM_OBJS
 	};
 

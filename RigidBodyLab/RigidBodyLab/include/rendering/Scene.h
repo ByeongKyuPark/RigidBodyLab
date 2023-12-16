@@ -6,6 +6,8 @@
 namespace Rendering {
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
+        static constexpr float SPHERE_INERTIA_FACTOR = 0.4f;
+        static constexpr float CUBE_INERTIA_FACTOR = 1 / 6.0f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
 
