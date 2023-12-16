@@ -69,6 +69,7 @@ void RigidBody::RotateByQuat(const Quaternion& quat)
 
 void RigidBody::UpdateTransformMatrix()
 {
+
     // First column
     localToWorld.columns[0].m128_f32[0] = 1.0f - 2.0f * (orientation.y * orientation.y + orientation.z * orientation.z);
     localToWorld.columns[0].m128_f32[1] = 2.0f * (orientation.x * orientation.y + orientation.w * orientation.z);

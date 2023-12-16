@@ -59,8 +59,8 @@ void Scene::SetUpScene() {
     inertiaTensor.SetDiagonal(1.f * CUBE_INERTIA_FACTOR);
 
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    //Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
-    Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
+    Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
+    //Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
     Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
     std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
     planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
@@ -72,8 +72,9 @@ void Scene::SetUpScene() {
     //glm::mat4 test2 = planeRigidBody->GetLocalToWorldMatrix();
 
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
+    planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, Translate(0, BASE_POS_Y, 0) * Scale(baseSize), planeRigidBody.release(), planeCollider.release()));
+    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, /*Translate(0, BASE_POS_Y, 0) * Scale(baseSize),*/ planeRigidBody.release(), planeCollider.release()));
 
 
     ////(2) VASE

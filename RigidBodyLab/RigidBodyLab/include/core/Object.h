@@ -23,7 +23,7 @@ namespace Core {
 		std::unique_ptr<Collider> m_collider;
 
 	public:
-		Object::Object(Mesh& mesh, ImageID imageID, const Mat4& modelMat, RigidBody* rigidBody, Collider* collider)
+		Object::Object(Mesh& mesh, ImageID imageID, /*const Mat4& modelMat,*/ RigidBody* rigidBody, Collider* collider)
 			: m_mesh(mesh), m_imageID(imageID), //m_modelToWorldMatrix(modelMat),
 			m_rigidBody(rigidBody), m_collider(collider) {}
 
@@ -34,7 +34,10 @@ namespace Core {
 
 		// Getter methods (setters might not be necessary because we are passing by reference)
 		const Mesh& GetMesh() const { return m_mesh; }
-		const Mat4& GetModelToWorldMatrix() const { return m_rigidBody->GetLocalToWorldMatrix();}
+		const Mat4& GetModelToWorldMatrix() const { 
+			// TR										* S
+			return m_rigidBody->GetLocalToWorldMatrix()	* m_collider->GetScaleMatrix();
+		}
 		//const Mat4& GetModelToWorldMatrix() const { return m_modelToWorldMatrix; }
 
 		ImageID GetImageID() const { return m_imageID; }

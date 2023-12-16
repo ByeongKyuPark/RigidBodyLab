@@ -17,6 +17,7 @@ namespace Physics
 
         Matrix3 inverseInertiaTensor; //local
         Matrix3 inverseInertiaTensorWorld; //world
+        // Represents the transformation matrix without scale. Avoids skewing and simulates the rigid body as a point mass for simplified physics calculations.
         Matrix4 localToWorld;
 
         Vector3 position;
@@ -42,6 +43,7 @@ namespace Physics
         bool IsFixed() {return massInverse == 0.0f ? true : false;}
 
     private:    
+        //no scale, simulates the rigid body as a point mass for simplified physics calculations.
         void UpdateTransformMatrix();
         void TransformInertiaTensor();
 
