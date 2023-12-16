@@ -5,8 +5,8 @@
 #include <rendering/ResourceManager.h>
 #include <vector>
 
-namespace Rendering {
-
+namespace Core {
+	using namespace Rendering;
 	class Object {
 	private:
 		//Dependency Injection

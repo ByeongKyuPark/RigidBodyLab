@@ -25,7 +25,7 @@
 #include "backends/imgui_impl_opengl3.h"
 
 using namespace Rendering;
-
+using Core::Object;
 
 
 /******************************************************************************/
@@ -765,7 +765,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
         The object that we want to render.
 */
 /******************************************************************************/
-void Renderer::RenderObj(const Object& obj)
+void Renderer::RenderObj(const Core::Object& obj)
 {
     /*  Tell shader to use obj's VAO for rendering */
     const Mesh& mesh = obj.GetMesh();

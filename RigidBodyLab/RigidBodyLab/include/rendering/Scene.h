@@ -7,7 +7,7 @@ namespace Rendering {
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
 
-        std::vector<Object> m_objects;
+        std::vector<Core::Object> m_objects;
 
         /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
             lighting. In this frame, the vertex positions are not too large, hence the computation
@@ -38,8 +38,8 @@ namespace Rendering {
     public:
         Scene();
 
-        Object& GetObject(size_t index);
-        const Object& GetObject(size_t index) const;
+        Core::Object& GetObject(size_t index);
+        const Core::Object& GetObject(size_t index) const;
         const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetIntensity() const { return m_I; }
     };

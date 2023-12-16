@@ -11,11 +11,11 @@ m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_
     SetUpScene();
 }
 
-Object& Rendering::Scene::GetObject(size_t index) {
+Core::Object& Rendering::Scene::GetObject(size_t index) {
     return m_objects.at(index); // 'at' for bounds checking
 }
 
-const Object& Rendering::Scene::GetObject(size_t index) const{
+const Core::Object& Rendering::Scene::GetObject(size_t index) const{
     return m_objects.at(index); // 'at' for bounds checking
 }
 
