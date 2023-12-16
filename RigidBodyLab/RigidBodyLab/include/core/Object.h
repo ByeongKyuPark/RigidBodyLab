@@ -3,17 +3,23 @@
 #include <utilities/ToUnderlyingEnum.h>
 #include <rendering/Mesh.h>
 #include <rendering/ResourceManager.h>
+#include <physics/RigidBody.h>
+#include <physics/Collider.h>
+#include <memory>
 #include <vector>
 
 namespace Core {
 	using namespace Rendering;
+	using namespace Physics;
+
 	class Object {
 	private:
 		//Dependency Injection
 		Mesh& m_mesh;     
-
 		ImageID m_imageID;
 		Mat4 m_modelMatrix;   
+		std::unique_ptr<RigidBody> m_rigidBody;
+		std::unique_ptr<Collider> m_collider;
 
 	public:
 		Object::Object(Mesh& mesh, ImageID imageID, const Mat4& modelMat)

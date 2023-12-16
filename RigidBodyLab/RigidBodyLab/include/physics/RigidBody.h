@@ -4,11 +4,12 @@
 #include <math/Matrix4.h>
 #include <math/Quaternion.h>
 
-namespace physics
+namespace Physics
 {
     using Math::Matrix3;
     using Math::Matrix4;
     using Math::Vector3;
+    using Math::Quaternion;
 
     class RigidBody
     {

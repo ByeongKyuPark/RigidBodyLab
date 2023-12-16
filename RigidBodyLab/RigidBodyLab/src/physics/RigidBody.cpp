@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace physics;
+using namespace Physics;
 
 void RigidBody::Integrate(float duration)
 {
