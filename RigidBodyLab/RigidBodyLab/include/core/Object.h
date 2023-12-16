@@ -1,7 +1,7 @@
 #pragma once
-#include "Mesh.h"
 #include <math/Math.h>
 #include <utilities/ToUnderlyingEnum.h>
+#include <rendering/Mesh.h>
 #include <rendering/ResourceManager.h>
 #include <vector>
 

@@ -1,4 +1,4 @@
-#include <physics_objects/RigidBody.h>
+#include <physics/RigidBody.h>
 #include <cmath>
 #include <iostream>
 

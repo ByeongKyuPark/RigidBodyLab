@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/Object.h>
+#include "Object.h"
 #include <vector>
 
 namespace Rendering {

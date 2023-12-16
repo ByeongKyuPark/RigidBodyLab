@@ -1,4 +1,4 @@
-#include <rendering/Object.h>
+#include <core/Object.h>
 #include <utilities/ToUnderlyingEnum.h>
 
 using namespace Rendering;

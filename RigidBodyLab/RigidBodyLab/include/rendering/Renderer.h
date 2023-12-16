@@ -2,9 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <utilities/ToUnderlyingEnum.h>
 #include <rendering/Shader.h>
+#include <core/Object.h>
 #include <unordered_map>
 #include <array>
-#include "Object.h"
 
 namespace Rendering {
 
