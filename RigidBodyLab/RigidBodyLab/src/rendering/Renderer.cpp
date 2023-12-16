@@ -856,8 +856,10 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
         }
         else {
             if (renderPass == RenderPass::MIRRORTEX_GENERATION
-                && (i == TO_INT(ObjID::MIRROR) || i == TO_INT(ObjID::MIRRORBASE1)
-                    || i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
+                && (i == TO_INT(ObjID::MIRROR)
+                    ))
+                    //|| i == TO_INT(ObjID::MIRRORBASE1)
+                    //|| i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
             {
                 continue;           /*  Not drawing objects behind mirror & mirror itself */
             }

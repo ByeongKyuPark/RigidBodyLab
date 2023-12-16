@@ -33,9 +33,9 @@ namespace Rendering {
 		BASE = 0,
 		VASE,
 		MIRROR,
-		MIRRORBASE1,
-		MIRRORBASE2,
-		MIRRORBASE3,
+		//MIRRORBASE1,
+		//MIRRORBASE2,
+		//MIRRORBASE3,
 		SPHERE,
 		NUM_OBJS
 	};

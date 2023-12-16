@@ -67,20 +67,20 @@ void Scene::SetUpScene() {
     auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
     m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, Translate(m_mirrorTranslate) * Scale(MIRROR_SCL, MIRROR_SCL, MIRROR_SCL) * Rotate(PI + m_mirrorRotationAngle, m_mirrorRotationAxis),mirrorRigidBody.release(), mirrorCollider.release()));
 
-    // Setup the base of the mirror
-    constexpr float MIRROR_FRAME_OFFSET = 0.45f;
-    Vec3 mirrorPartColliderSize = Vec3{ 5.f,5.f,5.f };//temp
-    std::unique_ptr<RigidBody> mirrorPart1RigidBody = std::make_unique<RigidBody>();
-    std::unique_ptr<BoxCollider> mirrorPart1Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, 0, -0.03f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(MIRROR_SCL + MIRROR_FRAME_OFFSET, MIRROR_SCL + MIRROR_FRAME_OFFSET, 0.05f),mirrorPart1RigidBody.release(),mirrorPart1Collider.release()));
+    //// Setup the base of the mirror
+    //constexpr float MIRROR_FRAME_OFFSET = 0.45f;
+    //Vec3 mirrorPartColliderSize = Vec3{ 5.f,5.f,5.f };//temp
+    //std::unique_ptr<RigidBody> mirrorPart1RigidBody = std::make_unique<RigidBody>();
+    //std::unique_ptr<BoxCollider> mirrorPart1Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, 0, -0.03f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(MIRROR_SCL + MIRROR_FRAME_OFFSET, MIRROR_SCL + MIRROR_FRAME_OFFSET, 0.05f),mirrorPart1RigidBody.release(),mirrorPart1Collider.release()));
 
-    std::unique_ptr<RigidBody> mirrorPart2RigidBody = std::make_unique<RigidBody>();
-    std::unique_ptr<BoxCollider> mirrorPart2Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f), mirrorPart2RigidBody.release(), mirrorPart2Collider.release()));
+    //std::unique_ptr<RigidBody> mirrorPart2RigidBody = std::make_unique<RigidBody>();
+    //std::unique_ptr<BoxCollider> mirrorPart2Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f), mirrorPart2RigidBody.release(), mirrorPart2Collider.release()));
 
-    std::unique_ptr<RigidBody> mirrorPart3RigidBody = std::make_unique<RigidBody>();
-    std::unique_ptr<BoxCollider> mirrorPart3Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), mirrorPart3RigidBody.release(), mirrorPart3Collider.release()));
+    //std::unique_ptr<RigidBody> mirrorPart3RigidBody = std::make_unique<RigidBody>();
+    //std::unique_ptr<BoxCollider> mirrorPart3Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), mirrorPart3RigidBody.release(), mirrorPart3Collider.release()));
 
     //(4) SPHERE
     constexpr float SPHERE_RAD = 4.5f;
