@@ -65,6 +65,17 @@ void Scene::SetUpScene() {
     std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
     planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
     planeRigidBody->SetMass(mass);
+    //angle
+    {
+        float angleDegrees = 45.0f; // Angle in degrees
+        Math::Vector3 axis(0, 1, 0); // Y-axis for example
+
+        // Create a quaternion representing the rotation
+        Math::Quaternion rotation(angleDegrees, axis);
+
+        // Set this rotation to the rigid body
+        planeRigidBody->SetOrientation(rotation);
+    }
     planeRigidBody->SetInertiaTensor(inertiaTensor);
 
     //glm::mat4 test = Translate(0, BASE_POS_Y, 0) * Scale(baseSize);

@@ -1,8 +1,10 @@
+#pragma once
 #include <rendering/Scene.h>
 
 using namespace Rendering;
 
 class ApplicationState {
+    //could have multiple scenes, as well. std::vector<Scene> m_scenes;
     Scene m_scene;
 
     /*  For displaying FPS */
@@ -24,21 +26,5 @@ public:
     float GetDeltaTime() const;
     float GetFPS()const { return m_fps; }
     Scene& getScene() { return m_scene; }
-    void UpdateTime() {
-        ++m_frameCount;
-
-        m_prevTime = m_currTime;
-        m_currTime = clock();
-        m_deltaTime = static_cast<float>(m_currTime - m_prevTime) / CLOCKS_PER_SEC;
-        m_secCount += m_deltaTime;
-
-        if (m_secCount > 1.f)
-        {
-            m_fps = m_frameCount / m_secCount;
-
-            m_frameCount = 0;
-            m_secCount = 0;
-        }
-
-    }
+    void UpdateTime();
 };
