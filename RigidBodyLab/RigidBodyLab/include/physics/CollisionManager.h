@@ -72,6 +72,19 @@ namespace Physics {
             return std::nullopt;
         }
 
+        // Function to handle Sphere-Plane collision
+        std::optional<CollisionData> FindCollisionFeaturesSpherePlane(const SphereCollider* sphere, const PlaneCollider* plane,
+            const std::shared_ptr<RigidBody>& body1) {
+            // Implement Sphere-Sphere collision detection logic here
+            return std::nullopt;
+        }
+
+        // Function to handle Box-Plane collision
+        std::optional<CollisionData> FindCollisionFeaturesSpherePlane(const BoxCollider* box, const PlaneCollider* plane,
+            const std::shared_ptr<RigidBody>& body1) {
+            // Implement Sphere-Sphere collision detection logic here
+            return std::nullopt;
+        }
 
     public:
         CollisionManager()
@@ -107,6 +120,18 @@ namespace Physics {
             else if (const SphereCollider* sphere1 = dynamic_cast<const SphereCollider*>(collider1)) {
                 if (const SphereCollider* sphere2 = dynamic_cast<const SphereCollider*>(collider2)) {
                     return FindCollisionFeaturesSphereSphere(sphere1, sphere2, body1, body2);
+                }
+            }
+            // Sphere-Plane collision
+            else if (const SphereCollider* sphere = dynamic_cast<const SphereCollider*>(collider1)) {
+                if (const PlaneCollider* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
+                    return FindCollisionFeaturesSpherePlane(sphere, plane, body1);
+                }
+            }
+            // Box-Plane collision
+            else if (const BoxCollider* box = dynamic_cast<const BoxCollider*>(collider1)) {
+                if (const PlaneCollider* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
+                    return FindCollisionFeaturesSpherePlane(box, plane, body1);
                 }
             }
 
