@@ -21,6 +21,7 @@ namespace Core {
 		Mesh& m_mesh;     
 		std::unique_ptr<RigidBody> m_rigidBody;
 		std::unique_ptr<Collider> m_collider;
+		//'Rigidbody' for dynamic objects, 'Mat4' for static objects
 		std::variant<std::unique_ptr<RigidBody>, Mat4> m_physicsOrTransform;
 
 	public:

@@ -85,7 +85,7 @@ void Scene::SetUpScene() {
     //glm::mat4 test = Translate(0, BASE_POS_Y, 0) * Scale(baseSize);
     //planeRigidBody->UpdateTransformMatrix();
     //glm::mat4 test2 = planeRigidBody->GetLocalToWorldMatrix();
-    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
+    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0) * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);

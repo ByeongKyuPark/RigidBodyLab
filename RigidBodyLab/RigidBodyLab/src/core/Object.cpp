@@ -103,7 +103,7 @@ const Mat4& Core::Object::GetModelToWorldMatrix() const {
 		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix() * m_collider->GetScaleMatrix();
 	}
 	else {							//TR		    *          S				
-		return std::get<Mat4>(m_physicsOrTransform) * m_collider->GetScaleMatrix();
+		return std::get<Mat4>(m_physicsOrTransform);// *m_collider->GetScaleMatrix();
 	}
 }
 
