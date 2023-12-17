@@ -107,8 +107,6 @@ const Mat4& Core::Object::GetModelToWorldMatrix() const {
 	}
 }
 
-// Getter for the collider
-
 const Physics::Collider* Core::Object::GetCollider() const {
 	return m_collider.get();
 }
