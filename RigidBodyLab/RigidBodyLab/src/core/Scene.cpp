@@ -66,30 +66,30 @@ void Scene::SetUpScene() {
     Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
     //Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
     Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
-    std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
-    planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
-    planeRigidBody->SetMass(mass);
-    //angle
-    {
-        float angleDegrees = 45.0f; // Angle in degrees
-        Math::Vector3 axis(0, 1, 0); // Y-axis for example
+    //std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
+    //planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
+    //planeRigidBody->SetMass(mass);
+    ////angle
+    //{
+    //    float angleDegrees = 45.0f; // Angle in degrees
+    //    Math::Vector3 axis(0, 1, 0); // Y-axis for example
 
-        // Create a quaternion representing the rotation
-        Math::Quaternion rotation(angleDegrees, axis);
+    //    // Create a quaternion representing the rotation
+    //    Math::Quaternion rotation(angleDegrees, axis);
 
-        // Set this rotation to the rigid body
-        planeRigidBody->SetOrientation(rotation);
-    }
-    planeRigidBody->SetInertiaTensor(inertiaTensor);
+    //    // Set this rotation to the rigid body
+    //    planeRigidBody->SetOrientation(rotation);
+    //}
+    //planeRigidBody->SetInertiaTensor(inertiaTensor);
 
     //glm::mat4 test = Translate(0, BASE_POS_Y, 0) * Scale(baseSize);
     //planeRigidBody->UpdateTransformMatrix();
     //glm::mat4 test2 = planeRigidBody->GetLocalToWorldMatrix();
-
+    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, /*Translate(0, BASE_POS_Y, 0) * Scale(baseSize),*/ std::move(planeCollider), std::move(planeRigidBody)));
+    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX,std::move(planeCollider), planeModelToWorldMat));
 
 
     ////(2) VASE
