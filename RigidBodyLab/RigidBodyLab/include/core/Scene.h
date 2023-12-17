@@ -2,8 +2,12 @@
 
 #include "Object.h"
 #include <vector>
+#include <physics/CollisionData.h>
 
 namespace Rendering {
+    
+    using Physics::CollisionData;
+
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
 

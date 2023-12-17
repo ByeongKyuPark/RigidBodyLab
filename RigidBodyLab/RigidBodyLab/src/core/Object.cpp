@@ -108,7 +108,7 @@ const Mat4& Core::Object::GetModelToWorldMatrix() const {
 }
 
 void Core::Object::Integrate(float deltaTime) {
-	if (m_rigidBody) {
-		m_rigidBody->Integrate(deltaTime);
+	if (std::holds_alternative<std::unique_ptr<RigidBody>>(m_physicsOrTransform)) {
+		std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->Integrate(deltaTime);
 	}
 }

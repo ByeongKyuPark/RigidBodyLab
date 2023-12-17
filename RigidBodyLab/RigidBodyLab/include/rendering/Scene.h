@@ -1,9 +1,13 @@
 #pragma once
 
 #include <core/Object.h>
+#include <physics/CollisionData.h>
 #include <vector>
+#include <optional>
 
 namespace Rendering {
+    using Physics::CollisionData;
+
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
         static constexpr float SPHERE_INERTIA_FACTOR = 0.4f;
@@ -36,6 +40,10 @@ namespace Rendering {
         void SetUpScene();
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions();
+
+        std::optional<CollisionData> CheckCollision(const Core::Object& obj1, const Core::Object& obj2);
+        void ResolveCollision(Core::Object& obj1, Core::Object& obj2, const CollisionData& collisionData);
+
 
         friend class Renderer;
 
