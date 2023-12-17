@@ -51,4 +51,22 @@ namespace Physics {
 		}
 	};
 
+	//(3) Infinite Plane
+	class PlaneCollider : public Collider {
+		Vec3 normal;  // Normal vector of the plane
+		float offset; // Distance from the origin
+
+	public:
+		PlaneCollider(const Vec3& _normal, float _offset) : normal(_normal), offset(_offset) {}
+
+		bool IsCollidingWith(const Collider& other) const override {
+			return false;
+		}
+
+		Mat4 GetScaleMatrix() const override final{
+			//the scaling component is neutral and doesn't affect the plane's representation
+			return glm::mat4(1.0f);
+		}
+	};
+	//-----------------------------------
 }

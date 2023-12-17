@@ -40,6 +40,8 @@ namespace Core {
 		// Getter methods (setters might not be necessary because we are passing by reference)
 		const Mesh& GetMesh() const { return m_mesh; }
 		const Mat4& GetModelToWorldMatrix() const;
+		const Collider* GetCollider() const;
+		std::shared_ptr<Physics::RigidBody> Core::Object::GetRigidBody() const;
 
 		ImageID GetImageID() const { return m_imageID; }
 		void SetImageID(ImageID id) { m_imageID = id; }

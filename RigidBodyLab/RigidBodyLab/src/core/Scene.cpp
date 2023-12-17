@@ -8,11 +8,12 @@
 #include <math/Vector3.h>//temp
 
 using namespace Rendering;
+using namespace Physics;
 
 Scene::Scene() 
     : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
 m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_mirrorRotationAngle{}, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }
+m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_mirrorRotationAngle{}, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}
 {
     SetUpScene();
 }
@@ -159,8 +160,9 @@ void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions()
 
 std::optional<CollisionData> Rendering::Scene::CheckCollision(const Core::Object& obj1, const Core::Object& obj2)
 {
-    return std::optional<CollisionData>();
+    return m_collisionManager.CheckCollision(obj1, obj2);
 }
+
 
 void Rendering::Scene::ResolveCollision(Core::Object& obj1, Core::Object& obj2, const CollisionData& collisionData)
 {

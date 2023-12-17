@@ -2,11 +2,13 @@
 
 #include <core/Object.h>
 #include <physics/CollisionData.h>
+#include <physics/CollisionManager.h>
 #include <vector>
 #include <optional>
 
 namespace Rendering {
     using Physics::CollisionData;
+    using Physics::CollisionManager;
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
@@ -34,6 +36,8 @@ namespace Rendering {
         float m_mirrorRotationAngle;
         Vec3 m_spherePos;
 
+        CollisionManager m_collisionManager;
+
     private:
         //void UpdateLightPosViewFrame();
         void SetUpLight(float height);
@@ -43,7 +47,6 @@ namespace Rendering {
 
         std::optional<CollisionData> CheckCollision(const Core::Object& obj1, const Core::Object& obj2);
         void ResolveCollision(Core::Object& obj1, Core::Object& obj2, const CollisionData& collisionData);
-
 
         friend class Renderer;
 

@@ -30,7 +30,7 @@ using namespace Rendering;
 //Vec3 Rendering::lightPosVF[NUM_LIGHTS];
 
 /*  Setting up the light position */
-void SetUpLight(float height);
+//void SetUpLight(float height);
 
 
 /******************************************************************************/
@@ -106,6 +106,30 @@ const Mat4& Core::Object::GetModelToWorldMatrix() const {
 		return std::get<Mat4>(m_physicsOrTransform);// *m_collider->GetScaleMatrix();
 	}
 }
+
+// Getter for the collider
+
+const Physics::Collider* Core::Object::GetCollider() const {
+	return m_collider.get();
+}
+
+std::shared_ptr<Physics::RigidBody> Core::Object::GetRigidBody() const
+{
+	// Using std::visit to handle different types in the variant
+	return std::visit([](auto&& arg) -> std::shared_ptr<Physics::RigidBody> {
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, std::shared_ptr<Physics::RigidBody>>) {
+				// If the variant holds a RigidBody, return it
+				return arg;
+			}
+			else {
+				// If the variant holds a different type (e.g., Mat4), return nullptr
+				return nullptr;
+			}
+		}, m_physicsOrTransform);
+}
+
+
 
 void Core::Object::Integrate(float deltaTime) {
 	if (std::holds_alternative<std::unique_ptr<RigidBody>>(m_physicsOrTransform)) {
