@@ -97,10 +97,18 @@ void SetUpLight(float height);
 //    Rendering::lightPosWF[0] = Vec3(0, height, 0);
 //}
 
+const Mat4& Core::Object::GetModelToWorldMatrix() const {
+	if (std::holds_alternative<std::unique_ptr<RigidBody>>(m_physicsOrTransform)) {
+																		// TR				 	   *		 S
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix() * m_collider->GetScaleMatrix();
+	}
+	else {							//TR		    *          S				
+		return std::get<Mat4>(m_physicsOrTransform) * m_collider->GetScaleMatrix();
+	}
+}
+
 void Core::Object::Integrate(float deltaTime) {
 	if (m_rigidBody) {
 		m_rigidBody->Integrate(deltaTime);
-		// Update m_modelToWorldMatrix based on m_rigidBody's state
 	}
-	// Collision detection and response logic...
 }

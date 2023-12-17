@@ -34,6 +34,8 @@ namespace Rendering {
         //void UpdateLightPosViewFrame();
         void SetUpLight(float height);
         void SetUpScene();
+        void ApplyBroadPhase();
+        void ApplyNarrowPhaseAndResolveCollisions();
 
         friend class Renderer;
 

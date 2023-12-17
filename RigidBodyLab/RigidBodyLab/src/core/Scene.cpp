@@ -18,9 +18,13 @@ m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_
 }
 
 void Scene::Update(float dt) {
+    ApplyBroadPhase();
+
     for (auto& obj : m_objects) {
         obj->Integrate(dt);
     }
+    // Apply narrow phase collision detection and resolution
+    ApplyNarrowPhaseAndResolveCollisions();
 }
 
 Core::Object& Scene::GetObject(size_t index) {
@@ -85,7 +89,7 @@ void Scene::SetUpScene() {
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, /*Translate(0, BASE_POS_Y, 0) * Scale(baseSize),*/ planeRigidBody.release(), planeCollider.release()));
+    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, /*Translate(0, BASE_POS_Y, 0) * Scale(baseSize),*/ std::move(planeCollider), std::move(planeRigidBody)));
 
 
     ////(2) VASE
@@ -93,7 +97,7 @@ void Scene::SetUpScene() {
     //std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>();
     //std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(vaseColliderSize);
     //auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, Translate(1.0f, -0.65f, 2.0f),vaseRigidBody.release(), vaseCollider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, Translate(1.0f, -0.65f, 2.0f),std::move(vaseRigidBody), std::move(vaseCollider));
 
     ////(3) MIRROR
     //m_mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);
@@ -103,22 +107,22 @@ void Scene::SetUpScene() {
     //std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>();
     //std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
     //auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, Translate(m_mirrorTranslate) * Scale(MIRROR_SCL, MIRROR_SCL, MIRROR_SCL) * Rotate(PI + m_mirrorRotationAngle, m_mirrorRotationAxis),mirrorRigidBody.release(), mirrorCollider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, Translate(m_mirrorTranslate) * Scale(MIRROR_SCL, MIRROR_SCL, MIRROR_SCL) * Rotate(PI + m_mirrorRotationAngle, m_mirrorRotationAxis),std::move(mirrorRigidBody), std::move(mirrorCollider)));
 
     //// Setup the base of the mirror
     //constexpr float MIRROR_FRAME_OFFSET = 0.45f;
     //Vec3 mirrorPartColliderSize = Vec3{ 5.f,5.f,5.f };//temp
     //std::unique_ptr<RigidBody> mirrorPart1RigidBody = std::make_unique<RigidBody>();
     //std::unique_ptr<BoxCollider> mirrorPart1Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, 0, -0.03f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(MIRROR_SCL + MIRROR_FRAME_OFFSET, MIRROR_SCL + MIRROR_FRAME_OFFSET, 0.05f),mirrorPart1RigidBody.release(),mirrorPart1Collider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, 0, -0.03f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(MIRROR_SCL + MIRROR_FRAME_OFFSET, MIRROR_SCL + MIRROR_FRAME_OFFSET, 0.05f),std::move(mirrorPart1RigidBody),std::move(mirrorPart1Collider)));
 
     //std::unique_ptr<RigidBody> mirrorPart2RigidBody = std::make_unique<RigidBody>();
     //std::unique_ptr<BoxCollider> mirrorPart2Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f), mirrorPart2RigidBody.release(), mirrorPart2Collider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f), std::move(mirrorPart2RigidBody), std::move(mirrorPart2Collider)));
 
     //std::unique_ptr<RigidBody> mirrorPart3RigidBody = std::make_unique<RigidBody>();
     //std::unique_ptr<BoxCollider> mirrorPart3Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), mirrorPart3RigidBody.release(), mirrorPart3Collider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), std::move(mirrorPart3RigidBody), std::move(mirrorPart3Collider)));
 
     ////(4) SPHERE
     //constexpr float SPHERE_RAD = 4.5f;
@@ -127,9 +131,18 @@ void Scene::SetUpScene() {
     //std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
     //m_spherePos = Vec3(-4.5f, BASE_POS_Y + BASE_SCL_Y / 2.f + SPHERE_RAD / 2.f, -1.5f);
     //auto& sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), sphereRigidBody.release(), sphereCollider.release()));
+    //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), std::move(sphereRigidBody), std::move(sphereCollider)));
 
     SetUpLight(baseSize.x);
+}
+
+void Rendering::Scene::ApplyBroadPhase()
+{
+}
+
+void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions()
+{
+
 }
 
 void Rendering::Scene::SetUpLight(float height){

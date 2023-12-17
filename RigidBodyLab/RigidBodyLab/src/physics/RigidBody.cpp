@@ -9,6 +9,10 @@ void RigidBody::Integrate(float duration)
     if (massInverse == 0.0f) {
         return;
     }
+    
+    //0. apply gravitational force
+    static Vector3 gravity(0, -9.81f, 0);
+    force += gravity * (1.0f / massInverse); // Gravity force
 
     //1. linear Velocity
     Vector3 linearAcceleration = force * massInverse;
