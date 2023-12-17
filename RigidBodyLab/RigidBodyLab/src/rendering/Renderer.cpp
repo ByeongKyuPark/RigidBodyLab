@@ -864,73 +864,75 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
     RenderObj(scene.GetObject(TO_INT(ObjID::BASE)));
 
-    ///*  Send object texture and render them */
-    //size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
-    //for (int i = 0; i < NUM_OBJS; ++i)
-    //    if (i == TO_INT(ObjID::SPHERE)) {
-    //        continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
-    //    }
-    //    else {
-    //        if (renderPass == RenderPass::MIRRORTEX_GENERATION
-    //            && (i == TO_INT(ObjID::MIRROR)
-    //                ))
-    //                //|| i == TO_INT(ObjID::MIRRORBASE1)
-    //                //|| i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
-    //        {
-    //            continue;           /*  Not drawing objects behind mirror & mirror itself */
-    //        }
-    //        else {
-    //            if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
-    //                continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
-    //            }
-    //            else
-    //            {
-    //                if (i == TO_INT(ObjID::MIRROR))
-    //                {
-    //                    SendMirrorTexID();
-    //                    glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
-    //                }
-    //                else
-    //                {
-    //                    SendObjTexID(resourceManager.GetTexture(scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
-    //                    glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
-    //                }
+    /*  Send object texture and render them */
+    size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
+    for (int i = 0; i < NUM_OBJS; ++i)
+        //if (i == TO_INT(ObjID::SPHERE)) {
+        //    continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
+        //}
+        //else
+        {
+            //if (renderPass == RenderPass::MIRRORTEX_GENERATION
+            //    && (i == TO_INT(ObjID::MIRROR))
+            //        )
+            //        //|| i == TO_INT(ObjID::MIRRORBASE1)
+            //        //|| i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
+            //{
+            //    continue;           /*  Not drawing objects behind mirror & mirror itself */
+            //}
+            //else 
+            {
+                //if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
+                //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                //}
+                //else
+                {
+                    //if (i == TO_INT(ObjID::MIRROR))
+                    //{
+                    //    SendMirrorTexID();
+                    //    glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
+                    //}
+                    //else
+                    {
+                        SendObjTexID(resourceManager.GetTexture(scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
+                        glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
+                    }
 
-    //                SendMVMat(MVMat[i], normalMVMat[i], m_mainMVMatLoc, m_mainNMVMatLoc);
+                    SendMVMat(MVMat[i], normalMVMat[i], m_mainMVMatLoc, m_mainNMVMatLoc);
 
-    //                if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
-    //                {
-    //                    SendObjTexID(resourceManager.normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
-    //                    glUniform1i(m_normalMappingOnLoc, true);
-    //                    glUniform1i(m_parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
+                    if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
+                    {
+                        SendObjTexID(resourceManager.normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
+                        glUniform1i(m_normalMappingOnLoc, true);
+                        glUniform1i(m_parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
-    //                    if (Renderer::GetInstance().IsParallaxMappingOn()) {
-    //                        SendObjTexID(resourceManager.bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
-    //                    }
-    //                }
-    //                else                       /*  not apply normal mapping / parallax mapping for other objects */
-    //                {
-    //                    glUniform1i(m_normalMappingOnLoc, false);
-    //                    glUniform1i(m_parallaxMappingOnLoc, false);
-    //                }
+                        if (Renderer::GetInstance().IsParallaxMappingOn()) {
+                            SendObjTexID(resourceManager.bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
+                        }
+                    }
+                    else                       /*  not apply normal mapping / parallax mapping for other objects */
+                    {
+                        glUniform1i(m_normalMappingOnLoc, false);
+                        glUniform1i(m_parallaxMappingOnLoc, false);
+                    }
 
-    //                /*  The mirror surface is rendered to face away to simulate the flipped effect.
-    //                    Hence we need to perform front-face culling for it.
-    //                    Other objects use back-face culling as usual.
-    //                */
-    //                if (i == TO_INT(ObjID::MIRROR)) {
-    //                    glCullFace(GL_FRONT);
-    //                }
+                    /*  The mirror surface is rendered to face away to simulate the flipped effect.
+                        Hence we need to perform front-face culling for it.
+                        Other objects use back-face culling as usual.
+                    */
+                    //if (i == TO_INT(ObjID::MIRROR)) {
+                    //    glCullFace(GL_FRONT);
+                    //}
 
-    //                RenderObj(scene.GetObject(i));
+                    RenderObj(scene.GetObject(i));
 
-    //                /*  Trigger back-face culling again */
-    //                if (i == TO_INT(ObjID::MIRROR)) {
-    //                    glCullFace(GL_BACK);
-    //                }
-    //            }
-    //        }
-    //    }
+                    /*  Trigger back-face culling again */
+                    //if (i == TO_INT(ObjID::MIRROR)) {
+                    //    glCullFace(GL_BACK);
+                    //}
+                }
+            }
+        }
 }
 
 
