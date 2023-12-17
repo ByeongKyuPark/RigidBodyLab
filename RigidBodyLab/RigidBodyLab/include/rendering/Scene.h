@@ -45,9 +45,6 @@ namespace Rendering {
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions();
 
-        std::optional<CollisionData> CheckCollision(const Core::Object& obj1, const Core::Object& obj2);
-        void ResolveCollision(Core::Object& obj1, Core::Object& obj2, const CollisionData& collisionData);
-
         friend class Renderer;
 
     public:

@@ -1,5 +1,4 @@
 #include <vector>
-#include <optional>
 #include <algorithm>
 #include <typeinfo>
 #include <memory> // for std::weak_ptr
@@ -10,6 +9,7 @@ namespace Physics {
     class CollisionManager {
     private:
         std::vector<CollisionData> m_collisions;
+
         float m_friction;
         float m_objectRestitution;
         float m_groundRestitution;
@@ -61,7 +61,7 @@ namespace Physics {
         }
 
         // Function to handle Sphere-Box collision
-        std::optional<CollisionData> FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box,
+        void FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box,
             const std::shared_ptr<RigidBody>& body1, const std::shared_ptr<RigidBody>& body2) {
             constexpr int NUM_AXES = 3;
             Vector3 centerToCenter = body2->GetPosition() - body1->GetPosition();
@@ -84,7 +84,7 @@ namespace Physics {
             float radius = std::get<float>(sphere->GetScale());//std::variant<Vec3, float>
 
             if (distanceSquared > radius * radius) {
-                return std::nullopt; // No collision
+                return; // No collision
             }
 
             // If a collision is detected, populate and return CollisionData
@@ -97,18 +97,18 @@ namespace Physics {
             collisionData.penetrationDepth = radius - std::sqrt(distanceSquared);
             collisionData.restitution = m_objectRestitution;
             collisionData.friction = m_friction;
-            return collisionData;
+            m_collisions.push_back(collisionData);
         }
 
         // Function to handle Sphere-Sphere collision
-        std::optional<CollisionData> FindCollisionFeaturesSphereSphere(const SphereCollider* sphere1, const SphereCollider* sphere2,
+        void FindCollisionFeaturesSphereSphere(const SphereCollider* sphere1, const SphereCollider* sphere2,
             const std::shared_ptr<RigidBody>& body1, const std::shared_ptr<RigidBody>& body2) {
             // Implement Sphere-Sphere collision detection logic here
-            return std::nullopt;
+            return;
         }
 
         // Function to handle Box-Box collision
-        std::optional<CollisionData> FindCollisionFeaturesBoxBox(
+        void FindCollisionFeaturesBoxBox(
             const BoxCollider* box1, const BoxCollider* box2,
             const std::shared_ptr<RigidBody>& body1, const std::shared_ptr<RigidBody>& body2) {
 
@@ -120,7 +120,7 @@ namespace Physics {
             float radius2 = extents2.x > extents2.y ? (extents2.x > extents2.z ? extents2.x : extents2.z) : (extents2.y > extents2.z ? extents2.y : extents2.z);
             Vector3 distanceVec = body2->GetPosition() - body1->GetPosition();
             if (distanceVec.LengthSquared() > (radius1 + radius2) * (radius1 + radius2)) {
-                return std::nullopt;
+                return;
             }
 
             // Axes to test for potential separating planes
@@ -151,7 +151,7 @@ namespace Physics {
             for (const auto& axis : axes) {
                 float penetration = CalcPenetration(box1, box2, body1, body2, axis);
                 if (penetration <= 0) {
-                    return std::nullopt; // Separating axis found, no collision
+                    return; // Separating axis found, no collision
                 }
                 if (penetration < minPenetration) {
                     minPenetration = penetration;
@@ -177,30 +177,29 @@ namespace Physics {
             collisionData.restitution = m_objectRestitution;
             collisionData.friction = m_friction;
 
-            // Calculate contact points...
-            // (Implement CalcBoxBoxContactPoints or similar function to determine contact points)
+            //TODO:: Calculate contact points...
 
-            return collisionData;
+            m_collisions.push_back(collisionData);
         }
 
         // Function to handle Sphere-Plane collision
-        std::optional<CollisionData> FindCollisionFeaturesSpherePlane(const SphereCollider* sphere, const PlaneCollider* plane,
+        void FindCollisionFeaturesSpherePlane(const SphereCollider* sphere, const PlaneCollider* plane,
             const std::shared_ptr<RigidBody>& body1) {
             // Implement Sphere-Plane collision detection logic here
-            return std::nullopt;
+            return;
         }
         // Function to handle Box-Plane collision
-        std::optional<CollisionData> FindCollisionFeaturesSpherePlane(const BoxCollider* box, const PlaneCollider* plane,
+        void FindCollisionFeaturesSpherePlane(const BoxCollider* box, const PlaneCollider* plane,
             const std::shared_ptr<RigidBody>& body1) {
             // Implement Box-Plane collision detection logic here
-            return std::nullopt;
+            return;
         }
     public:
         CollisionManager()
             : m_friction(0.6f), m_objectRestitution(0.5f), m_groundRestitution(0.2f),
             m_iterationLimit(30), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.005f) {}
 
-        std::optional<CollisionData> CheckCollision(const Core::Object& obj1, const Core::Object& obj2) {
+        void CheckCollision(const Core::Object& obj1, const Core::Object& obj2) {
             const Collider* collider1 = obj1.GetCollider();
             const Collider* collider2 = obj2.GetCollider();
 
@@ -210,41 +209,43 @@ namespace Physics {
             // Sphere-Box collision
             if (const SphereCollider* sphere1 = dynamic_cast<const SphereCollider*>(collider1)) {
                 if (const BoxCollider* box2 = dynamic_cast<const BoxCollider*>(collider2)) {
-                    return FindCollisionFeaturesSphereBox(sphere1, box2, body1, body2);
+                    FindCollisionFeaturesSphereBox(sphere1, box2, body1, body2);
                 }
             }
             // Box-Sphere collision
             else if (const BoxCollider* box1 = dynamic_cast<const BoxCollider*>(collider1)) {
                 if (const SphereCollider* sphere2 = dynamic_cast<const SphereCollider*>(collider2)) {
-                    return FindCollisionFeaturesSphereBox(sphere2, box1, body2, body1);
+                    FindCollisionFeaturesSphereBox(sphere2, box1, body2, body1);
                 }
             }
             // Box-Box collision
             else if (const BoxCollider* box1 = dynamic_cast<const BoxCollider*>(collider1)) {
                 if (const BoxCollider* box2 = dynamic_cast<const BoxCollider*>(collider2)) {
-                    return FindCollisionFeaturesBoxBox(box1, box2, body1, body2);
+                    FindCollisionFeaturesBoxBox(box1, box2, body1, body2);
                 }
             }
             // Sphere-Sphere collision
             else if (const SphereCollider* sphere1 = dynamic_cast<const SphereCollider*>(collider1)) {
                 if (const SphereCollider* sphere2 = dynamic_cast<const SphereCollider*>(collider2)) {
-                    return FindCollisionFeaturesSphereSphere(sphere1, sphere2, body1, body2);
+                    FindCollisionFeaturesSphereSphere(sphere1, sphere2, body1, body2);
                 }
             }
             // Sphere-Plane collision
             else if (const SphereCollider* sphere = dynamic_cast<const SphereCollider*>(collider1)) {
                 if (const PlaneCollider* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
-                    return FindCollisionFeaturesSpherePlane(sphere, plane, body1);
+                    FindCollisionFeaturesSpherePlane(sphere, plane, body1);
                 }
             }
             // Box-Plane collision
             else if (const BoxCollider* box = dynamic_cast<const BoxCollider*>(collider1)) {
                 if (const PlaneCollider* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
-                    return FindCollisionFeaturesSpherePlane(box, plane, body1);
+                    FindCollisionFeaturesSpherePlane(box, plane, body1);
                 }
             }
+        }
+        void Clear() { m_collisions.clear(); }
+        void ResolveCollision() {
 
-            return std::nullopt; // No collision detected
         }
     };
 }

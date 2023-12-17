@@ -147,26 +147,19 @@ void Rendering::Scene::ApplyBroadPhase()
 
 void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions()
 {
+    m_collisionManager.Clear();
     const size_t objSize = m_objects.size();
-    for (size_t i = 0; i < objSize; ++i) {
-        for (size_t j = i + 1; j < objSize; ++j) {
-            auto collisionData = CheckCollision(*m_objects[i], *m_objects[j]);
-            if (collisionData) {
-                ResolveCollision(*m_objects[i], *m_objects[j], *collisionData);
-            }
+    // Detect and store collisions
+    for (size_t i{}; i < objSize; ++i) {
+        for (size_t j{ i + 1 }; j < objSize; ++j) {
+            m_collisionManager.CheckCollision(*m_objects[i], *m_objects[j]);
         }
     }
+
+    // Resolve stored collisions
+    m_collisionManager.ResolveCollision();
 }
 
-std::optional<CollisionData> Rendering::Scene::CheckCollision(const Core::Object& obj1, const Core::Object& obj2)
-{
-    return m_collisionManager.CheckCollision(obj1, obj2);
-}
-
-
-void Rendering::Scene::ResolveCollision(Core::Object& obj1, Core::Object& obj2, const CollisionData& collisionData)
-{
-}
 
 
 void Rendering::Scene::SetUpLight(float height){
