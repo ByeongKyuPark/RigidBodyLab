@@ -1,5 +1,6 @@
 #pragma once
 #include <rendering/Scene.h>
+#include <chrono>
 
 using namespace Rendering;
 
@@ -8,10 +9,11 @@ class ApplicationState {
     Scene m_scene;
 
     /*  For displaying FPS */
-    clock_t m_currTime, m_prevTime;
+    std::chrono::high_resolution_clock::time_point m_prevTime;
+    std::chrono::high_resolution_clock::time_point m_currTime;
+    float m_deltaTime;
     int m_frameCount;
     float m_secCount;        /*  Num of seconds from prevTime to currTime */
-    float m_deltaTime;
     float m_fps;
 
     //TODO

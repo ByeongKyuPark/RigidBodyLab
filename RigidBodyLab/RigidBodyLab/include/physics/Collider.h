@@ -36,7 +36,7 @@ namespace Physics {
 			return glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
 		}
 		std::variant<float, Vec3> GetScale() const override final{
-			return scale; // Returns Vec3 for BoxCollider
+			return scale*0.5f; // Returns Vec3 for BoxCollider
 		}
 	};
 

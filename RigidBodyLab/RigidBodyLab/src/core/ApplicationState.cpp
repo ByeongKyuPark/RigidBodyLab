@@ -1,7 +1,7 @@
 #include <core/ApplicationState.h>
 
 ApplicationState::ApplicationState()
-    :m_scene{}, m_currTime{ clock() }, m_prevTime{},
+    :m_scene{}, m_currTime{ std::chrono::high_resolution_clock::now() }, m_prevTime{},
     m_frameCount{}, m_secCount{}, m_deltaTime{}, m_fps{}
 {}
 
@@ -13,8 +13,10 @@ void ApplicationState::UpdateTime() {
     ++m_frameCount;
 
     m_prevTime = m_currTime;
-    m_currTime = clock();
-    m_deltaTime = static_cast<float>(m_currTime - m_prevTime) / CLOCKS_PER_SEC;
+    m_currTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> elapsed = m_currTime - m_prevTime;
+    m_deltaTime = elapsed.count();
+
     m_secCount += m_deltaTime;
 
     if (m_secCount > 1.f)

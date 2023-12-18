@@ -121,10 +121,10 @@ bool Core::Object::IsDynamic() const {
 	return std::holds_alternative<std::unique_ptr<Physics::RigidBody>>(m_physicsOrTransform);
 }
 
-const Physics::RigidBody* Core::Object::GetRigidBody() const
+Physics::RigidBody* Core::Object::GetRigidBody()
 {
 	// Using std::visit to handle different types in the variant
-	return std::visit([](auto&& arg) -> const Physics::RigidBody * {
+	return std::visit([](auto&& arg) -> Physics::RigidBody * {
 			using T = std::decay_t<decltype(arg)>;
 			if constexpr (std::is_same_v<T, std::unique_ptr<Physics::RigidBody>>) {
 				// If the variant holds a RigidBody, return it
@@ -137,6 +137,21 @@ const Physics::RigidBody* Core::Object::GetRigidBody() const
 		}, m_physicsOrTransform);
 }
 
+const Physics::RigidBody* Core::Object::GetRigidBody() const
+{
+	// Using std::visit to handle different types in the variant
+	return std::visit([](auto&& arg) -> const Physics::RigidBody* {
+		using T = std::decay_t<decltype(arg)>;
+	if constexpr (std::is_same_v<T, std::unique_ptr<Physics::RigidBody>>) {
+		// If the variant holds a RigidBody, return it
+		return arg.get();
+	}
+	else {
+		// If the variant holds a different type (e.g., Mat4), return nullptr
+		return nullptr;
+	}
+		}, m_physicsOrTransform);
+}
 
 
 void Core::Object::Integrate(float deltaTime) {

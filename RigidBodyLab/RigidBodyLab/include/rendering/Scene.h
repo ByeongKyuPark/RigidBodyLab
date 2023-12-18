@@ -43,7 +43,7 @@ namespace Rendering {
         void SetUpLight(float height);
         void SetUpScene();
         void ApplyBroadPhase();
-        void ApplyNarrowPhaseAndResolveCollisions();
+        void ApplyNarrowPhaseAndResolveCollisions(float dt);
 
         friend class Renderer;
 

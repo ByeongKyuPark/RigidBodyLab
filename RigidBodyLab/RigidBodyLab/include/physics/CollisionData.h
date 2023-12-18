@@ -10,7 +10,7 @@ namespace Physics{
         std::pair<bool, Vector3> p1, p2;
     };
     struct CollisionData {
-        const RigidBody* bodies[2];
+        RigidBody* bodies[2];
         Math::Vector3 collisionNormal; //dir : body0 <--- body1
         float penetrationDepth;
         float restitution;

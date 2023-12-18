@@ -42,7 +42,8 @@ namespace Core {
 		Mat4 GetModelSRTMatrix() const;
 		Mat4 GetModelRTMatrix() const;
 		const Collider* GetCollider() const;
-		const Physics::RigidBody* Core::Object::GetRigidBody() const;
+		RigidBody* GetRigidBody();
+		const RigidBody* GetRigidBody() const;
 
 		bool IsDynamic() const;
 

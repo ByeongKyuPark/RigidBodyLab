@@ -21,11 +21,12 @@ m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_
 void Scene::Update(float dt) {
     ApplyBroadPhase();
 
+    // Apply narrow phase collision detection and resolution
+    ApplyNarrowPhaseAndResolveCollisions(dt);
+
     for (auto& obj : m_objects) {
         obj->Integrate(dt);
     }
-    // Apply narrow phase collision detection and resolution
-    ApplyNarrowPhaseAndResolveCollisions();
 }
 
 Core::Object& Scene::GetObject(size_t index) {
@@ -41,8 +42,10 @@ void Scene::SetUpScene() {
     using Physics::SphereCollider;
     using Physics::RigidBody;
 
-    constexpr float BASE_POS_Y = -4.5f;
-    constexpr float BASE_SCL_Y = 7.5f;
+    //constexpr float BASE_POS_Y = -4.5f;
+    constexpr float BASE_POS_Y = 0.f;
+    constexpr float BASE_SCL_Y = 1.f;
+    //constexpr float BASE_SCL_Y = 7.5f;
     constexpr float MIRROR_POS_Y = 2.4f;
     constexpr float MIRROR_SCL = 6.f;
     
@@ -65,8 +68,8 @@ void Scene::SetUpScene() {
     //(1) PLANE
 
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
-    //Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
+    //Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
+    Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
     Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
     //std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
     //planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
@@ -93,16 +96,18 @@ void Scene::SetUpScene() {
 
 
     //(2) VASE
-    Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
-    Vec3 vaseColliderSize = {1.f,1.f,1.f}; 
+    //Vec3 vasePos{ 0.0f, 0.995f, 0.0f };
+    Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
+    //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
+    Vec3 vaseColliderSize = {1.f,1.f,1.f};
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>();
     vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     vaseRigidBody->SetMass(mass);
     vaseRigidBody->SetInertiaTensor(inertiaTensor);
 
     std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(vaseColliderSize);
-    auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody)));
+    //auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
+    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody)));
 
     ////(3) MIRROR
     //m_mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);
@@ -145,7 +150,7 @@ void Rendering::Scene::ApplyBroadPhase()
 {
 }
 
-void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions()
+void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 {
     m_collisionManager.Clear();
     const size_t objSize = m_objects.size();
@@ -157,7 +162,7 @@ void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions()
     }
 
     // Resolve stored collisions
-    m_collisionManager.ResolveCollision();
+    m_collisionManager.ResolveCollision(dt);
 }
 
 

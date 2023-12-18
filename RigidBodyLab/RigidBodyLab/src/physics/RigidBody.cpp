@@ -11,7 +11,7 @@ void RigidBody::Integrate(float duration)
     }
     
     //0. apply gravitational force
-    static Vector3 gravity(0, -0.981f, 0);
+    static Vector3 gravity(0, -0.0981f, 0);
     force += gravity * (1.0f / massInverse); // Gravity force
 
     //1. linear Velocity
@@ -26,6 +26,7 @@ void RigidBody::Integrate(float duration)
 
     //3.Pos, Orientation
     position += velocity * duration;
+    std::cout << position << "\n";
     orientation += orientation.RotateByVector(angularVelocity, duration / 2.0f);
     orientation.Normalize();    
 
