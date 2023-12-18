@@ -76,22 +76,13 @@ namespace Physics {
         void CalcContactPointsBoxBox(const BoxCollider& box1, const BoxCollider& box2,
             const Object& obj1, const Object& obj2,
             CollisionData& newContact, int minPenetrationAxisIdx, const std::vector<Vector3>& axes) const {
-            // Check dynamic status of objects
-            bool isDynamic1 = obj1.IsDynamic();
-            bool isDynamic2 = obj2.IsDynamic();
-
-            // Retrieve transformation matrices or use the RigidBody's transformation
-            Mat4 transform1 = isDynamic1 ? obj1.GetRigidBody()->GetLocalToWorldMatrix() : obj1.GetModelRTMatrix();
-            Mat4 transform2 = isDynamic2 ? obj2.GetRigidBody()->GetLocalToWorldMatrix() : obj2.GetModelRTMatrix();
 
             //  	1. for cases 0 to 5, vertices are found to define contact points
             if (minPenetrationAxisIdx >= 0 && minPenetrationAxisIdx < 3)
             {
                 Vec3 scl = std::get<Vec3>(box2.GetScale());
-                Vector3 contactPoint = GetBoxContactVertexLocal({ scl.x,scl.y,scl.z }, axes[0], axes[1], axes[2] , newContact.collisionNormal, Less);
-
-                Vec4 point = transform2 * Vec4{ contactPoint.x,contactPoint.y,contactPoint.z,1.f };
-                contactPoint = { point.x,point.y,point.z };
+                Vector3 contactPoint = GetBoxContactVertexLocal({ scl.x,scl.y,scl.z }, axes[0], axes[1], axes[2] , newContact.collisionNormal, Less);                
+                contactPoint = obj2.GetUnitModelMatrix() * contactPoint;
                 newContact.contactPoint = { {true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth},
                                         {true, contactPoint} };
                 std::cout << "collision1\n";
@@ -99,9 +90,8 @@ namespace Physics {
             else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
                 Vec3 scl = std::get<Vec3>(box1.GetScale());
                 Vector3 contactPoint = GetBoxContactVertexLocal({ scl.x,scl.y,scl.z }, axes[3], axes[4], axes[5] , newContact.collisionNormal, Greater);
+                contactPoint = obj1.GetUnitModelMatrix() * contactPoint;
 
-                Vec4 point = transform1 * Vec4{ contactPoint.x,contactPoint.y,contactPoint.z,1.f };
-                contactPoint = { point.x,point.y,point.z };
                 newContact.contactPoint = { {true, contactPoint},
                                     {true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth} };
                 std::cout << "collision2\n";
@@ -180,10 +170,8 @@ namespace Physics {
                 edge2 = (vertexTwo[testAxis2] < 0) ? axes[testAxis2] : axes[testAxis2] * -1.f;
 
                 //local -> world
-                Vec4 v1 = obj1.GetModelSRTMatrix() * Vec4 { vertexOne.x, vertexOne.y, vertexOne.z, 1.f };
-                vertexOne = { v1.x,v1.y,v1.z };
-                Vec4 v2 = obj2.GetModelSRTMatrix() * Vec4 { vertexTwo.x, vertexTwo.y, vertexTwo.z, 1.f };
-                vertexTwo = { v2.x,v2.y,v2.z };
+                vertexOne = obj1.GetUnitModelMatrix() * vertexOne; 
+                vertexTwo = obj2.GetUnitModelMatrix() * vertexTwo;
 
                 //1. calculate the dot product between edge1 and edge2:
                 float k = edge1.Dot(edge2);//cosine
@@ -206,11 +194,9 @@ namespace Physics {
         void FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box,
             const Object& obj1, const Object& obj2) {
             // Determine if objects are dynamic and retrieve position and axes
-            bool isDynamic1 = obj1.IsDynamic();
-            bool isDynamic2 = obj2.IsDynamic();
 
-            Vector3 position1 = isDynamic1 ? obj1.GetRigidBody()->GetPosition() : Vector3(obj1.GetModelRTMatrix()[3].x, obj1.GetModelRTMatrix()[3].y, obj1.GetModelRTMatrix()[3].z);
-            Vector3 position2 = isDynamic2 ? obj2.GetRigidBody()->GetPosition() : Vector3(obj2.GetModelRTMatrix()[3].x, obj2.GetModelRTMatrix()[3].y, obj2.GetModelRTMatrix()[3].z);
+            Vector3 position1 = obj1.GetPosition();
+            Vector3 position2 = obj2.GetPosition();
 
             constexpr int NUM_AXES = 3;
             Vec3 extents = std::get<Vec3>(box->GetScale());//std::variant<Vec3, float>
@@ -220,8 +206,7 @@ namespace Physics {
 
             // For each axis (X, Y, Z)
             for (int i = 0; i < NUM_AXES; ++i) {
-                Vector3 axis = isDynamic1 ? obj1.GetRigidBody()->GetAxis(i) : Vector3(obj1.GetModelRTMatrix()[i].x, obj1.GetModelRTMatrix()[i].y, obj1.GetModelRTMatrix()[i].z);
-                //Vector3 axis = body1->GetAxis(i);
+                Vector3 axis = obj1.GetAxis(i);
                 float extent = extents[i]; // Directly access the extents array
 
                 float projectionLength = centerToCenter.Dot(axis);
@@ -239,8 +224,8 @@ namespace Physics {
 
             // If a collision is detected, populate and return CollisionData
             CollisionData collisionData;
-            collisionData.bodies[0] = isDynamic1 ? const_cast<Physics::RigidBody*>(obj1.GetRigidBody()) : nullptr;
-            collisionData.bodies[1] = isDynamic2 ? const_cast<Physics::RigidBody*>(obj2.GetRigidBody()) : nullptr;
+            collisionData.bodies[0] = const_cast<Physics::RigidBody*>(obj1.GetRigidBody());
+            collisionData.bodies[1] = const_cast<Physics::RigidBody*>(obj2.GetRigidBody());
             collisionData.collisionNormal = position2 - closestPoint;
             collisionData.collisionNormal.Normalize();
             collisionData.contactPoint = {
@@ -268,19 +253,14 @@ namespace Physics {
 
             static constexpr int NUM_AXES = 15;
 
-            bool isDynamic1 = obj1.IsDynamic();
-            bool isDynamic2 = obj2.IsDynamic();
-
             Vec3 extents1 = std::get<Vec3>(box1->GetScale());
             Vec3 extents2 = std::get<Vec3>(box2->GetScale());
 
             float radius1 = std::max({ extents1.x, extents1.y, extents1.z });
             float radius2 = std::max({ extents2.x, extents2.y, extents2.z });
 
-            Vector3 position1 = isDynamic1 ? obj1.GetRigidBody()->GetPosition() : Vector3(obj1.GetModelRTMatrix()[3].x, obj1.GetModelRTMatrix()[3].y, obj1.GetModelRTMatrix()[3].z);
-            Vector3 position2 = isDynamic2 ? obj2.GetRigidBody()->GetPosition() : Vector3(obj2.GetModelRTMatrix()[3].x, obj2.GetModelRTMatrix()[3].y, obj2.GetModelRTMatrix()[3].z);
-            //std::cout << position1 << std::endl;
-            //std::cout << position2 << std::endl;
+            Vector3 position1 = obj1.GetPosition();
+            Vector3 position2 = obj2.GetPosition();
 
             Vector3 distanceVec = position2 - position1;
             if (distanceVec.LengthSquared() > (radius1 + radius2) * (radius1 + radius2)) {
@@ -292,14 +272,12 @@ namespace Physics {
 
             // Axes of the first box
             for (int i = 0; i < 3; ++i) {
-                axes[i]=(isDynamic1 ? obj1.GetRigidBody()->GetAxis(i) : Vector3(obj1.GetModelRTMatrix()[i].x, obj1.GetModelRTMatrix()[i].y, obj1.GetModelRTMatrix()[i].z));
-                axes[i]=axes[i].Normalize();
+                axes[i] = obj1.GetAxis(i);
             }
 
             // Axes of the second box
             for (int i = 0; i < 3; ++i) {
-                axes[3+i]=(isDynamic2 ? obj2.GetRigidBody()->GetAxis(i) : Vector3(obj2.GetModelRTMatrix()[i].x, obj2.GetModelRTMatrix()[i].y, obj2.GetModelRTMatrix()[i].z));
-                axes[3+i] = axes[3+i].Normalize();
+                axes[3 + i] = obj2.GetAxis(i);
             }
 
             // Edge-edge axes (cross products)
@@ -324,12 +302,12 @@ namespace Physics {
                 if (penetration <= 0.f) {
                     return; // Separating axis found, no collision
                 }
-                if (penetration < minPenetration) {
+                if (penetration <= minPenetration) {
                     minPenetration = penetration;
                     minAxisIdx = i;
                 }
             }
-
+            //std::cout << "colliding!!!!\n";
             // Collision normal should point from obj2 to obj1
             Vector3 collisionNormal = axes[minAxisIdx];
             if (collisionNormal.Dot(position1 - position2) < 0) {
@@ -338,8 +316,8 @@ namespace Physics {
 
             // Determine contact points and other collision properties
             CollisionData collisionData;
-            collisionData.bodies[0] = isDynamic1 ? const_cast<Physics::RigidBody*>(obj1.GetRigidBody()) : nullptr;
-            collisionData.bodies[1] = isDynamic2 ? const_cast<Physics::RigidBody*>(obj2.GetRigidBody()) : nullptr;
+            collisionData.bodies[0] = const_cast<Physics::RigidBody*>(obj1.GetRigidBody());
+            collisionData.bodies[1] = const_cast<Physics::RigidBody*>(obj2.GetRigidBody());
             collisionData.collisionNormal = collisionNormal;
             collisionData.penetrationDepth = minPenetration;
             collisionData.restitution = m_objectRestitution;
@@ -394,6 +372,7 @@ namespace Physics {
                 // Box-Box collision
                 else if (const auto* box2 = dynamic_cast<const BoxCollider*>(collider2)) {
                     FindCollisionFeaturesBoxBox(box1, box2, obj1, obj2);
+                    FindCollisionFeaturesBoxBox(box2, box1, obj2, obj1);
                 }
                 // Box-Plane collision
                 else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
@@ -477,12 +456,12 @@ namespace Physics {
             }
             tangent2 = contact.collisionNormal.Cross(tangent1);
 
-            // Compute the impulses in each direction and apply
-            //float jacobianImpulseT1 = ComputeTangentialImpulses(contact, r1, r2, tangent1);
-            //ApplyImpulses(contact, jacobianImpulseT1, r1, r2, tangent1);
+             //Compute the impulses in each direction and apply
+            float jacobianImpulseT1 = ComputeTangentialImpulses(contact, r1, r2, tangent1);
+            ApplyImpulses(contact, jacobianImpulseT1, r1, r2, tangent1);
 
-            //float jacobianImpulseT2 = ComputeTangentialImpulses(contact, r1, r2, tangent2);
-            //ApplyImpulses(contact, jacobianImpulseT2, r1, r2, tangent2);
+            float jacobianImpulseT2 = ComputeTangentialImpulses(contact, r1, r2, tangent2);
+            ApplyImpulses(contact, jacobianImpulseT2, r1, r2, tangent2);
         }
 
         void CollisionManager::ApplyImpulses(CollisionData& contact, float jacobianImpulse, const Vector3& r1, const Vector3& r2, const Vector3& direction) {

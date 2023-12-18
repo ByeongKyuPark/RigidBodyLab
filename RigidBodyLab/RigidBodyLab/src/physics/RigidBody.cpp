@@ -25,13 +25,13 @@ void RigidBody::Integrate(float duration)
     angularVelocity *= powf(angularDamping, duration);
 
     //3.Pos, Orientation
-    position += velocity * duration;
+    transform.position += velocity * duration;
     //std::cout << position << "\n";
-    orientation += orientation.RotateByVector(angularVelocity, duration / 2.0f);
-    orientation.Normalize();    
+    transform.orientation += transform.orientation.RotateByVector(angularVelocity, duration / 2.0f);
+    transform.orientation.Normalize();
 
     //5.update accordingly
-    UpdateTransformMatrix();
+    transform.Update();
     TransformInertiaTensor();
 
     force.Clear();
@@ -45,24 +45,13 @@ void RigidBody::AddForce(const Vector3& _force){
 void RigidBody::AddForceAt(const Vector3& _force, const Vector3& point)
 {
     force += _force;
-    Vector3 pointFromCenter = point - position;
+    Vector3 pointFromCenter = point - transform.position;
     torque += pointFromCenter.Cross(_force);
 }
 
 Vector3 RigidBody::GetAxis(int index) const
 {
-    if (index < 0 || index > 2){
-        throw std::runtime_error("RigidBody::getAxis(): index, out of bounds\n");
-    }
-
-    Vector3 result(
-        localToWorld[index*4],
-        localToWorld[index*4 + 1],
-        localToWorld[index*4 + 2]
-    );
-    result.Normalize();
-
-    return result;
+    return transform.GetAxis(index);
 }
 
 void RigidBody::RotateByQuat(const Quaternion& quat)
@@ -72,37 +61,10 @@ void RigidBody::RotateByQuat(const Quaternion& quat)
     SetOrientation(newOrientation);
 }
 
-void RigidBody::UpdateTransformMatrix()
-{
-
-    // First column
-    localToWorld.columns[0].m128_f32[0] = 1.0f - 2.0f * (orientation.y * orientation.y + orientation.z * orientation.z);
-    localToWorld.columns[0].m128_f32[1] = 2.0f * (orientation.x * orientation.y + orientation.w * orientation.z);
-    localToWorld.columns[0].m128_f32[2] = 2.0f * (orientation.x * orientation.z - orientation.w * orientation.y);
-    localToWorld.columns[0].m128_f32[3] = 0.0f; // Assuming homogeneous coordinate for direction vectors is 0
-
-    // Second column
-    localToWorld.columns[1].m128_f32[0] = 2.0f * (orientation.x * orientation.y - orientation.w * orientation.z);
-    localToWorld.columns[1].m128_f32[1] = 1.0f - 2.0f * (orientation.x * orientation.x + orientation.z * orientation.z);
-    localToWorld.columns[1].m128_f32[2] = 2.0f * (orientation.y * orientation.z + orientation.w * orientation.x);
-    localToWorld.columns[1].m128_f32[3] = 0.0f; // Assuming homogeneous coordinate for direction vectors is 0
-
-    // Third column
-    localToWorld.columns[2].m128_f32[0] = 2.0f * (orientation.x * orientation.z + orientation.w * orientation.y);
-    localToWorld.columns[2].m128_f32[1] = 2.0f * (orientation.y * orientation.z - orientation.w * orientation.x);
-    localToWorld.columns[2].m128_f32[2] = 1.0f - 2.0f * (orientation.x * orientation.x + orientation.y * orientation.y);
-    localToWorld.columns[2].m128_f32[3] = 0.0f; // Assuming homogeneous coordinate for direction vectors is 0
-
-    // Fourth column (position)
-    localToWorld.columns[3].m128_f32[0] = position[0];
-    localToWorld.columns[3].m128_f32[1] = position[1];
-    localToWorld.columns[3].m128_f32[2] = position[2];
-    localToWorld.columns[3].m128_f32[3] = 1.0f; // Homogeneous coordinate for position is 1
-}
 
 void RigidBody::TransformInertiaTensor()
 {
-    Matrix3 rotationMatrix=localToWorld.Extract3x3Matrix();
+    Matrix3 rotationMatrix=transform.localToWorld.Extract3x3Matrix();
     inverseInertiaTensorWorld = (rotationMatrix * inverseInertiaTensor) * rotationMatrix.Transpose();
 }
 
@@ -130,22 +92,22 @@ void RigidBody::SetInverseInertiaTensor(const Matrix3& mat)
 
 void RigidBody::SetPosition(const Vector3& vec)
 {
-    position = vec;
-    UpdateTransformMatrix();
+    transform.position = vec;
+    transform.Update();
 }
 
 void RigidBody::SetPosition(float x, float y, float z)
 {
-    position.x = x;
-    position.y = y;
-    position.z = z;
-    UpdateTransformMatrix();
+    transform.position.x = x;
+    transform.position.y = y;
+    transform.position.z = z;
+    transform.Update();
 }
 
 void RigidBody::SetOrientation(const Quaternion& quat)
 {
-    orientation = quat;
-    UpdateTransformMatrix();
+    transform.orientation = quat;
+    transform.Update();
     TransformInertiaTensor();
 }
 
@@ -162,11 +124,11 @@ void RigidBody::SetLinearVelocity(float x, float y, float z)
 }
 
 void RigidBody::SetAngularVelocity(const Vector3& vec){
-    angularVelocity = localToWorld.Extract3x3Matrix() * vec;
+    angularVelocity = transform.localToWorld.Extract3x3Matrix() * vec;
 }
 
 void RigidBody::SetAngularVelocity(float x, float y, float z){
-    angularVelocity = localToWorld.Extract3x3Matrix() * Vector3(x, y, z);
+    angularVelocity = transform.localToWorld.Extract3x3Matrix() * Vector3(x, y, z);
 }
 
 void RigidBody::SetLinearAcceleration(const Vector3& vec){
@@ -200,7 +162,7 @@ Matrix3 RigidBody::GetInverseInertiaTensorWorld() const{
 }
 
 Vector3 RigidBody::GetPosition() const{
-    return position;
+    return transform.position;
 }
 
 Vector3 RigidBody::GetLinearVelocity() const{
@@ -208,7 +170,7 @@ Vector3 RigidBody::GetLinearVelocity() const{
 }
 
 Vector3 RigidBody::GetAngularVelocity() const{
-    return localToWorld.Extract3x3Matrix().Transpose() * angularVelocity;
+    return transform.localToWorld.Extract3x3Matrix().Transpose() * angularVelocity;
 }
 
 Vector3 RigidBody::GetAcceleration() const{
@@ -219,6 +181,10 @@ float RigidBody::GetLinearDamping() const{
     return linearDamping;
 }
 
-glm::mat4 RigidBody::GetLocalToWorldMatrix() const{
-    return localToWorld.ConvertToGLM();
+Physics::Matrix4 Physics::RigidBody::GetLocalToWorldMatrix() const{
+    return transform.localToWorld;
+}
+
+glm::mat4 RigidBody::GetLocalToWorldMatrixGLM() const{
+    return transform.localToWorld.ConvertToGLM();
 }

@@ -2,6 +2,7 @@
 #include <rendering/Camera.h>
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
+#include <core/Transform.h>
 #include <memory>//std::make_unique
 
 #include <math/Matrix3.h>//temp
@@ -41,6 +42,7 @@ void Scene::SetUpScene() {
     using Physics::BoxCollider;
     using Physics::SphereCollider;
     using Physics::RigidBody;
+    using Core::Transform;
 
     //constexpr float BASE_POS_Y = -4.5f;
     constexpr float BASE_POS_Y = 0.f;
@@ -86,22 +88,23 @@ void Scene::SetUpScene() {
     //    planeRigidBody->SetOrientation(rotation);
     //}
     //planeRigidBody->SetInertiaTensor(inertiaTensor);
-
-    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
+    Transform planeTransform{ {0, BASE_POS_Y, 0} };
+    //Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX,std::move(planeCollider), planeModelToWorldMat));
+    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX,std::move(planeCollider), planeTransform));
     //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, std::move(planeCollider), std::move(planeRigidBody)));
 
 
     //(2) VASE
     //Vec3 vasePos{ 0.0f, 0.995f, 0.0f };
-    Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
+    //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
     Vec3 vaseColliderSize = {1.f,1.f,1.f};
-    std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>();
-    vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
+    Transform vaseTransform{ {0.f, 1.2f, 0} };
+    std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
+    //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     vaseRigidBody->SetMass(mass);
     vaseRigidBody->SetInertiaTensor(inertiaTensor);
 

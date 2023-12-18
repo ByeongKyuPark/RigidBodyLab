@@ -1,8 +1,6 @@
 #pragma once
 #include <math/Matrix3.h>
-#include <math/Vector3.h>
-#include <math/Matrix4.h>
-#include <math/Quaternion.h>
+#include <core/Transform.h>
 
 namespace Physics
 {
@@ -14,14 +12,11 @@ namespace Physics
     class RigidBody
     {
     protected:        
-
+        Core::Transform transform;
         Matrix3 inverseInertiaTensor; //local
         Matrix3 inverseInertiaTensorWorld; //world
         // Represents the transformation matrix without scale. Avoids skewing and simulates the rigid body as a point mass for simplified physics calculations.
-        Matrix4 localToWorld;
 
-        Vector3 position;
-        Quaternion orientation;
         Vector3 velocity;
         Vector3 angularVelocity;
         Vector3 linearAcceleration;
@@ -33,7 +28,7 @@ namespace Physics
         float angularDamping;
 
     public:
-        RigidBody() : massInverse{0.f},linearDamping(0.99f), angularDamping(0.7f) {}
+        RigidBody(Core::Transform& _transform) : transform{_transform},massInverse { 0.f }, linearDamping(0.95f), angularDamping(0.6f) {}
 
         void Integrate(float duration);
         void AddForceAt(const Vector3& force, const Vector3& point);
@@ -44,7 +39,6 @@ namespace Physics
 
     private:    
         //no scale, simulates the rigid body as a point mass for simplified physics calculations.
-        void UpdateTransformMatrix();
         void TransformInertiaTensor();
 
     public:
@@ -75,11 +69,12 @@ namespace Physics
         Matrix3 GetInverseInertiaTensor() const;
         Matrix3 GetInverseInertiaTensorWorld() const;
         Vector3 GetPosition() const;
-        Quaternion GetOrientation() const { return orientation; }
+        Quaternion GetOrientation() const { return transform.orientation; }
         Vector3 GetLinearVelocity() const;
         Vector3 GetAngularVelocity() const;
         Vector3 GetAcceleration() const;
         float GetLinearDamping() const;
-        glm::mat4 GetLocalToWorldMatrix() const;
+        Matrix4 GetLocalToWorldMatrix() const;
+        glm::mat4 GetLocalToWorldMatrixGLM() const;
     }; 
 }

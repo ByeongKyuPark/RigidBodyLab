@@ -16,7 +16,9 @@ namespace Physics {
 			}
 		}
 		virtual bool IsCollidingWith(const Collider& other) const = 0;
-		virtual Mat4 GetScaleMatrix() const = 0;
+		virtual Mat4 GetScaleMatrixGLM() const = 0;
+		virtual Matrix4 GetScaleMatrix() const = 0;
+
 		// GetScale method that returns either a float or Vec3
 		virtual std::variant<float, Vec3> GetScale() const = 0;
 	};
@@ -32,9 +34,13 @@ namespace Physics {
 		void SetScaleInternal(const Vec3& _scale) {
 			scale = _scale;
 		}
-		Mat4 GetScaleMatrix() const override final{
+		Mat4 GetScaleMatrixGLM() const override final{
 			return glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
 		}
+		Matrix4 GetScaleMatrix() const override final {
+			return Physics::Matrix4{scale.x,scale.y,scale.z,1.f};
+		}
+
 		std::variant<float, Vec3> GetScale() const override final{
 			return scale*0.5f; // Returns Vec3 for BoxCollider
 		}
@@ -52,9 +58,13 @@ namespace Physics {
 		void SetScaleInternal(float scale) {
 			radius = scale;
 		}
-		Mat4 GetScaleMatrix() const override final{
+		Mat4 GetScaleMatrixGLM() const override final{
 			return glm::scale(glm::mat4(1.0f), glm::vec3(radius, radius, radius));
 		}
+		Matrix4 GetScaleMatrix() const override final {
+			return Matrix4{ radius,radius,radius,1.f };
+		}
+
 		std::variant<float, Vec3> GetScale() const override final{
 			return radius; // Returns float (radius) for SphereCollider
 		}
@@ -72,7 +82,7 @@ namespace Physics {
 			return false;
 		}
 
-		Mat4 GetScaleMatrix() const override final{
+		Mat4 GetScaleMatrixGLM() const override final{
 			//the scaling component is neutral and doesn't affect the plane's representation
 			return glm::mat4(1.0f);
 		}

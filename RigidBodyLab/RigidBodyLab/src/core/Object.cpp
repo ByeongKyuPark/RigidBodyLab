@@ -97,20 +97,45 @@ using namespace Rendering;
 //    Rendering::lightPosWF[0] = Vec3(0, height, 0);
 //}
 
-Mat4 Core::Object::GetModelSRTMatrix() const {
-	return GetModelRTMatrix()* m_collider->GetScaleMatrix();
+
+// Getter methods (setters might not be necessary because we are passing by reference)
+
+Physics::Vector3 Core::Object::GetPosition() const {
+	if (IsDynamic()) {
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetPosition();
+	}
+	else {
+		return std::get<Transform>(m_physicsOrTransform).position;
+	}
+}
+Physics::Vector3 Core::Object::GetAxis(int axisIdx) const {
+	if (IsDynamic()) {
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetAxis(axisIdx);
+	}
+	else {
+		return std::get<Transform>(m_physicsOrTransform).GetAxis(axisIdx);
+	}
 }
 
-Mat4 Core::Object::GetModelRTMatrix() const
+Physics::Matrix4 Core::Object::GetUnitModelMatrix() const
 {
 	if (IsDynamic()) {
-																	// TR
-		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix();
+		// TR													S
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix();// *m_collider->GetScaleMatrix();
 	}
-	else {							//TR		   
-		return std::get<Mat4>(m_physicsOrTransform);
+	else {							//TR														S
+		return std::get<Transform>(m_physicsOrTransform).localToWorld;// *m_collider->GetScaleMatrix();
 	}
+}
 
+Mat4 Core::Object::GetModelMatrixGLM() const {
+	if (IsDynamic()) {
+															// TR													S
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrixGLM()* m_collider->GetScaleMatrixGLM();
+	}
+	else {							//TR														S
+		return std::get<Transform>(m_physicsOrTransform).localToWorld.ConvertToGLM() * m_collider->GetScaleMatrixGLM();
+	}
 }
 
 const Physics::Collider* Core::Object::GetCollider() const {
