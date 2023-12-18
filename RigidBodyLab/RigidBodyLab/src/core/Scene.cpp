@@ -112,15 +112,16 @@ void Scene::SetUpScene() {
     auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
     m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody),vaseMeshOffset));
 
-    ////(3) MIRROR
-    //m_mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);
-    //m_mirrorRotationAxis = BASIS[Y];
-    //m_mirrorRotationAngle = -EIGHTH_PI;
-    //Vec3 mirrorColliderSize = Vec3{ 10.f,10.f,10.f };//temp
-    //std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>();
-    //std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
-    //auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, Translate(m_mirrorTranslate) * Scale(MIRROR_SCL, MIRROR_SCL, MIRROR_SCL) * Rotate(PI + m_mirrorRotationAngle, m_mirrorRotationAxis),std::move(mirrorRigidBody), std::move(mirrorCollider)));
+    //(3) MIRROR
+    m_mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);
+    m_mirrorRotationAxis = BASIS[Y];
+    m_mirrorRotationAngle = -EIGHTH_PI;
+    Vec3 mirrorColliderSize = Vec3{ 5.f,5.f,1.f };//temp
+    Transform mirrorTransform{ {3.0f, MIRROR_POS_Y, -3.5f} ,Quaternion{PI-EIGHTH_PI,Vector3{0.f,1.f,0.f}} };
+    std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
+    std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
+    auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
+    m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, std::move(mirrorCollider), std::move(mirrorRigidBody)));
 
     //// Setup the base of the mirror
     //constexpr float MIRROR_FRAME_OFFSET = 0.45f;

@@ -32,7 +32,7 @@ namespace Rendering {
 	enum class ObjID {
 		BASE = 0,
 		VASE,
-		//MIRROR,
+		MIRROR,
 		//MIRRORBASE1,
 		//MIRRORBASE2,
 		//MIRRORBASE3,
