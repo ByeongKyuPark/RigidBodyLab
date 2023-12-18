@@ -84,7 +84,7 @@ void Scene::SetUpScene() {
     //}
     //planeRigidBody->SetInertiaTensor(inertiaTensor);
 
-    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0) * Scale(baseSize);
+    Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
     auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);

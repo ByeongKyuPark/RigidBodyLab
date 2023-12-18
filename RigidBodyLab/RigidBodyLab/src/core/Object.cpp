@@ -97,28 +97,38 @@ using namespace Rendering;
 //    Rendering::lightPosWF[0] = Vec3(0, height, 0);
 //}
 
-const Mat4& Core::Object::GetModelToWorldMatrix() const {
-	if (std::holds_alternative<std::unique_ptr<RigidBody>>(m_physicsOrTransform)) {
-																		// TR				 	   *		 S
-		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix() * m_collider->GetScaleMatrix();
+Mat4 Core::Object::GetModelSRTMatrix() const {
+	return GetModelRTMatrix()* m_collider->GetScaleMatrix();
+}
+
+Mat4 Core::Object::GetModelRTMatrix() const
+{
+	if (IsDynamic()) {
+																	// TR
+		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix();
 	}
-	else {							//TR		    *          S				
-		return std::get<Mat4>(m_physicsOrTransform);// *m_collider->GetScaleMatrix();
+	else {							//TR		   
+		return std::get<Mat4>(m_physicsOrTransform);
 	}
+
 }
 
 const Physics::Collider* Core::Object::GetCollider() const {
 	return m_collider.get();
 }
 
-std::shared_ptr<Physics::RigidBody> Core::Object::GetRigidBody() const
+bool Core::Object::IsDynamic() const {
+	return std::holds_alternative<std::unique_ptr<Physics::RigidBody>>(m_physicsOrTransform);
+}
+
+const Physics::RigidBody* Core::Object::GetRigidBody() const
 {
 	// Using std::visit to handle different types in the variant
-	return std::visit([](auto&& arg) -> std::shared_ptr<Physics::RigidBody> {
+	return std::visit([](auto&& arg) -> const Physics::RigidBody * {
 			using T = std::decay_t<decltype(arg)>;
-			if constexpr (std::is_same_v<T, std::shared_ptr<Physics::RigidBody>>) {
+			if constexpr (std::is_same_v<T, std::unique_ptr<Physics::RigidBody>>) {
 				// If the variant holds a RigidBody, return it
-				return arg;
+				return arg.get();
 			}
 			else {
 				// If the variant holds a different type (e.g., Mat4), return nullptr
@@ -130,7 +140,7 @@ std::shared_ptr<Physics::RigidBody> Core::Object::GetRigidBody() const
 
 
 void Core::Object::Integrate(float deltaTime) {
-	if (std::holds_alternative<std::unique_ptr<RigidBody>>(m_physicsOrTransform)) {
+	if (IsDynamic()) {
 		std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->Integrate(deltaTime);
 	}
 }
