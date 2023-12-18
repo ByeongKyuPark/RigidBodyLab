@@ -1,6 +1,7 @@
 #pragma once
 #include <math/Vector3.h>
 #include <physics/RigidBody.h>
+#include <core/Object.h>
 #include <memory>//weak_ptr
 
 namespace Physics{
@@ -10,7 +11,7 @@ namespace Physics{
         std::pair<bool, Vector3> p1, p2;
     };
     struct CollisionData {
-        RigidBody* bodies[2];
+        Core::Object* objects[2];
         Math::Vector3 collisionNormal; //dir : body0 <--- body1
         float penetrationDepth;
         float restitution;

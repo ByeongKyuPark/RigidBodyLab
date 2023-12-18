@@ -46,8 +46,7 @@ void Scene::SetUpScene() {
 
     //constexpr float BASE_POS_Y = -4.5f;
     constexpr float BASE_POS_Y = 0.f;
-    constexpr float BASE_SCL_Y = 1.f;
-    //constexpr float BASE_SCL_Y = 7.5f;
+    constexpr float BASE_SCL_Y = 2.f;//7.5
     constexpr float MIRROR_POS_Y = 2.4f;
     constexpr float MIRROR_SCL = 6.f;
     
@@ -70,8 +69,8 @@ void Scene::SetUpScene() {
     //(1) PLANE
 
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    //Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
-    Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
+    Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
+    //Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
     Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
     //std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
     //planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
@@ -102,7 +101,7 @@ void Scene::SetUpScene() {
     //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
     Vec3 vaseColliderSize = {1.f,1.f,1.f};
-    Transform vaseTransform{ {0.f, 1.2f, 0} };
+    Transform vaseTransform{ {0.5f, 2.f, 0} };
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
     //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     vaseRigidBody->SetMass(mass);
@@ -160,7 +159,7 @@ void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
     // Detect and store collisions
     for (size_t i{}; i < objSize; ++i) {
         for (size_t j{ i + 1 }; j < objSize; ++j) {
-            m_collisionManager.CheckCollision(*m_objects[i], *m_objects[j]);
+            m_collisionManager.CheckCollision(m_objects[i].get(), m_objects[j].get());
         }
     }
 
