@@ -26,7 +26,7 @@ void RigidBody::Integrate(float duration)
 
     //3.Pos, Orientation
     position += velocity * duration;
-    std::cout << position << "\n";
+    //std::cout << position << "\n";
     orientation += orientation.RotateByVector(angularVelocity, duration / 2.0f);
     orientation.Normalize();    
 

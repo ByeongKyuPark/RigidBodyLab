@@ -94,6 +94,7 @@ namespace Physics {
                 contactPoint = { point.x,point.y,point.z };
                 newContact.contactPoint = { {true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth},
                                         {true, contactPoint} };
+                std::cout << "collision1\n";
             }
             else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
                 Vec3 scl = std::get<Vec3>(box1.GetScale());
@@ -103,6 +104,7 @@ namespace Physics {
                 contactPoint = { point.x,point.y,point.z };
                 newContact.contactPoint = { {true, contactPoint},
                                     {true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth} };
+                std::cout << "collision2\n";
             }
             //    2. for cases 6 to 15, points on the edges of the bounding boxes are used.
             else
@@ -193,7 +195,7 @@ namespace Physics {
                 //3. point on the edge of box2 closest to 
                 //projecting the vector from closestPointOne to vertexTwo onto direction2.
                 Vector3 closestPointTwo{ vertexTwo + edge2 * ((closestPointOne - vertexTwo).Dot(edge2)) };
-
+                std::cout << "collision3\n";
                 newContact.contactPoint = { { true, closestPointOne },
                                         { true, closestPointTwo } };
             }
@@ -296,7 +298,7 @@ namespace Physics {
 
             // Axes of the second box
             for (int i = 0; i < 3; ++i) {
-                axes[3+i]=(isDynamic2 ? obj2.GetRigidBody()->GetAxis(i) : Vector3(obj1.GetModelRTMatrix()[i].x, obj1.GetModelRTMatrix()[i].y, obj1.GetModelRTMatrix()[i].z));
+                axes[3+i]=(isDynamic2 ? obj2.GetRigidBody()->GetAxis(i) : Vector3(obj2.GetModelRTMatrix()[i].x, obj2.GetModelRTMatrix()[i].y, obj2.GetModelRTMatrix()[i].z));
                 axes[3+i] = axes[3+i].Normalize();
             }
 
