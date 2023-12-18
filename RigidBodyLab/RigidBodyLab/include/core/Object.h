@@ -22,15 +22,18 @@ namespace Core {
 		std::unique_ptr<Collider> m_collider;
 		//'Rigidbody' for dynamic objects, 'Transform' for static objects
 		std::variant<std::unique_ptr<RigidBody>, Transform> m_physicsOrTransform;
-
+		
+		// Offset to adjust the position of the mesh. This helps in visually aligning the mesh with the collider
+		// especially useful when the physical collider shape and the visual mesh do not perfectly align, like a vase.
+		Vec3 m_meshOffset;
 	public:
 		// Constructor for static objects (only Mat4 needed)
-		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform)
-			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform) {}
+		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform, const Vec3 meshOffset = Vec3{0.f,0.f,0.f})
+			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform), m_meshOffset{meshOffset} {}
 
 		// Constructor for dynamic objects
-		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody)
-			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)) {}
+		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, const Vec3 meshOffset = Vec3{ 0.f,0.f,0.f })
+			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)),m_meshOffset{meshOffset} {}
 
 		Object(const Object& other) = default;
 		Object(Object&& other) noexcept = default;

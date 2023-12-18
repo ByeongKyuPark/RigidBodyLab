@@ -100,8 +100,9 @@ void Scene::SetUpScene() {
     //Vec3 vasePos{ 0.0f, 0.995f, 0.0f };
     //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
-    Vec3 vaseColliderSize = {1.5f,2.f,1.5f};
-    Transform vaseTransform{ {0.5f, 6.f, 0} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
+    Vec3 vaseMeshOffset{ 0.f,-0.85f,0.f };
+    Vec3 vaseColliderSize = {1.6f,2.f,1.6f};
+    Transform vaseTransform{ {0.5f, 4.5f, 0} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
     //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     vaseRigidBody->SetMass(mass);
@@ -109,7 +110,7 @@ void Scene::SetUpScene() {
 
     std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(vaseColliderSize);
     auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
-    m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody)));
+    m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody),vaseMeshOffset));
 
     ////(3) MIRROR
     //m_mirrorTranslate = Vec3(1.0f, MIRROR_POS_Y, -1.5f);

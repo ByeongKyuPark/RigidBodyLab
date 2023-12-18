@@ -129,12 +129,17 @@ Physics::Matrix4 Core::Object::GetModelMatrix() const
 }
 
 Mat4 Core::Object::GetModelMatrixGLM() const {
+	Mat4 meshOffsetMatrix = glm::translate(glm::mat4(1.0f), m_meshOffset);
+
 	if (IsDynamic()) {
-															// TR													S
-		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrixGLM()* m_collider->GetScaleMatrixGLM();
+		// For dynamic objects, combine RigidBody's transformation with the collider's scale and mesh offset
+		return meshOffsetMatrix*std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrixGLM()
+			* m_collider->GetScaleMatrixGLM();
 	}
-	else {							//TR														S
-		return std::get<Transform>(m_physicsOrTransform).localToWorld.ConvertToGLM() * m_collider->GetScaleMatrixGLM();
+	else {
+		// For static objects, combine Transform's transformation with the collider's scale and mesh offset
+		return meshOffsetMatrix*std::get<Transform>(m_physicsOrTransform).localToWorld.ConvertToGLM()
+			* m_collider->GetScaleMatrixGLM();
 	}
 }
 

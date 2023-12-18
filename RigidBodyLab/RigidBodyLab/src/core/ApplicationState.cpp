@@ -1,7 +1,7 @@
 #include <core/ApplicationState.h>
 
 ApplicationState::ApplicationState()
-    :m_scene{}, m_currTime{ std::chrono::high_resolution_clock::now() }, m_prevTime{},
+    :m_scene{}, m_currTime{  }, m_prevTime{},
     m_frameCount{}, m_secCount{}, m_deltaTime{}, m_fps{}
 {}
 
