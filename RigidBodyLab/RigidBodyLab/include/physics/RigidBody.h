@@ -28,7 +28,7 @@ namespace Physics
         float angularDamping;
 
     public:
-        RigidBody(Core::Transform& _transform) : transform{_transform},massInverse { 0.f }, linearDamping(0.95f), angularDamping(0.6f) {}
+        RigidBody(Core::Transform& _transform) : transform{_transform},massInverse { 0.f }, linearDamping(0.9f), angularDamping(0.5f) {}
 
         void Integrate(float duration);
         void AddForceAt(const Vector3& force, const Vector3& point);

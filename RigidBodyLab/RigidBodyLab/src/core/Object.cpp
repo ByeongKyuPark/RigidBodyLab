@@ -117,7 +117,7 @@ Physics::Vector3 Core::Object::GetAxis(int axisIdx) const {
 	}
 }
 
-Physics::Matrix4 Core::Object::GetUnitModelMatrix() const
+Physics::Matrix4 Core::Object::GetModelMatrix() const
 {
 	if (IsDynamic()) {
 		// TR													S

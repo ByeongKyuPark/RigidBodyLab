@@ -25,8 +25,8 @@ namespace Physics {
         float m_penetrationTolerance;
         float m_closingSpeedTolerance;
 
-        Vector3 GetBoxContactVertexLocal(Vector3 scl, const Vector3 & axis1, const Vector3& axis2, const Vector3& axis3, Vector3 collisionNormal, std::function<bool(float, float)> cmp) const {
-            Vector3 contactPoint{ scl.x,  scl.y,  scl.z };
+        Vector3 GetBoxContactVertexLocal(const Vector3 & axis1, const Vector3& axis2, const Vector3& axis3, Vector3 collisionNormal, std::function<bool(float, float)> cmp) const {
+            Vector3 contactPoint{ 0.5f,0.5f,0.5f };
 
             if (cmp(axis1.Dot(collisionNormal), 0)) {
                 contactPoint.x *= -1.0f;
@@ -80,21 +80,22 @@ namespace Physics {
             //  	1. for cases 0 to 5, vertices are found to define contact points
             if (minPenetrationAxisIdx >= 0 && minPenetrationAxisIdx < 3)
             {
-                Vec3 scl = std::get<Vec3>(box2.GetScale());
-                Vector3 contactPoint = GetBoxContactVertexLocal({ scl.x,scl.y,scl.z }, axes[0], axes[1], axes[2] , newContact.collisionNormal, Less);                
-                contactPoint = obj2->GetUnitModelMatrix() * contactPoint;
+                //Vec3 scl = std::get<Vec3>(box2.GetScale());
+                Vector3 contactPoint = GetBoxContactVertexLocal(axes[3], axes[4], axes[5] , newContact.collisionNormal, Less);
+                contactPoint = obj2->GetModelMatrix() * contactPoint;
                 newContact.contactPoint = { {true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth},
                                         {true, contactPoint} };
-                std::cout << "collision1\n";
+                //std::cout << newContact.penetrationDepth << '\n';
+                //std::cout << "collision1\n";
             }
             else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
-                Vec3 scl = std::get<Vec3>(box1.GetScale());
-                Vector3 contactPoint = GetBoxContactVertexLocal({ scl.x,scl.y,scl.z }, axes[3], axes[4], axes[5] , newContact.collisionNormal, Greater);
-                contactPoint = obj1->GetUnitModelMatrix() * contactPoint;
+                //Vec3 scl = std::get<Vec3>(box1.GetScale());
+                Vector3 contactPoint = GetBoxContactVertexLocal(axes[0], axes[1], axes[2] , newContact.collisionNormal, Greater);
+                contactPoint = obj1->GetModelMatrix() * contactPoint;
 
                 newContact.contactPoint = { {true, contactPoint},
                                     {true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth} };
-                std::cout << "collision2\n";
+                //std::cout << "collision2\n";
             }
             //    2. for cases 6 to 15, points on the edges of the bounding boxes are used.
             else
@@ -106,10 +107,10 @@ namespace Physics {
                 // it indicates that the collision is happening on the negative side of the X-axis.
                 // In such a case, the x-coordinate of the contact vertex (vertexOne) should be negative 
                 // to represent the correct side of the box where the collision occurred.
-                Vec3 scl1 = std::get<Vec3>(box1.GetScale());
-                Vec3 scl2 = std::get<Vec3>(box2.GetScale());
-                Vector3 vertexOne = GetBoxContactVertexLocal({ scl1.x,scl1.y,scl1.z }, axes[0], axes[1], axes[2], newContact.collisionNormal, Greater);
-                Vector3 vertexTwo = GetBoxContactVertexLocal({ scl2.x,scl2.y,scl2.z }, axes[3], axes[4], axes[5], newContact.collisionNormal, Less);
+                //Vec3 scl1 = std::get<Vec3>(box1.GetScale());
+                //Vec3 scl2 = std::get<Vec3>(box2.GetScale());
+                Vector3 vertexOne = GetBoxContactVertexLocal(axes[0], axes[1], axes[2], newContact.collisionNormal, Greater);
+                Vector3 vertexTwo = GetBoxContactVertexLocal(axes[3], axes[4], axes[5], newContact.collisionNormal, Less);
 
                 int testAxis1{ -1 }, testAxis2{ -1 };
 
@@ -170,8 +171,8 @@ namespace Physics {
                 edge2 = (vertexTwo[testAxis2] < 0) ? axes[testAxis2] : axes[testAxis2] * -1.f;
 
                 //local -> world
-                vertexOne = obj1->GetUnitModelMatrix() * vertexOne; 
-                vertexTwo = obj2->GetUnitModelMatrix() * vertexTwo;
+                vertexOne = obj1->GetModelMatrix() * vertexOne; 
+                vertexTwo = obj2->GetModelMatrix() * vertexTwo;
 
                 //1. calculate the dot product between edge1 and edge2:
                 float k = edge1.Dot(edge2);//cosine
@@ -183,7 +184,7 @@ namespace Physics {
                 //3. point on the edge of box2 closest to 
                 //projecting the vector from closestPointOne to vertexTwo onto direction2.
                 Vector3 closestPointTwo{ vertexTwo + edge2 * ((closestPointOne - vertexTwo).Dot(edge2)) };
-                std::cout << "collision3\n";
+                //std::cout << "collision3\n";
                 newContact.contactPoint = { { true, closestPointOne },
                                         { true, closestPointTwo } };
             }
@@ -345,8 +346,8 @@ namespace Physics {
 
     public:
         CollisionManager()
-            : m_friction(0.6f), m_objectRestitution(0.5f), m_groundRestitution(0.2f),
-            m_iterationLimit(1), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.005f) {}
+            : m_friction(0.6f), m_objectRestitution(0.8f), m_groundRestitution(0.2f),
+            m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
         void CheckCollision(Core::Object* obj1, Core::Object* obj2) {
             const Collider* collider1 = obj1->GetCollider();
@@ -373,7 +374,7 @@ namespace Physics {
                 }
                 // Box-Box collision
                 else if (const auto* box2 = dynamic_cast<const BoxCollider*>(collider2)) {
-                    FindCollisionFeaturesBoxBox(box1, box2, obj1, obj2);
+                    //FindCollisionFeaturesBoxBox(box1, box2, obj1, obj2);
                     FindCollisionFeaturesBoxBox(box2, box1, obj2, obj1);
                 }
                 // Box-Plane collision
@@ -557,9 +558,9 @@ namespace Physics {
 
             float relativeSpeed = relativeVel.Dot(contact.collisionNormal);
 
-            // Baumgarte Stabilization (for penetration & sinking resolution)
+            // Baumgarte Stabilization (for penetration & sinking resolution)a
             float baumgarte = 0.0f;
-            constexpr float CORRECTION_RATIO = 0.02f;
+            constexpr float CORRECTION_RATIO = 0.25f;
             if (contact.penetrationDepth > m_penetrationTolerance) {
                 baumgarte = ((contact.penetrationDepth - m_penetrationTolerance) * CORRECTION_RATIO / deltaTime);
             }

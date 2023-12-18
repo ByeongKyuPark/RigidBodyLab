@@ -100,8 +100,8 @@ void Scene::SetUpScene() {
     //Vec3 vasePos{ 0.0f, 0.995f, 0.0f };
     //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
-    Vec3 vaseColliderSize = {1.f,1.f,1.f};
-    Transform vaseTransform{ {0.5f, 2.f, 0} };
+    Vec3 vaseColliderSize = {2.f,2.3f,2.f};
+    Transform vaseTransform{ {0.5f, 6.5f, 0} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
     //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     vaseRigidBody->SetMass(mass);
