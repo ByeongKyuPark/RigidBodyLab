@@ -55,7 +55,7 @@ void Core::Scene::SetUpScene() {
 
     float mass = 1.f;
     Math::Matrix3 inertiaTensor;
-    inertiaTensor.SetDiagonal(1.f * CUBE_INERTIA_FACTOR);
+    inertiaTensor.SetDiagonal(mass * CUBE_INERTIA_FACTOR);
 
     //(1) PLANE
     //Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
@@ -140,14 +140,21 @@ void Core::Scene::SetUpScene() {
     //std::unique_ptr<BoxCollider> mirrorPart3Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
     //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), std::move(mirrorPart3RigidBody), std::move(mirrorPart3Collider)));
 
-    ////(4) SPHERE
-    //constexpr float SPHERE_RAD = 4.5f;
-    //// Setup the sphere
-    //std::unique_ptr<RigidBody> sphereRigidBody = std::make_unique<RigidBody>();
-    //std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
-    //m_spherePos = Vec3(-4.5f, BASE_POS_Y + BASE_SCL_Y / 2.f + SPHERE_RAD / 2.f, -1.5f);
-    //auto& sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
+    //(4) SPHERE
+    inertiaTensor.SetDiagonal(mass* SPHERE_INERTIA_FACTOR);
+
+    constexpr float SPHERE_RAD = 1.5f;
+    // Setup the sphere
+    Transform sphereTransform{ {-4.5f, 7.f, -1.5f}};
+    std::unique_ptr<RigidBody> sphereRigidBody = std::make_unique<RigidBody>(sphereTransform);
+    sphereRigidBody->SetMass(mass);
+    sphereRigidBody->SetInertiaTensor(inertiaTensor);
+    //Translate(m_spherePos)* Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD)
+    std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
+    m_spherePos = Vec3(-4.5f, 7.f, -1.5f);
+    auto& sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
     //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), std::move(sphereRigidBody), std::move(sphereCollider)));
+    m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, std::move(sphereCollider), std::move(sphereRigidBody)));
 
     SetUpLight(baseSize.x);
 }

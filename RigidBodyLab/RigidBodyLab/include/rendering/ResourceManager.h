@@ -36,7 +36,7 @@ namespace Rendering {
 		//MIRRORBASE1,
 		//MIRRORBASE2,
 		//MIRRORBASE3,
-		//SPHERE,
+		SPHERE,
 		NUM_OBJS
 	};
 

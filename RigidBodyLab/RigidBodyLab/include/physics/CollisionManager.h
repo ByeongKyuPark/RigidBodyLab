@@ -85,7 +85,7 @@ namespace Physics {
                 newContact.contactPoint = { {true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth},
                                         {true, contactPoint} };
                 //std::cout << newContact.penetrationDepth << '\n';
-                std::cout << "collision1\n";
+                //std::cout << "collision1\n";
             }
             else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
                 //Vec3 scl = std::get<Vec3>(box1.GetScale());
@@ -94,7 +94,7 @@ namespace Physics {
 
                 newContact.contactPoint = { {true, contactPoint},
                                     {true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth} };
-                std::cout << "collision2\n";
+                //std::cout << "collision2\n";
             }
             //    2. for cases 6 to 15, points on the edges of the bounding boxes are used.
             else
@@ -185,7 +185,7 @@ namespace Physics {
                 Vector3 closestPointTwo{ vertexTwo + edge2 * ((closestPointOne - vertexTwo).Dot(edge2)) };
                 newContact.contactPoint = { { true, closestPointOne },
                                         { true, closestPointTwo } };
-                std::cout << "collision3\n";
+                //std::cout << "collision3\n";
             }
         }
 
@@ -343,7 +343,7 @@ namespace Physics {
 
     public:
         CollisionManager()
-            : m_friction(0.6f), m_objectRestitution(0.8f), m_groundRestitution(0.2f),
+            : m_friction(0.6f), m_objectRestitution(0.2f), m_groundRestitution(0.2f),
             m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
         void CheckCollision(Core::Object* obj1, Core::Object* obj2) {

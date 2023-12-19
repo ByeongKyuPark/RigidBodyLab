@@ -122,7 +122,7 @@ namespace Rendering {
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
-		//void RenderSphere(const Scene& scene);
+		void RenderSphere(const Scene& scene);
 		void RenderObjsBg(const Mat4* MVMat, const Mat4* normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass, Scene& scene);
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);

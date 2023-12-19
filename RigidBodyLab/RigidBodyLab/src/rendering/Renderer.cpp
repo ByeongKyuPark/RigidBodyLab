@@ -804,27 +804,27 @@ void Renderer::RenderObj(const Core::Object& obj)
         Render the sphere using its own shader program.
 */
 /******************************************************************************/
-//void Renderer::RenderSphere(const Core::Scene& scene)
-//{
-//    m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
-//
-//    SendCubeTexID(ResourceManager::GetInstance().sphereTexID, m_sphereTexCubeLoc);
-//
-//    /*  Indicate whether we want reflection/refraction or both */
-//    glUniform1i(m_sphereRefLoc, TO_INT(m_sphereRef));
-//
-//    /*  Set refractive index of the sphere */
-//    glUniform1f(m_sphereRefIndexLoc, m_sphereRefIndex);
-//
-//    /*  We need view mat to know our camera orientation */
-//    SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
-//
-//    /*  These are for transforming vertices on the sphere */
-//    SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
-//    SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
-//
-//    RenderObj(scene.GetObject(TO_INT(ObjID::SPHERE)));
-//}
+void Renderer::RenderSphere(const Core::Scene& scene)
+{
+    m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
+
+    SendCubeTexID(ResourceManager::GetInstance().sphereTexID, m_sphereTexCubeLoc);
+
+    /*  Indicate whether we want reflection/refraction or both */
+    glUniform1i(m_sphereRefLoc, TO_INT(m_sphereRef));
+
+    /*  Set refractive index of the sphere */
+    glUniform1f(m_sphereRefIndexLoc, m_sphereRefIndex);
+
+    /*  We need view mat to know our camera orientation */
+    SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
+
+    /*  These are for transforming vertices on the sphere */
+    SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
+    SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
+
+    RenderObj(scene.GetObject(TO_INT(ObjID::SPHERE)));
+}
 
 
 /******************************************************************************/
@@ -875,10 +875,10 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
     /*  Send object texture and render them */
     size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < NUM_OBJS; ++i)
-        //if (i == TO_INT(ObjID::SPHERE)) {
-        //    continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
-        //}
-        //else
+        if (i == TO_INT(ObjID::SPHERE)) {
+            continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
+        }
+        else
         {
             if (renderPass == RenderPass::MIRRORTEX_GENERATION
                 && (i == TO_INT(ObjID::MIRROR))
@@ -888,12 +888,12 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
             {
                 continue;           /*  Not drawing objects behind mirror & mirror itself */
             }
-            //else 
+            else 
             {
-                //if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
-                //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
-                //}
-                //else
+                if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
+                    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                }
+                else
                 {
                     if (i == TO_INT(ObjID::MIRROR))
                     {
@@ -1080,7 +1080,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
     RenderToScreen(scene);
 
     /*  This is done separately, as it uses a different shader program for reflection/refraction */
-    //RenderSphere(scene);
+    RenderSphere(scene);
 
 
     /*  Reset */
