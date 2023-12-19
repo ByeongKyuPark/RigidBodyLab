@@ -112,7 +112,7 @@ namespace Rendering {
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
-		void RenderGui(float fps);
+		void RenderGui(Scene& scene, float fps);
 
 		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat, const Scene& scene);
 		void ComputeMainCamMats(const Scene& scene);

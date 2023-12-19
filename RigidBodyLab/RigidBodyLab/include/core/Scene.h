@@ -54,11 +54,5 @@ namespace Core {
         const Core::Object& GetObject(size_t index) const;
         const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetIntensity() const { return m_I; }
-
-        // helper function for creating objects
-        const Core::Object* CreateObject(MeshID meshId, ImageID imageId, const Transform& transform) {
-            //std::make_unique<Object>(ResourceManager::GetInstance().GetMesh(meshId), imageId, transform);
-            return nullptr;
-        }
     };
 }

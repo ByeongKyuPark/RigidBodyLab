@@ -44,6 +44,7 @@ namespace Core {
 		Vector3 GetPosition()const;
 		Vector3 GetAxis(int axisIdx) const;
 		const Mesh* GetMesh() const { return m_mesh; }
+		void SetMesh(const Mesh* mesh) { m_mesh = mesh; }
 		//RT only (no scale)
 		Matrix4 GetModelMatrix() const;
 		Mat4 GetUnitModelMatrixGLM() const;

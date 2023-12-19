@@ -430,7 +430,7 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
-inline void Rendering::Renderer::RenderGui(float fps) {
+void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
     ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
     ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
     // Displaying FPS
@@ -446,6 +446,48 @@ inline void Rendering::Renderer::RenderGui(float fps) {
     // Parallax mapping toggling
     ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
 
+    //----------------------
+    // Object list GUI
+    static int selectedObject = -1;  // Initialize selected object index
+    static int selectedMesh = -1;    // Initialize selected mesh index
+
+    std::vector<std::string> objectNames;
+    for (size_t i = 0; i < scene.m_objects.size(); ++i) {
+        objectNames.push_back("Object " + std::to_string(i));
+    }
+
+    // Lambda to provide access to names
+    auto listbox_items_getter = [](void* data, int idx, const char** out_text) -> bool {
+        const auto& vector = *static_cast<const std::vector<std::string>*>(data);
+        if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+        *out_text = vector.at(idx).c_str();
+        return true;
+    };
+
+    // List of objects
+    if (ImGui::ListBox("Objects", &selectedObject, listbox_items_getter, static_cast<void*>(&objectNames), objectNames.size())) {
+        // Item selected, handle it here
+        // empty for now
+    }
+
+    // If an object is selected, show mesh selection
+    if (selectedObject >= 0) {
+        std::vector<std::string> meshNames = { "Cube", "Vase", "Plane", "Sphere" };
+        const char* meshNamesCStr[TO_INT(MeshID::NUM_MESHES)];
+        for (size_t i = 0; i < meshNames.size(); ++i) {
+            meshNamesCStr[i] = meshNames[i].c_str();
+        }
+
+        ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size());
+
+        if (ImGui::Button("Switch Mesh")) {
+            if (selectedMesh >= 0) {
+                ResourceManager& resourceManager = ResourceManager::GetInstance();
+                Mesh* newMesh = resourceManager.GetMesh(static_cast<MeshID>(selectedMesh));
+                scene.GetObject(selectedObject).SetMesh(newMesh);
+            }
+        }
+    }
 }
 
 /******************************************************************************/
@@ -1098,7 +1140,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    RenderGui(fps);
+    RenderGui(scene,fps);
 
     // Rendering    
     ImGui::Render();
