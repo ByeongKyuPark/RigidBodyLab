@@ -850,20 +850,6 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
     ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-    //plane only for now
-    //SendObjTexID(resourceManager.normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
-    //glUniform1i(m_normalMappingOnLoc, true);
-    //glUniform1i(m_parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
-
-    //if (Renderer::GetInstance().IsParallaxMappingOn()) {
-    //    SendObjTexID(resourceManager.bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
-    //}
-    //SendObjTexID(resourceManager.GetTexture(scene.GetObject(TO_INT(ObjID::BASE)).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
-    //glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
-
-    //SendMVMat(MVMat[TO_INT(ObjID::BASE)], normalMVMat[TO_INT(ObjID::BASE)], m_mainMVMatLoc, m_mainNMVMatLoc);
-
-    //RenderObj(scene.GetObject(TO_INT(ObjID::BASE)));
 
     /*  Send object texture and render them */
     size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
@@ -873,14 +859,14 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
         //}
         //else
         {
-            //if (renderPass == RenderPass::MIRRORTEX_GENERATION
-            //    && (i == TO_INT(ObjID::MIRROR))
-            //        )
+            if (renderPass == RenderPass::MIRRORTEX_GENERATION
+                && (i == TO_INT(ObjID::MIRROR))
+                    )
             //        //|| i == TO_INT(ObjID::MIRRORBASE1)
             //        //|| i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
-            //{
-            //    continue;           /*  Not drawing objects behind mirror & mirror itself */
-            //}
+            {
+                continue;           /*  Not drawing objects behind mirror & mirror itself */
+            }
             //else 
             {
                 //if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
@@ -888,12 +874,12 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
                 //}
                 //else
                 {
-                    //if (i == TO_INT(ObjID::MIRROR))
-                    //{
-                    //    SendMirrorTexID();
-                    //    glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
-                    //}
-                    //else
+                    if (i == TO_INT(ObjID::MIRROR))
+                    {
+                        SendMirrorTexID();
+                        glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
+                    }
+                    else
                     {
                         SendObjTexID(resourceManager.GetTexture(scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
                         glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
