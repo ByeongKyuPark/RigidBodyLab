@@ -11,7 +11,7 @@
 #include <rendering/Renderer.h>
 #include <rendering/Mesh.h>
 #include <rendering/Camera.h>
-#include <rendering/Scene.h>
+#include <core/Scene.h>
 #include <rendering/ResourceManager.h>
 #include <input/input.h>
 #include <math/Math.h>
@@ -24,8 +24,9 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-using namespace Rendering;
+using Rendering::Renderer;
 using Core::Object;
+using Core::Scene;
 
 
 /******************************************************************************/
@@ -146,7 +147,7 @@ void Renderer::SetUpVertexData(Mesh& mesh)
         Send numLights and intensities to the rendering program.
 */
 /******************************************************************************/
-void Renderer::SendLightProperties(const Scene& scene)
+void Renderer::SendLightProperties(const Core::Scene& scene)
 {
     glUniform1i(m_numLightsLoc, scene.NUM_LIGHTS);
 
@@ -179,7 +180,7 @@ void Renderer::SendLightProperties(const Scene& scene)
         Given view matrix.
 */
 /******************************************************************************/
-void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, const Scene& scene)
+void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, const Core::Scene& scene)
 {
     const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < OBJ_SIZE; ++i)
@@ -198,7 +199,7 @@ void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, c
         Compute the view/projection and other related matrices for user camera.
 */
 /******************************************************************************/
-void Renderer::ComputeMainCamMats(const Scene& scene)
+void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 {
     /*  Update projection matrix */
     if (mainCam.resized) {
@@ -216,12 +217,12 @@ void Renderer::ComputeMainCamMats(const Scene& scene)
 
 /******************************************************************************/
 /*!
-\fn     void ComputeMirrorCamMats(const Scene& scene)
+\fn     void ComputeMirrorCamMats(const Core::Scene& scene)
 \brief
         Compute the view/projection and other related matrices for mirror camera.
 */
 /******************************************************************************/
-void Renderer::ComputeMirrorCamMats(const Scene& scene)
+void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 {
     if (mainCam.moved)
     {
@@ -339,7 +340,7 @@ void Renderer::ComputeMirrorCamMats(const Scene& scene)
         Compute the view/projection and other related matrices for sphere camera.
 */
 /******************************************************************************/
-void Renderer::ComputeSphereCamMats(const Scene& scene)
+void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 {
     /*  Compute the lookAt positions for the 6 faces of the sphere cubemap.
         The sphere camera is at spherePos.
@@ -519,7 +520,7 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
         Set up the render program and graphics-related data for rendering.
 */
 /******************************************************************************/
-void Renderer::AttachScene(const Scene& scene)
+void Renderer::AttachScene(const Core::Scene& scene)
 {
     for (const auto& pair : m_shaderFileMap) {
         m_shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
@@ -715,7 +716,7 @@ void Renderer::InitRendering() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Rendering::Renderer::UpdateLightPosViewFrame(Scene& scene)
+void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
 {
     if (mainCam.moved)
     {
@@ -783,7 +784,7 @@ void Renderer::RenderObj(const Core::Object& obj)
         Render the sphere using its own shader program.
 */
 /******************************************************************************/
-//void Renderer::RenderSphere(const Scene& scene)
+//void Renderer::RenderSphere(const Core::Scene& scene)
 //{
 //    m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 //
@@ -834,7 +835,7 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const Mat4& viewMat, const Mat4& projMat,
     int viewportWidth, int viewportHeight,
-    RenderPass renderPass, Scene& scene)
+    RenderPass renderPass, Core::Scene& scene)
 {
     /*  We need to set this here because the onscreen rendering will use a bigger viewport than
         the rendering of sphere/mirror reflection/refraction texture
@@ -933,7 +934,7 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
         Buffers to store the 6 faces of the cubemap texture.
 */
 /******************************************************************************/
-void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene)
+void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Core::Scene& scene)
 {
     /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
         rendering straight to the GPU cubemap texture object, similar to what we do for the
@@ -972,13 +973,13 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
 
 /******************************************************************************/
 /*!
-\fn     void RenderToMirrorTexture(Scene& scene)
+\fn     void RenderToMirrorTexture(Core::Scene& scene)
 \brief
         Render the scene to the texture for mirror reflection. This texture was
         already bound to mirrorFrameBufferID in SetUpMirrorTexture function.
 */
 /******************************************************************************/
-void Renderer::RenderToMirrorTexture(Scene& scene)
+void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().mirrorFrameBufferID);
     RenderObjsBg(m_mirrorCamMVMat, m_mirrorCamNormalMVMat, m_mirrorCamViewMat, m_mirrorCamProjMat,
@@ -989,12 +990,12 @@ void Renderer::RenderToMirrorTexture(Scene& scene)
 
 /******************************************************************************/
 /*!
-\fn     void RenderToScreen(Scene& scene)
+\fn     void RenderToScreen(Core::Scene& scene)
 \brief
         Render the scene to the default framebuffer.
 */
 /******************************************************************************/
-void Renderer::RenderToScreen(Scene& scene)
+void Renderer::RenderToScreen(Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     RenderObjsBg(m_mainCamMVMat, m_mainCamNormalMVMat, m_mainCamViewMat, m_mainCamProjMat,
@@ -1012,7 +1013,7 @@ void Renderer::RenderToScreen(Scene& scene)
         deferred shading.
 */
 /******************************************************************************/
-void Renderer::Render(Scene& scene, float fps)
+void Renderer::Render(Core::Scene& scene, float fps)
 {
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);

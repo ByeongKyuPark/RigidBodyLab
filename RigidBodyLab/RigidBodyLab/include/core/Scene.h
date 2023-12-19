@@ -1,17 +1,20 @@
 #pragma once
 
-#include "Object.h"
-#include <vector>
+#include <core/Object.h>
 #include <physics/CollisionData.h>
+#include <physics/CollisionManager.h>
+#include <vector>
 
-namespace Rendering {
-    
+namespace Core {
     using Physics::CollisionData;
+    using Physics::CollisionManager;
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
+        static constexpr float SPHERE_INERTIA_FACTOR = 0.4f;
+        static constexpr float CUBE_INERTIA_FACTOR = 1 / 6.0f;
 
-        std::vector<Object> m_objects;
+        std::vector<std::unique_ptr<Core::Object>> m_objects;
 
         /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
             lighting. In this frame, the vertex positions are not too large, hence the computation
@@ -32,18 +35,25 @@ namespace Rendering {
         float m_mirrorRotationAngle;
         Vec3 m_spherePos;
 
+        CollisionManager m_collisionManager;
+        
+        //Special objects 
+        const Core::Object* m_mirror;
+
     private:
         //void UpdateLightPosViewFrame();
         void SetUpLight(float height);
         void SetUpScene();
+        void ApplyBroadPhase();
+        void ApplyNarrowPhaseAndResolveCollisions(float dt);
 
         friend class Renderer;
 
     public:
         Scene();
-
-        Object& GetObject(size_t index);
-        const Object& GetObject(size_t index) const;
+        void Update(float dt);
+        Core::Object& GetObject(size_t index);
+        const Core::Object& GetObject(size_t index) const;
         const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetIntensity() const { return m_I; }
     };

@@ -3,8 +3,12 @@
 #include <utilities/ToUnderlyingEnum.h>
 #include <rendering/Shader.h>
 #include <core/Object.h>
+#include <core/Scene.h>
 #include <unordered_map>
 #include <array>
+
+using Core::Scene;
+using Core::Object;
 
 namespace Rendering {
 
@@ -50,7 +54,6 @@ namespace Rendering {
 		BUMP
 	};
 	
-	class Scene;
 	class ResourceManager;
 
 	class Renderer {

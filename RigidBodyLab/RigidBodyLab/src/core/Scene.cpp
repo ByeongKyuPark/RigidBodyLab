@@ -1,4 +1,4 @@
-#include <rendering/Scene.h>
+#include <core/Scene.h>
 #include <rendering/Camera.h>
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
@@ -8,18 +8,17 @@
 #include <math/Matrix3.h>//temp
 #include <math/Vector3.h>//temp
 
-using namespace Rendering;
 using namespace Physics;
 
-Scene::Scene() 
+Core::Scene::Scene() 
     : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
 m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_mirrorRotationAngle{}, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}
+m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_mirrorRotationAngle{}, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{nullptr}
 {
     SetUpScene();
 }
 
-void Scene::Update(float dt) {
+void Core::Scene::Update(float dt) {
     ApplyBroadPhase();
 
     // Apply narrow phase collision detection and resolution
@@ -30,15 +29,15 @@ void Scene::Update(float dt) {
     }
 }
 
-Core::Object& Scene::GetObject(size_t index) {
+Core::Object& Core::Scene::GetObject(size_t index) {
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
 
-const Core::Object& Rendering::Scene::GetObject(size_t index) const{
+const Core::Object& Core::Scene::GetObject(size_t index) const{
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
 
-void Scene::SetUpScene() {
+void Core::Scene::SetUpScene() {
     using Physics::BoxCollider;
     using Physics::SphereCollider;
     using Physics::RigidBody;
@@ -123,7 +122,7 @@ void Scene::SetUpScene() {
     std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
     auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
     m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, std::move(mirrorCollider), std::move(mirrorRigidBody)));
-
+    m_mirror = m_objects.back().get();
     //// Setup the base of the mirror
     //constexpr float MIRROR_FRAME_OFFSET = 0.45f;
     //Vec3 mirrorPartColliderSize = Vec3{ 5.f,5.f,5.f };//temp
@@ -151,11 +150,11 @@ void Scene::SetUpScene() {
     SetUpLight(baseSize.x);
 }
 
-void Rendering::Scene::ApplyBroadPhase()
+void Core::Scene::ApplyBroadPhase()
 {
 }
 
-void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
+void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 {
     m_collisionManager.Clear();
     const size_t objSize = m_objects.size();
@@ -172,6 +171,6 @@ void Rendering::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 
 
 
-void Rendering::Scene::SetUpLight(float height){
+void Core::Scene::SetUpLight(float height){
     m_lightPosWF[0] = Vec3(0, height, 0);
 }

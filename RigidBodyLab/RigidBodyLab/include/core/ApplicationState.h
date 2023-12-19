@@ -1,12 +1,10 @@
 #pragma once
-#include <rendering/Scene.h>
+#include <core/Scene.h>
 #include <chrono>
-
-using namespace Rendering;
 
 class ApplicationState {
     //could have multiple scenes, as well. std::vector<Scene> m_scenes;
-    Scene m_scene;
+    Core::Scene m_scene;
 
     /*  For displaying FPS */
     std::chrono::high_resolution_clock::time_point m_prevTime;
@@ -27,6 +25,6 @@ public:
     ApplicationState();
     float GetDeltaTime() const;
     float GetFPS()const { return m_fps; }
-    Scene& getScene() { return m_scene; }
+    Core::Scene& getScene() { return m_scene; }
     void UpdateTime();
 };

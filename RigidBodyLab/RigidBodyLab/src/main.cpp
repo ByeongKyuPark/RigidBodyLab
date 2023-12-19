@@ -8,7 +8,8 @@
 #include <core/ApplicationState.h>
 #include <rendering/Renderer.h>
 
-using namespace Rendering;
+using Rendering::Renderer;
+using Core::Scene;
 
 void MainLoop(ApplicationState& appState){
     Renderer& renderer = Renderer::GetInstance();
