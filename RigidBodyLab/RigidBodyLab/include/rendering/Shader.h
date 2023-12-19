@@ -12,12 +12,28 @@ namespace Rendering
         string fragmentShaderPath;
     };
 
+    /*  We need 3 set of shaders programs */
+    /*  MAIN_PROG   : Render all the objects in the scene, used for the above 3 passes */
+    /*  SKYBOX_PROG : Render the background */
+    /*  SPHERE_PROG : Render the relective/refractive sphere */
+    enum class ProgType {
+        MAIN_PROG = 0,
+        SKYBOX_PROG,
+        SPHERE_PROG,
+        NUM_PROGTYPES
+    };
+    enum class ShaderType {
+        VERTEX_SHADER = 0,
+        FRAGMENT_SHADER,
+        NUM_SHADERTYPES
+    };
+
     // Forward declarations
     using GLenum = unsigned int;
     using GLuint = unsigned int;
 
     class Shader {
-        GLuint programID;
+        GLuint m_programID;
 
         string ReadShaderFile(const string& filePath);
         bool CompileShader(const std::string& source, GLenum shaderType, GLuint& shaderID);
@@ -31,7 +47,6 @@ namespace Rendering
         bool LoadShader(const string& vertexPath, const string& fragmentPath);
         void Use();
 
-        // Getters for Shader Program ID
         GLuint GetProgramID() const;
     };
 }

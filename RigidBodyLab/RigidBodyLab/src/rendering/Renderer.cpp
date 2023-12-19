@@ -44,7 +44,6 @@ void Renderer::SetUpSkyBoxUniformLocations(GLuint prog)
     m_skyboxTexCubeLoc = glGetUniformLocation(prog, "texCube");
 }
 
-
 /******************************************************************************/
 /*!
 \fn     void SetUpMainUniformLocations(GLuint prog)
@@ -138,6 +137,24 @@ void Renderer::SetUpVertexData(Mesh& mesh)
         glVertexAttribPointer(vLayout[i].location, vLayout[i].size, vLayout[i].type,
             vLayout[i].normalized, vertexSize, (void*)vLayout[i].offset);
     }
+}
+
+void Renderer::SetUpShaders() {
+    for (const auto& pair : m_shaderFileMap) {
+        auto& shader = m_shaders[TO_INT(pair.first)];
+        shader.LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
+    }
+    // For SKYBOX_PROG
+    m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
+    SetUpSkyBoxUniformLocations(m_shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
+
+    // For SPHERE_PROG
+    m_shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
+    SetUpSphereUniformLocations(m_shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
+
+    // For MAIN_PROG
+    m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
+    SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
 }
 
 /******************************************************************************/
@@ -543,32 +560,21 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
 /******************************************************************************/
 void Renderer::AttachScene(const Core::Scene& scene)
 {
-    for (const auto& pair : m_shaderFileMap) {
-        m_shaders[TO_INT(pair.first)].LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
-    }
 
-    /*  Send mesh data only */
+    //1. Send mesh data only
     ResourceManager& resourceManager = ResourceManager::GetInstance();
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
     for (int i = 0; i < NUM_MESHES; ++i) {
         Mesh& mesh = resourceManager.GetMesh(static_cast<MeshID>(i));
         SetUpVertexData(mesh);
     }
-
+    
+    //2. texture
     resourceManager.SetUpTextures();
 
-    /*  Look up for the locations of the uniform variables in the shader programs */
-    // For SKYBOX_PROG
-    m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
-    SetUpSkyBoxUniformLocations(m_shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
+    //3. shader
+    SetUpShaders();
 
-    // For SPHERE_PROG
-    m_shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
-    SetUpSphereUniformLocations(m_shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
-
-    // For MAIN_PROG
-    m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
-    SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
     SendLightProperties(scene);
 
     /*  Drawing using filled mode */

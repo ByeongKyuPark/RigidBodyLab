@@ -5,6 +5,7 @@
 #include <core/Object.h>
 #include <core/Scene.h>
 #include <unordered_map>
+#include <rendering/Shader.h>
 #include <array>
 
 using Core::Scene;
@@ -20,22 +21,6 @@ namespace Rendering {
 		SPHERETEX_GENERATION=0, 
 		MIRRORTEX_GENERATION, 
 		NORMAL 
-	};
-
-	/*  We need 3 set of shaders programs */
-	/*  MAIN_PROG   : Render all the objects in the scene, used for the above 3 passes */
-	/*  SKYBOX_PROG : Render the background */
-	/*  SPHERE_PROG : Render the relective/refractive sphere */
-	enum class ProgType{
-		MAIN_PROG = 0, 
-		SKYBOX_PROG, 
-		SPHERE_PROG, 
-		NUM_PROGTYPES 
-	};
-	enum class ShaderType{ 
-		VERTEX_SHADER = 0, 
-		FRAGMENT_SHADER, 
-		NUM_SHADERTYPES 
 	};
 
 	/*  For toggling the reflection/refraction of the sphere */
@@ -139,7 +124,7 @@ namespace Rendering {
 		void SetUpMainUniformLocations(GLuint prog);
 		void SetUpSphereUniformLocations(GLuint prog); 
 		void SetUpVertexData(Mesh& mesh);
-
+		void SetUpShaders();
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 		static void WindowDeleter(GLFWwindow* window);
