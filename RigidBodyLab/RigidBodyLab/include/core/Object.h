@@ -46,6 +46,7 @@ namespace Core {
 		const Mesh& GetMesh() const { return m_mesh; }
 		//RT only (no scale)
 		Matrix4 GetModelMatrix() const;
+		Mat4 GetUnitModelMatrixGLM() const;
 		Mat4 GetModelMatrixGLM() const;
 		const Collider* GetCollider() const;
 		RigidBody* GetRigidBody();

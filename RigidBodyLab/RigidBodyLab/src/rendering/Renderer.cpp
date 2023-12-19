@@ -226,12 +226,14 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 {
     if (mainCam.moved)
     {
+        Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
         /*  Computing position of user camera in mirror frame */
-        Vec3 mainCamMirrorFrame = Vec3(Rotate(-scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) 
-                                        *Translate(-scene.m_mirrorTranslate) * Vec4(mainCam.pos, 1.0));
+        //Vec3 mainCamMirrorFrame = Vec3(Rotate(-scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) 
+        //                                *Translate(-scene.m_mirrorTranslate) * Vec4(mainCam.pos, 1.0));
+        Vec3 mainCamMirrorFrame = Vec3(Inverse(mirrorMat) * Vec4(mainCam.pos, 1.0));
 
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
-        if (mainCamMirrorFrame.z <= 0)
+        if (mainCamMirrorFrame.z >= 0)
         {
             m_mirrorVisible = false;
             return;
@@ -248,9 +250,9 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
 
-        mirrorCam.pos = Vec3(Translate(scene.m_mirrorTranslate) * Rotate(scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) * Vec4(mirrorCamMirrorFrame, 1.0));
+        mirrorCam.pos = Vec3(mirrorMat * Vec4(mirrorCamMirrorFrame, 1.0));
         mirrorCam.upVec = BASIS[Y];
-        mirrorCam.lookAt = Vec3(Translate(scene.m_mirrorTranslate) * Rotate(scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) * Vec4(0, 0, 0, 1));
+        mirrorCam.lookAt = Vec3(mirrorMat * Vec4(0, 0, 0, 1));
 
         m_mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
@@ -285,7 +287,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 
         float nearDist = INFINITY;
         for (Vec3& midPoint : midsPoint) {
-            Vec3 midCamFrame = Vec3(Translate(scene.m_mirrorTranslate) * Rotate(scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
+            Vec3 midCamFrame = Vec3(mirrorMat * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
             midPoint = midCamFrame - mirrorCam.pos;//mid : cameraFrame -> mirroredCameraFrame
             float projectionLength = Dot(midPoint, mirrorCamViewMirrorFrame);
             nearDist = std::min(nearDist, projectionLength);

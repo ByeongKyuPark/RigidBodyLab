@@ -13,7 +13,7 @@ using namespace Physics;
 Core::Scene::Scene() 
     : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
 m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_mirrorTranslate{}, m_mirrorRotationAxis{ BASIS[1] }, m_mirrorRotationAngle{}, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{nullptr}
+m_specularPower{ 10 }, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{nullptr}
 {
     SetUpScene();
 }
@@ -112,12 +112,12 @@ void Core::Scene::SetUpScene() {
     //m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody),vaseMeshOffset));
 
     //(3) MIRROR
-    m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);
-    m_mirrorRotationAxis = BASIS[Y];
-    m_mirrorRotationAngle = -EIGHTH_PI;
+    //m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);
+    //m_mirrorRotationAxis = BASIS[Y];
+    //m_mirrorRotationAngle = -EIGHTH_PI;
     Vec3 mirrorColliderSize = Vec3{ 6.f,6.f,1.f };//temp
     //Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{PI-EIGHTH_PI,Vector3{0.f,1.f,0.f}} };
-    Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{180,Vector3{1.f,0.f,0.f}} };
+    Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
     std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
     std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
     auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);

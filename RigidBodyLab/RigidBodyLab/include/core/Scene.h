@@ -30,9 +30,6 @@ namespace Core {
         int m_specularPower;
 
         /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
-        Vec3 m_mirrorTranslate;
-        Vec3 m_mirrorRotationAxis;
-        float m_mirrorRotationAngle;
         Vec3 m_spherePos;
 
         CollisionManager m_collisionManager;

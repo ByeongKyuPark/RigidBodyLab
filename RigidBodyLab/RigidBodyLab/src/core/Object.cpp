@@ -127,6 +127,17 @@ Physics::Matrix4 Core::Object::GetModelMatrix() const
 		return std::get<Transform>(m_physicsOrTransform).m_localToWorld;// *m_collider->GetScaleMatrix();
 	}
 }
+Mat4 Core::Object::GetUnitModelMatrixGLM() const {
+	Mat4 meshOffsetMatrix = glm::translate(glm::mat4(1.0f), m_meshOffset);
+
+	if (IsDynamic()) {
+		return meshOffsetMatrix * std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrixGLM();
+	}
+	else {
+		return meshOffsetMatrix * std::get<Transform>(m_physicsOrTransform).m_localToWorld.ConvertToGLM();
+	}
+}
+
 
 Mat4 Core::Object::GetModelMatrixGLM() const {
 	Mat4 meshOffsetMatrix = glm::translate(glm::mat4(1.0f), m_meshOffset);
