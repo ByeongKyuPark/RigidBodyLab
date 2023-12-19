@@ -31,7 +31,7 @@ namespace Rendering {
 	/*  Types of objects */
 	enum class ObjID {
 		BASE = 0,
-		VASE,
+		//VASE,
 		MIRROR,
 		//MIRRORBASE1,
 		//MIRRORBASE2,

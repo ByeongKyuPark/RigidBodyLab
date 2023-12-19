@@ -907,16 +907,16 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
                         Hence we need to perform front-face culling for it.
                         Other objects use back-face culling as usual.
                     */
-                    //if (i == TO_INT(ObjID::MIRROR)) {
-                    //    glCullFace(GL_FRONT);
-                    //}
+                    if (i == TO_INT(ObjID::MIRROR)) {
+                        glCullFace(GL_FRONT);
+                    }
 
                     RenderObj(scene.GetObject(i));
 
                     /*  Trigger back-face culling again */
-                    //if (i == TO_INT(ObjID::MIRROR)) {
-                    //    glCullFace(GL_BACK);
-                    //}
+                    if (i == TO_INT(ObjID::MIRROR)) {
+                        glCullFace(GL_BACK);
+                    }
                 }
             }
         }
