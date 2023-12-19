@@ -105,7 +105,7 @@ Physics::Vector3 Core::Object::GetPosition() const {
 		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetPosition();
 	}
 	else {
-		return std::get<Transform>(m_physicsOrTransform).position;
+		return std::get<Transform>(m_physicsOrTransform).m_position;
 	}
 }
 Physics::Vector3 Core::Object::GetAxis(int axisIdx) const {
@@ -124,7 +124,7 @@ Physics::Matrix4 Core::Object::GetModelMatrix() const
 		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrix();// *m_collider->GetScaleMatrix();
 	}
 	else {							//TR														S
-		return std::get<Transform>(m_physicsOrTransform).localToWorld;// *m_collider->GetScaleMatrix();
+		return std::get<Transform>(m_physicsOrTransform).m_localToWorld;// *m_collider->GetScaleMatrix();
 	}
 }
 
@@ -138,7 +138,7 @@ Mat4 Core::Object::GetModelMatrixGLM() const {
 	}
 	else {
 		// For static objects, combine Transform's transformation with the collider's scale and mesh offset
-		return meshOffsetMatrix*std::get<Transform>(m_physicsOrTransform).localToWorld.ConvertToGLM()
+		return meshOffsetMatrix*std::get<Transform>(m_physicsOrTransform).m_localToWorld.ConvertToGLM()
 			* m_collider->GetScaleMatrixGLM();
 	}
 }

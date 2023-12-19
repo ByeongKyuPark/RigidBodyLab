@@ -69,7 +69,7 @@ namespace Physics
         Matrix3 GetInverseInertiaTensor() const;
         Matrix3 GetInverseInertiaTensorWorld() const;
         Vector3 GetPosition() const;
-        Quaternion GetOrientation() const { return transform.orientation; }
+        Quaternion GetOrientation() const { return transform.m_orientation; }
         Vector3 GetLinearVelocity() const;
         Vector3 GetAngularVelocity() const;
         Vector3 GetAcceleration() const;

@@ -8,10 +8,10 @@ namespace Core {
     using Math::Quaternion;
 
     struct Transform {
-        Matrix4 localToWorld;//RT only (no scale)
-        Vector3 position;
-        Quaternion orientation;
-        Transform(const Vector3& _position = Vector3{}, const Quaternion& _ori = Quaternion{}) :position{ _position }, orientation{ _ori } {
+        Matrix4 m_localToWorld;//RT only (no scale)
+        Vector3 m_position;
+        Quaternion m_orientation;
+        Transform(const Vector3& _position = Vector3{}, const Quaternion& _ori = Quaternion{}) :m_position{ _position }, m_orientation{ _ori } {
             Update();
         }
         void Update();
