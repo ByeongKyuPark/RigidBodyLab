@@ -46,7 +46,7 @@ void Core::Scene::SetUpScene() {
     //constexpr float BASE_POS_Y = -4.5f;
     constexpr float BASE_POS_Y = 0.f;
     constexpr float BASE_SCL_Y = 2.f;//7.5
-    constexpr float MIRROR_POS_Y = 9.4f;//5.4
+    constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
     ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -115,9 +115,9 @@ void Core::Scene::SetUpScene() {
     //m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);
     //m_mirrorRotationAxis = BASIS[Y];
     //m_mirrorRotationAngle = -EIGHTH_PI;
-    Vec3 mirrorColliderSize = Vec3{ 6.f,6.f,1.f };//temp
+    Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.1f };//temp
     //Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{PI-EIGHTH_PI,Vector3{0.f,1.f,0.f}} };
-    Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
+    Transform mirrorTransform{ {2.0f, MIRROR_POS_Y, -5.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
     std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
     mirrorRigidBody->SetMass(mass);
     mirrorRigidBody->SetInertiaTensor(inertiaTensor);

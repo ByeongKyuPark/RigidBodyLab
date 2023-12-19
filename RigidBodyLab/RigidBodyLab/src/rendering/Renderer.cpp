@@ -207,10 +207,10 @@ void Renderer::ComputeMainCamMats(const Core::Scene& scene)
     }
 
     /*  Update view transform matrix */
-    //if (mainCam.moved){
+    if (mainCam.moved || mirrorCam.moved){
         m_mainCamViewMat = mainCam.ViewMat();
         ComputeObjMVMats(m_mainCamMVMat, m_mainCamNormalMVMat, m_mainCamViewMat, scene);
-    //}
+    }
 
 }
 
@@ -224,8 +224,25 @@ void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 {
-    //if (mainCam.moved)
+
+    //check if mirror has moved (check only the translation not rotation for now)
+    // Thresholds for movement
+    if (scene.m_mirror) {
+        static constexpr float POSITION_THRESHOLD = 0.01f;
+
+        static Core::Transform previousMirrorTransform = scene.m_mirror->GetPosition();
+
+        const Core::Transform& currentMirrorTransform = scene.m_mirror->GetPosition();
+        Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
+        previousMirrorTransform = currentMirrorTransform;
+        if (positionDelta.Length() > POSITION_THRESHOLD) {
+            mirrorCam.moved = true;
+        }
+    }
+
+    if (mainCam.moved||mirrorCam.moved)
     {
+
         Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
         /*  Computing position of user camera in mirror frame */
         //Vec3 mainCamMirrorFrame = Vec3(Rotate(-scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) 
@@ -1054,9 +1071,9 @@ void Renderer::Render(Core::Scene& scene, float fps)
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving
     */
-    if (m_mirrorVisible && mainCam.moved) {
-    }
+    if (m_mirrorVisible && (mainCam.moved || mirrorCam.moved)) {
         RenderToMirrorTexture(scene);
+    }
 
     /*  Render the scene, except the sphere to the screen */
     RenderToScreen(scene);
@@ -1068,6 +1085,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
     /*  Reset */
     mainCam.moved = false;
     mainCam.resized = false;
+    mirrorCam.moved = true;
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
