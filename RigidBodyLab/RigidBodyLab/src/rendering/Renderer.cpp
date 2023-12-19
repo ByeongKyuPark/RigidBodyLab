@@ -202,9 +202,9 @@ void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, c
 void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 {
     /*  Update projection matrix */
-    //if (mainCam.resized) {
+    if (mainCam.resized) {
         m_mainCamProjMat = mainCam.ProjMat();
-    //}
+    }
 
     /*  Update view transform matrix */
     //if (mainCam.moved){
@@ -1055,8 +1055,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
         whenever the mirror is visible and camera is moving
     */
     if (m_mirrorVisible && mainCam.moved) {
-        RenderToMirrorTexture(scene);
     }
+        RenderToMirrorTexture(scene);
 
     /*  Render the scene, except the sphere to the screen */
     RenderToScreen(scene);
