@@ -191,32 +191,27 @@ namespace Physics {
 
 
         // Function to handle Sphere-Box collision
-        void FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box,
-            Object* obj1, Object* obj2) {
-            // Determine if objects are dynamic and retrieve position and axes
-
-            Vector3 position1 = obj1->GetPosition();
-            Vector3 position2 = obj2->GetPosition();
+        void FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box, Object* sphereObj, Object* boxObj) {
+            Vector3 spherePos = sphereObj->GetPosition();
+            Vector3 boxPos = boxObj->GetPosition();
 
             constexpr int NUM_AXES = 3;
-            Vec3 extents = std::get<Vec3>(box->GetScale());//std::variant<Vec3, float>
+            Vec3 boxExtents = std::get<Vec3>(box->GetScale());//std::variant<Vec3, float>
 
-            Vector3 closestPoint = position1;
-            Vector3 centerToCenter = position2 - position1;
+            Vector3 closestPoint = boxPos;
+            Vector3 centerToCenter = spherePos - boxPos;
+			float radius = std::get<float>(sphere->GetScale());//std::variant<Vec3, float>
 
             // For each axis (X, Y, Z)
             for (int i = 0; i < NUM_AXES; ++i) {
-                Vector3 axis = obj1->GetAxis(i);
-                float extent = extents[i]; // Directly access the extents array
-
+                Vector3 axis = boxObj->GetAxis(i);
                 float projectionLength = centerToCenter.Dot(axis);
-                projectionLength = std::clamp(projectionLength, -extent, extent);
+                projectionLength = std::clamp(projectionLength, -boxExtents[i], boxExtents[i]);
                 closestPoint += axis * projectionLength;
             }
 
             // Calculate squared distance to sphere center
-            float distanceSquared = (closestPoint - position2).LengthSquared();
-            float radius = std::get<float>(sphere->GetScale());//std::variant<Vec3, float>
+            float distanceSquared = (closestPoint - spherePos).LengthSquared();
 
             if (distanceSquared > radius * radius) {
                 return; // No collision
@@ -224,12 +219,12 @@ namespace Physics {
 
             // If a collision is detected, populate and return CollisionData
             CollisionData collisionData;
-            collisionData.objects[0] = obj1;
-            collisionData.objects[1] = obj2;
-            collisionData.collisionNormal = position2 - closestPoint;
+            collisionData.objects[0] = sphereObj;
+            collisionData.objects[1] = boxObj;
+            collisionData.collisionNormal = spherePos - closestPoint;
             collisionData.collisionNormal.Normalize();
             collisionData.contactPoint = {
-                { true, Vector3(position1 - collisionData.collisionNormal * radius) },
+                { true, Vector3(spherePos - collisionData.collisionNormal * radius) },
                 { true, Vector3(closestPoint) }
             };
 
@@ -329,17 +324,17 @@ namespace Physics {
         }
 
         // Function to handle Sphere-Plane collision
-        void FindCollisionFeaturesSpherePlane(const SphereCollider* sphere, const PlaneCollider* plane,
-            Object* obj1, Object* obj2) {
-            // TODO::Implement Sphere-Plane collision detection logic
-            return;
-        }
+        //void FindCollisionFeaturesSpherePlane(const SphereCollider* sphere, const PlaneCollider* plane,
+        //    Object* obj1, Object* obj2) {
+        //    // TODO::Implement Sphere-Plane collision detection logic
+        //    return;
+        //}
         // Function to handle Box-Plane collision
-        void FindCollisionFeaturesBoxPlane(const BoxCollider* box, const PlaneCollider* plane,
-            Object* obj1, Object* obj2) {
-            // TODO::Implement Box-Plane collision detection logic
-            return;
-        }
+        //void FindCollisionFeaturesBoxPlane(const BoxCollider* box, const PlaneCollider* plane,
+        //    Object* obj1, Object* obj2) {
+        //    // TODO::Implement Box-Plane collision detection logic
+        //    return;
+        //}
 
     public:
         CollisionManager()
@@ -359,10 +354,10 @@ namespace Physics {
                 else if (const auto* sphere2 = dynamic_cast<const SphereCollider*>(collider2)) {
                     FindCollisionFeaturesSphereSphere(sphere1, sphere2, obj1, obj2);
                 }
-                // Sphere-Plane collision
-                else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
-                    FindCollisionFeaturesSpherePlane(sphere1, plane, obj1, obj2);
-                }
+                //// Sphere-Plane collision
+                //else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
+                //    FindCollisionFeaturesSpherePlane(sphere1, plane, obj1, obj2);
+                //}
             }
             else if (const auto* box1 = dynamic_cast<const BoxCollider*>(collider1)) {
                 // Box-Sphere collision
@@ -374,21 +369,21 @@ namespace Physics {
                     //FindCollisionFeaturesBoxBox(box1, box2, obj1, obj2);
                     FindCollisionFeaturesBoxBox(box2, box1, obj2, obj1);
                 }
-                // Box-Plane collision
-                else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
-                    FindCollisionFeaturesBoxPlane(box1, plane, obj1, obj2);
-                }
+                //// Box-Plane collision
+                //else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider2)) {
+                //    FindCollisionFeaturesBoxPlane(box1, plane, obj1, obj2);
+                //}
             }
-            else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider1)) {
-                //Plane-Box collision
-                if (const auto* box = dynamic_cast<const BoxCollider*>(collider2)) {
-                    FindCollisionFeaturesBoxPlane(box, plane, obj2, obj1);
-                }
-                //Plane-Sphere collision
-                else if (const auto* sphere = dynamic_cast<const SphereCollider*>(collider2)) {
-                    FindCollisionFeaturesSpherePlane(sphere, plane, obj2, obj1);
-                }
-            }
+            //else if (const auto* plane = dynamic_cast<const PlaneCollider*>(collider1)) {
+            //    //Plane-Box collision
+            //    if (const auto* box = dynamic_cast<const BoxCollider*>(collider2)) {
+            //        FindCollisionFeaturesBoxPlane(box, plane, obj2, obj1);
+            //    }
+            //    //Plane-Sphere collision
+            //    else if (const auto* sphere = dynamic_cast<const SphereCollider*>(collider2)) {
+            //        FindCollisionFeaturesSpherePlane(sphere, plane, obj2, obj1);
+            //    }
+            //}
 
         }
         void Clear() { m_collisions.clear(); }

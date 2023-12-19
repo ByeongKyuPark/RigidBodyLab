@@ -396,7 +396,8 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
-        m_sphereCamViewMat[f] = LookAt(scene.m_spherePos, scene.m_spherePos + lookAt[f], upVec[f]);
+        Vec3 spherePos = { scene.m_sphere->GetPosition().x,scene.m_sphere->GetPosition().y,scene.m_sphere->GetPosition().z };
+        m_sphereCamViewMat[f] = LookAt(spherePos, spherePos + lookAt[f], upVec[f]);
         ComputeObjMVMats(m_sphereCamMVMat[f], m_sphereCamNormalMVMat[f], m_sphereCamViewMat[f],scene);
     }
 
@@ -890,10 +891,10 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
             }
             else 
             {
-                if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
-                    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
-                }
-                else
+                //if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
+                //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                //}
+                //else
                 {
                     if (i == TO_INT(ObjID::MIRROR))
                     {

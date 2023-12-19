@@ -66,30 +66,30 @@ namespace Physics {
 		}
 
 		std::variant<float, Vec3> GetScale() const override final{
-			return radius; // Returns float (radius) for SphereCollider
+			return radius*0.5f; // Returns float (radius) for SphereCollider
 		}
 	};
 
-	//(3) Infinite Plane
-	class PlaneCollider : public Collider {
-		Vec3 normal;  // Normal vector of the plane
-		float offset; // Distance from the origin
+	////(3) Infinite Plane
+	//class PlaneCollider : public Collider {
+	//	Vec3 normal;  // Normal vector of the plane
+	//	float offset; // Distance from the origin
 
-	public:
-		PlaneCollider(const Vec3& _normal, float _offset) : normal(_normal), offset(_offset) {}
+	//public:
+	//	PlaneCollider(const Vec3& _normal, float _offset) : normal(_normal), offset(_offset) {}
 
-		bool IsCollidingWith(const Collider& other) const override {
-			return false;
-		}
+	//	bool IsCollidingWith(const Collider& other) const override {
+	//		return false;
+	//	}
 
-		Mat4 GetScaleMatrixGLM() const override final{
-			//the scaling component is neutral and doesn't affect the plane's representation
-			return glm::mat4(1.0f);
-		}
-		std::variant<float, Vec3> GetScale() const override final {
-			//the scaling component is neutral and doesn't affect the plane's representation
-			return 1.f;
-		}
-	};
+	//	Mat4 GetScaleMatrixGLM() const override final{
+	//		//the scaling component is neutral and doesn't affect the plane's representation
+	//		return glm::mat4(1.0f);
+	//	}
+	//	std::variant<float, Vec3> GetScale() const override final {
+	//		//the scaling component is neutral and doesn't affect the plane's representation
+	//		return 1.f;
+	//	}
+	//};
 	//-----------------------------------
 }

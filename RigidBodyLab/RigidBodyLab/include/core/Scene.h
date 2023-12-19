@@ -29,14 +29,13 @@ namespace Core {
         Vec4 m_specularAlbedo;
         int m_specularPower;
 
-        /*  Mirror and sphere positions, which are used in graphics.cpp for rendering scene from these objects */
-        Vec3 m_spherePos;
+        //Vec3 m_spherePos;
 
         CollisionManager m_collisionManager;
         
-        //Special objects 
-        const Core::Object* m_mirror;
-
+        //Special objects require seperate rendering 
+        const Core::Object* m_mirror;//planar mirror
+        const Core::Object* m_sphere;//spherical mirror (or refraction)
     private:
         //void UpdateLightPosViewFrame();
         void SetUpLight(float height);

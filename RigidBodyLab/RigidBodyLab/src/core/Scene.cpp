@@ -13,7 +13,7 @@ using namespace Physics;
 Core::Scene::Scene() 
     : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
 m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_spherePos{}, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{nullptr}
+m_specularPower{ 10 }, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{nullptr}
 {
     SetUpScene();
 }
@@ -143,7 +143,7 @@ void Core::Scene::SetUpScene() {
     //(4) SPHERE
     inertiaTensor.SetDiagonal(mass* SPHERE_INERTIA_FACTOR);
 
-    constexpr float SPHERE_RAD = 1.5f;
+    constexpr float SPHERE_RAD = 3.5f;
     // Setup the sphere
     Transform sphereTransform{ {-4.5f, 7.f, -1.5f}};
     std::unique_ptr<RigidBody> sphereRigidBody = std::make_unique<RigidBody>(sphereTransform);
@@ -151,10 +151,11 @@ void Core::Scene::SetUpScene() {
     sphereRigidBody->SetInertiaTensor(inertiaTensor);
     //Translate(m_spherePos)* Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD)
     std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
-    m_spherePos = Vec3(-4.5f, 7.f, -1.5f);
+    //m_spherePos = Vec3(-4.5f, 7.f, -1.5f);
     auto& sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
     //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), std::move(sphereRigidBody), std::move(sphereCollider)));
     m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, std::move(sphereCollider), std::move(sphereRigidBody)));
+    m_sphere = m_objects.back().get();
 
     SetUpLight(baseSize.x);
 }
