@@ -224,21 +224,22 @@ void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 {
-
-    //check if mirror has moved (check only the translation not rotation for now)
-    // Thresholds for movement
-    if (scene.m_mirror) {
-        static constexpr float POSITION_THRESHOLD = 0.01f;
-
-        static Core::Transform previousMirrorTransform = scene.m_mirror->GetPosition();
-
-        const Core::Transform& currentMirrorTransform = scene.m_mirror->GetPosition();
-        Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
-        previousMirrorTransform = currentMirrorTransform;
-        if (positionDelta.Length() > POSITION_THRESHOLD) {
-            mirrorCam.moved = true;
-        }
+    if (scene.m_mirror == nullptr) {
+        return;
     }
+
+	//check if mirror has moved (check only the translation not rotation for now)
+	// Thresholds for movement
+	static constexpr float POSITION_THRESHOLD = 0.01f;
+
+	static Core::Transform previousMirrorTransform = scene.m_mirror->GetPosition();
+
+	const Core::Transform& currentMirrorTransform = scene.m_mirror->GetPosition();
+	Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
+	previousMirrorTransform = currentMirrorTransform;
+	if (positionDelta.Length() > POSITION_THRESHOLD) {
+		mirrorCam.moved = true;
+	}
 
     if (mainCam.moved||mirrorCam.moved)
     {

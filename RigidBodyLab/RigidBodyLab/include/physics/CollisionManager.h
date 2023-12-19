@@ -76,7 +76,6 @@ namespace Physics {
         void CalcContactPointsBoxBox(const BoxCollider& box1, const BoxCollider& box2,
             const Object* obj1, const Object* obj2,
             CollisionData& newContact, int minPenetrationAxisIdx, const std::vector<Vector3>& axes) const {
-
             //  	1. for cases 0 to 5, vertices are found to define contact points
             if (minPenetrationAxisIdx >= 0 && minPenetrationAxisIdx < 3)
             {
@@ -86,7 +85,7 @@ namespace Physics {
                 newContact.contactPoint = { {true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth},
                                         {true, contactPoint} };
                 //std::cout << newContact.penetrationDepth << '\n';
-                //std::cout << "collision1\n";
+                std::cout << "collision1\n";
             }
             else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
                 //Vec3 scl = std::get<Vec3>(box1.GetScale());
@@ -95,7 +94,7 @@ namespace Physics {
 
                 newContact.contactPoint = { {true, contactPoint},
                                     {true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth} };
-                //std::cout << "collision2\n";
+                std::cout << "collision2\n";
             }
             //    2. for cases 6 to 15, points on the edges of the bounding boxes are used.
             else
@@ -184,9 +183,9 @@ namespace Physics {
                 //3. point on the edge of box2 closest to 
                 //projecting the vector from closestPointOne to vertexTwo onto direction2.
                 Vector3 closestPointTwo{ vertexTwo + edge2 * ((closestPointOne - vertexTwo).Dot(edge2)) };
-                //std::cout << "collision3\n";
                 newContact.contactPoint = { { true, closestPointOne },
                                         { true, closestPointTwo } };
+                std::cout << "collision3\n";
             }
         }
 
@@ -287,9 +286,7 @@ namespace Physics {
             for (int i = 0; i < 3; ++i) {
                 for (int j = 0; j < 3; ++j) {
                     Vector3 cross = axes[i].Cross(axes[3 + j]);
-                    if (cross.LengthSquared() > 0.001f) {
-                        axes[6+3*i+j]=(cross.Normalize());
-                    }
+					axes[6 + 3 * i + j] = (cross.Normalize());
                 }
             }
 
@@ -503,10 +500,10 @@ namespace Physics {
                 RigidBody* rb = contact.objects[1]->GetRigidBody();
                 if (rb) {
                     rb->SetLinearVelocity(
-                        rb->GetLinearVelocity() + linearImpulse * rb->GetInverseMass()
+                        rb->GetLinearVelocity() - linearImpulse * rb->GetInverseMass()
                     );
                     rb->SetAngularVelocity(
-                        rb->GetAngularVelocity() + rb->GetInverseInertiaTensorWorld() * angularImpulse1
+                        rb->GetAngularVelocity() - rb->GetInverseInertiaTensorWorld() * angularImpulse1
                     );
                 }
             }
@@ -521,7 +518,7 @@ namespace Physics {
 
             float inverseMassSum = isDynamic1 ? rb1->GetInverseMass() : 0.0f;
             if (isDynamic2) {
-                inverseMassSum += contact.objects[1]->GetRigidBody()->GetInverseMass();
+                inverseMassSum +=rb2->GetInverseMass();
             }
 
             if (inverseMassSum == 0.f) {
@@ -529,8 +526,8 @@ namespace Physics {
             }
 
             // Contact point relative to the body's position
-            Vector3 r1 = contact.contactPoint.p1.second - contact.objects[0]->GetPosition();
-            Vector3 r2 = contact.contactPoint.p2.second - contact.objects[1]->GetPosition();
+            Vector3 r1 = contact.contactPoint.p1.second - (isDynamic1?  rb1->GetPosition() : contact.objects[0]->GetPosition());
+            Vector3 r2 = contact.contactPoint.p2.second - (isDynamic2 ? rb2->GetPosition() : contact.objects[1]->GetPosition());
 
             // Inverse inertia tensors
             Matrix3 i1 = isDynamic1 ? rb1->GetInverseInertiaTensorWorld() : Matrix3(0.0f);
