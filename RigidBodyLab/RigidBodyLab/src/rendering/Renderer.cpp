@@ -202,9 +202,9 @@ void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, c
 void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 {
     /*  Update projection matrix */
-    if (mainCam.resized) {
+    //if (mainCam.resized) {
         m_mainCamProjMat = mainCam.ProjMat();
-    }
+    //}
 
     /*  Update view transform matrix */
     //if (mainCam.moved){
@@ -224,7 +224,7 @@ void Renderer::ComputeMainCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 {
-    if (mainCam.moved)
+    //if (mainCam.moved)
     {
         Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
         /*  Computing position of user camera in mirror frame */
