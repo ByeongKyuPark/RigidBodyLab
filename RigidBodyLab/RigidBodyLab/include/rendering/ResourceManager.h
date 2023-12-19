@@ -47,18 +47,17 @@ namespace Rendering {
 
 
     class ResourceManager {
-        std::array<Mesh, TO_INT(MeshID::NUM_MESHES)> meshes;
-		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> textureIDs;
-		GLuint bumpTexID, normalTexID;
-		GLuint skyboxTexID;
+		std::array<std::unique_ptr<Mesh>, TO_INT(MeshID::NUM_MESHES)> m_meshes;
+		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> m_textureIDs;
+		GLuint m_bumpTexID, m_normalTexID;
+		GLuint m_skyboxTexID;
 		/*  For generating sphere "reflection/refraction" texture */
-		GLuint sphereTexID;
+		GLuint m_sphereTexID;
 		/*  For generating mirror "reflection" texture */
-		GLuint mirrorTexID;
-		GLuint mirrorFrameBufferID;
+		GLuint m_mirrorTexID;
+		GLuint m_mirrorFrameBufferID;
 		
-		int skyboxFaceSize;
-
+		int m_skyboxFaceSize;
 
 		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
 		/*  For bump/normal texture */
@@ -71,7 +70,9 @@ namespace Rendering {
         ResourceManager();
 		static ResourceManager& GetInstance();
 
-        Mesh& GetMesh(MeshID id);
+		Mesh* ResourceManager::GetMesh(MeshID id);
+		const Mesh* ResourceManager::GetMesh(MeshID id) const;
+		void ResourceManager::SetMesh(MeshID id, std::unique_ptr<Mesh> newMesh);
 		GLuint GetTexture(ImageID id);
 		void SetUpTextures();
 

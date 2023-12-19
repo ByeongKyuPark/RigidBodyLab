@@ -90,9 +90,8 @@ void Core::Scene::SetUpScene() {
     //Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
     planeCollider->SetScale(cubeColliderSize);
-    auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
+    const Mesh* cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
     m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX,std::move(planeCollider), planeTransform));
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, std::move(planeCollider), std::move(planeRigidBody)));
 
 
     //(2) VASE
@@ -108,7 +107,7 @@ void Core::Scene::SetUpScene() {
     vaseRigidBody->SetInertiaTensor(inertiaTensor);
 
     std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(vaseColliderSize);
-    auto& vaseMesh = resourceManager.GetMesh(MeshID::VASE);
+    const Mesh* vaseMesh = resourceManager.GetMesh(MeshID::VASE);
     m_objects.emplace_back(std::make_unique<Core::Object>(vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody),vaseMeshOffset));
 
     //(3) MIRROR
@@ -122,7 +121,7 @@ void Core::Scene::SetUpScene() {
     mirrorRigidBody->SetMass(mass);
     mirrorRigidBody->SetInertiaTensor(inertiaTensor);
     std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
-    auto& planeMesh = resourceManager.GetMesh(MeshID::PLANE);
+    const Mesh* planeMesh = resourceManager.GetMesh(MeshID::PLANE);
     m_objects.emplace_back(std::make_unique<Core::Object>(planeMesh, ImageID::MIRROR_TEX, std::move(mirrorCollider), std::move(mirrorRigidBody)));
     m_mirror = m_objects.back().get();
     //// Setup the base of the mirror
@@ -152,7 +151,7 @@ void Core::Scene::SetUpScene() {
     //Translate(m_spherePos)* Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD)
     std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
     //m_spherePos = Vec3(-4.5f, 7.f, -1.5f);
-    auto& sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
+    const Mesh* sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
     //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), std::move(sphereRigidBody), std::move(sphereCollider)));
     m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, std::move(sphereCollider), std::move(sphereRigidBody)));
     m_sphere = m_objects.back().get();

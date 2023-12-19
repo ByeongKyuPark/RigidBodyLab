@@ -526,7 +526,7 @@ void SendCubeTexID(int texID, GLint texCubeLoc)
 void Renderer::SendMirrorTexID()
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, ResourceManager::GetInstance().mirrorTexID);
+    glBindTexture(GL_TEXTURE_2D, ResourceManager::GetInstance().m_mirrorTexID);
     glUniform1i(m_textureLoc, 0);
 }
 
@@ -565,8 +565,7 @@ void Renderer::AttachScene(const Core::Scene& scene)
     ResourceManager& resourceManager = ResourceManager::GetInstance();
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
     for (int i = 0; i < NUM_MESHES; ++i) {
-        Mesh& mesh = resourceManager.GetMesh(static_cast<MeshID>(i));
-        SetUpVertexData(mesh);
+        SetUpVertexData(*resourceManager.GetMesh(static_cast<MeshID>(i)));
     }
     
     //2. texture
@@ -612,20 +611,20 @@ void Renderer::CleanUp()
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
     for (int i = 0; i < NUM_MESHES; ++i)
     {
-        Mesh& mesh = resourceManager.GetMesh(static_cast<MeshID>(i));
-        glDeleteVertexArrays(1, &mesh.VAO);
-        glDeleteBuffers(1, &mesh.VBO);
-        glDeleteBuffers(1, &mesh.IBO);
+        Mesh* mesh = resourceManager.GetMesh(static_cast<MeshID>(i));
+        glDeleteVertexArrays(1, &mesh->VAO);
+        glDeleteBuffers(1, &mesh->VBO);
+        glDeleteBuffers(1, &mesh->IBO);
     }
 
-    glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), resourceManager.textureIDs.data());
-    glDeleteTextures(1, &resourceManager.bumpTexID);
-    glDeleteTextures(1, &resourceManager.normalTexID);
-    glDeleteTextures(1, &resourceManager.skyboxTexID);
-    glDeleteTextures(1, &resourceManager.mirrorTexID);
-    glDeleteTextures(1, &resourceManager.sphereTexID);
+    glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), resourceManager.m_textureIDs.data());
+    glDeleteTextures(1, &resourceManager.m_bumpTexID);
+    glDeleteTextures(1, &resourceManager.m_normalTexID);
+    glDeleteTextures(1, &resourceManager.m_skyboxTexID);
+    glDeleteTextures(1, &resourceManager.m_mirrorTexID);
+    glDeleteTextures(1, &resourceManager.m_sphereTexID);
 
-    glDeleteFramebuffers(1, &resourceManager.mirrorFrameBufferID);
+    glDeleteFramebuffers(1, &resourceManager.m_mirrorFrameBufferID);
 
 }
 
@@ -777,7 +776,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 
     m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
-    SendCubeTexID(ResourceManager::GetInstance().skyboxTexID, m_skyboxTexCubeLoc);
+    SendCubeTexID(ResourceManager::GetInstance().m_skyboxTexID, m_skyboxTexCubeLoc);
     SendViewMat(viewMat, m_skyboxViewMatLoc);
 
     /*  Just trigger the skybox shaders, which hard-code the full-screen quad drawing */
@@ -798,7 +797,7 @@ void Renderer::RenderSkybox(const Mat4& viewMat)
 void Renderer::RenderObj(const Core::Object& obj)
 {
     /*  Tell shader to use obj's VAO for rendering */
-    const Mesh& mesh = obj.GetMesh();
+    const Mesh& mesh = *obj.GetMesh();
     glBindVertexArray(mesh.VAO);
     glDrawElements(GL_TRIANGLES, mesh.numIndices, GL_UNSIGNED_INT, nullptr);
 }
@@ -815,7 +814,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
 {
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
-    SendCubeTexID(ResourceManager::GetInstance().sphereTexID, m_sphereTexCubeLoc);
+    SendCubeTexID(ResourceManager::GetInstance().m_sphereTexID, m_sphereTexCubeLoc);
 
     /*  Indicate whether we want reflection/refraction or both */
     glUniform1i(m_sphereRefLoc, TO_INT(m_sphereRef));
@@ -917,12 +916,12 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
                     if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
                     {
-                        SendObjTexID(resourceManager.normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
+                        SendObjTexID(resourceManager.m_normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
                         glUniform1i(m_normalMappingOnLoc, true);
                         glUniform1i(m_parallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
 
                         if (Renderer::GetInstance().IsParallaxMappingOn()) {
-                            SendObjTexID(resourceManager.bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
+                            SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_bumpTexLoc);
                         }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
@@ -979,18 +978,18 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
     GLuint sphereFrameBufferTexID;
     glGenTextures(1, &sphereFrameBufferTexID);
     glBindTexture(GL_TEXTURE_2D, sphereFrameBufferTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, resourceManager.skyboxFaceSize, resourceManager.skyboxFaceSize,0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, resourceManager.m_skyboxFaceSize, resourceManager.m_skyboxFaceSize,0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     for (int i = 0; i < TO_INT(CubeFaceID::NUM_FACES); ++i)
     {
         glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, sphereFrameBufferTexID, 0);
 
         RenderObjsBg(m_sphereCamMVMat[i], m_sphereCamNormalMVMat[i], m_sphereCamViewMat[i], m_sphereCamProjMat,
-            resourceManager.skyboxFaceSize, resourceManager.skyboxFaceSize,
+            resourceManager.m_skyboxFaceSize, resourceManager.m_skyboxFaceSize,
             RenderPass::SPHERETEX_GENERATION, scene);
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
-        glReadPixels(0, 0, ResourceManager::GetInstance().skyboxFaceSize, ResourceManager::GetInstance().skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapTexture[i]);
+        glReadPixels(0, 0, ResourceManager::GetInstance().m_skyboxFaceSize, ResourceManager::GetInstance().m_skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapTexture[i]);
     }
 
     glDeleteTextures(1, &sphereFrameBufferTexID);
@@ -1008,7 +1007,7 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
 /******************************************************************************/
 void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().mirrorFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().m_mirrorFrameBufferID);
     RenderObjsBg(m_mirrorCamMVMat, m_mirrorCamNormalMVMat, m_mirrorCamViewMat, m_mirrorCamProjMat,
         mirrorCam.width, mirrorCam.height,
         RenderPass::MIRRORTEX_GENERATION,scene);
@@ -1055,7 +1054,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         ResourceManager& resourceManager = ResourceManager::GetInstance();
         unsigned char* sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
         for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-            sphereCubeMapData[f] = (unsigned char*)malloc(resourceManager.skyboxFaceSize * resourceManager.skyboxFaceSize * 4 * sizeof(unsigned char));
+            sphereCubeMapData[f] = (unsigned char*)malloc(resourceManager.m_skyboxFaceSize * resourceManager.m_skyboxFaceSize * 4 * sizeof(unsigned char));
         }
 
         /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:

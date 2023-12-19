@@ -9,12 +9,13 @@
 using namespace Rendering;
 
 ResourceManager::ResourceManager()
-	:meshes{}, textureIDs{}
+	:m_meshes{}, m_textureIDs{}
 {
-    meshes[TO_INT(MeshID::CUBE)] = CreateCube(1, 1, 1);
-    meshes[TO_INT(MeshID::VASE)] = LoadOBJMesh("../RigidBodyLab/models/vase.obj");
-    meshes[TO_INT(MeshID::PLANE)] = CreatePlane(1, 1);
-    meshes[TO_INT(MeshID::SPHERE)] = CreateSphere(16, 16);
+    m_meshes[TO_INT(MeshID::CUBE)] = std::make_unique<Mesh>(CreateCube(1, 1, 1));
+    m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
+    m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(CreatePlane(1, 1));
+    m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(CreateSphere(16, 16));
+    // Initialization of other resources...
 
     stbi_set_flip_vertically_on_load(true);
 
@@ -35,12 +36,20 @@ ResourceManager& ResourceManager::GetInstance()
     return instance;
 }
 
-Mesh& ResourceManager::GetMesh(MeshID id) {
-    return meshes[TO_INT(id)];
+Mesh* Rendering::ResourceManager::GetMesh(MeshID id) {
+    return m_meshes[TO_INT(id)].get();
+}
+
+const Mesh* Rendering::ResourceManager::GetMesh(MeshID id) const{
+    return m_meshes[TO_INT(id)].get();
+}
+
+void Rendering::ResourceManager::SetMesh(MeshID id, std::unique_ptr<Mesh> newMesh) {
+    m_meshes[TO_INT(id)] = std::move(newMesh);
 }
 
 GLuint Rendering::ResourceManager::GetTexture(ImageID id) {
-	return textureIDs[TO_INT(id)];
+	return m_textureIDs[TO_INT(id)];
 }
 
 void Rendering::ResourceManager::SetUpTextures() {
@@ -72,7 +81,7 @@ in the scene.
 
 void Rendering::ResourceManager::SetUpObjTextures()
 {
-	glGenTextures(TO_INT(ImageID::NUM_IMAGES), textureIDs.data());
+	glGenTextures(TO_INT(ImageID::NUM_IMAGES), m_textureIDs.data());
 
 	unsigned char* imgData;
 	int imgWidth, imgHeight, numComponents;
@@ -89,7 +98,7 @@ void Rendering::ResourceManager::SetUpObjTextures()
 			}
 
 			/*  Bind corresponding texture ID */
-			glBindTexture(GL_TEXTURE_2D, textureIDs[i]);
+			glBindTexture(GL_TEXTURE_2D, m_textureIDs[i]);
 
 			/*  Copy image data to graphics memory */
 			if (numComponents == 3)
@@ -145,8 +154,8 @@ void Rendering::ResourceManager::SetUpBaseBumpNormalTextures()
 
     /*  Generate texture ID for bump image and copy it to GPU */
     /*  Bump image will be used to compute the offset in parallax mapping */
-    glGenTextures(1, &bumpTexID);
-    glBindTexture(GL_TEXTURE_2D, bumpTexID);
+    glGenTextures(1, &m_bumpTexID);
+    glBindTexture(GL_TEXTURE_2D, m_bumpTexID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imgWidth, imgHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bumpImgData);
 
     stbi_image_free(bumpImgData);
@@ -161,8 +170,8 @@ void Rendering::ResourceManager::SetUpBaseBumpNormalTextures()
 
 
     /*  Generate texture ID for normal image and copy it to GPU */
-    glGenTextures(1, &normalTexID);
-    glBindTexture(GL_TEXTURE_2D, normalTexID);
+    glGenTextures(1, &m_normalTexID);
+    glBindTexture(GL_TEXTURE_2D, m_normalTexID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
         GL_RGB, GL_UNSIGNED_BYTE, normalImgData);
 
@@ -188,8 +197,8 @@ Set up texture and frame buffer objects for rendering mirror reflection.
 
 void Rendering::ResourceManager::SetUpMirrorTexture()
 {
-	glGenTextures(1, &mirrorTexID);
-	glBindTexture(GL_TEXTURE_2D, mirrorTexID);
+	glGenTextures(1, &m_mirrorTexID);
+	glBindTexture(GL_TEXTURE_2D, m_mirrorTexID);
 
 	/*  Some graphics drivers don't support glTexStorage2D */
 	//glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, mirrorCam.width, mirrorCam.height);
@@ -207,10 +216,10 @@ void Rendering::ResourceManager::SetUpMirrorTexture()
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glGenFramebuffers(1, &mirrorFrameBufferID);
-	glBindFramebuffer(GL_FRAMEBUFFER, mirrorFrameBufferID);
+	glGenFramebuffers(1, &m_mirrorFrameBufferID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_mirrorFrameBufferID);
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, mirrorTexID, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_mirrorTexID, 0);
 }
 
 /******************************************************************************/
@@ -231,9 +240,9 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
         exit(1);
     }
 
-    skyboxFaceSize = imgHeight / 3;
+    m_skyboxFaceSize = imgHeight / 3;
 
-    int imgSizeBytes = sizeof(unsigned char) * skyboxFaceSize * skyboxFaceSize * numComponents;
+    int imgSizeBytes = sizeof(unsigned char) * m_skyboxFaceSize * m_skyboxFaceSize * numComponents;
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
         cubeFace[f] = (unsigned char*)malloc(imgSizeBytes);
@@ -242,15 +251,15 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
     /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
     /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
     /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 0, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)], cubeImgData, skyboxFaceSize, imgWidth, 0, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)], cubeImgData, skyboxFaceSize, imgWidth, 2 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)], cubeImgData, skyboxFaceSize, imgWidth, skyboxFaceSize, 2 * skyboxFaceSize, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)], cubeImgData, skyboxFaceSize, imgWidth, 3 * skyboxFaceSize, skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)], cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)], cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 0, false, false, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)], cubeImgData, m_skyboxFaceSize, imgWidth, 0, m_skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)], cubeImgData, m_skyboxFaceSize, imgWidth, 2 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)], cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 2 * m_skyboxFaceSize, false, false, numComponents);
+    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)], cubeImgData, m_skyboxFaceSize, imgWidth, 3 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
 
-    glGenTextures(1, &skyboxTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
+    glGenTextures(1, &m_skyboxTexID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxTexID);
 
 
     /*  Copy the 6 textures to the GPU cubemap texture object, and set appropriate texture parameters */
@@ -269,7 +278,7 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
         // GL_TEXTURE_CUBE_MAP_POSITIVE_X + f corresponds to the cube map face target
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, skyboxFaceSize, skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f]);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, m_skyboxFaceSize, m_skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f]);
     }
 
     // Set the texture parameters
@@ -297,11 +306,11 @@ Set up texture object for rendering sphere reflection/refraction.
 
 void Rendering::ResourceManager::SetUpSphereTexture(unsigned char* sphereCubeMapData[])
 {
-    glGenTextures(1, &sphereTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, sphereTexID);
+    glGenTextures(1, &m_sphereTexID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_sphereTexID);
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, GL_RGBA8, skyboxFaceSize, skyboxFaceSize,
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, GL_RGBA8, m_skyboxFaceSize, m_skyboxFaceSize,
             0, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapData[f]);
 
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);

@@ -18,7 +18,7 @@ namespace Core {
 		ImageID m_imageID;
 
 		//Dependency Injection
-		Mesh& m_mesh;     
+		const Mesh* m_mesh;     
 		std::unique_ptr<Collider> m_collider;
 		//'Rigidbody' for dynamic objects, 'Transform' for static objects
 		std::variant<std::unique_ptr<RigidBody>, Transform> m_physicsOrTransform;
@@ -28,11 +28,11 @@ namespace Core {
 		Vec3 m_meshOffset;
 	public:
 		// Constructor for static objects (only Mat4 needed)
-		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform, const Vec3 meshOffset = Vec3{0.f,0.f,0.f})
+		Object(const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform, const Vec3 meshOffset = Vec3{0.f,0.f,0.f})
 			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform), m_meshOffset{meshOffset} {}
 
 		// Constructor for dynamic objects
-		Object(Mesh& mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, const Vec3 meshOffset = Vec3{ 0.f,0.f,0.f })
+		Object(const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, const Vec3 meshOffset = Vec3{ 0.f,0.f,0.f })
 			: m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)),m_meshOffset{meshOffset} {}
 
 		Object(const Object& other) = default;
@@ -43,7 +43,7 @@ namespace Core {
 		// Getter methods (setters might not be necessary because we are passing by reference)
 		Vector3 GetPosition()const;
 		Vector3 GetAxis(int axisIdx) const;
-		const Mesh& GetMesh() const { return m_mesh; }
+		const Mesh* GetMesh() const { return m_mesh; }
 		//RT only (no scale)
 		Matrix4 GetModelMatrix() const;
 		Mat4 GetUnitModelMatrixGLM() const;

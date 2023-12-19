@@ -11,6 +11,7 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
+
         static constexpr float SPHERE_INERTIA_FACTOR = 0.4f;
         static constexpr float CUBE_INERTIA_FACTOR = 1 / 6.0f;
 
@@ -29,13 +30,12 @@ namespace Core {
         Vec4 m_specularAlbedo;
         int m_specularPower;
 
-        //Vec3 m_spherePos;
-
         CollisionManager m_collisionManager;
         
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
         const Core::Object* m_sphere;//spherical mirror (or refraction)
+
     private:
         //void UpdateLightPosViewFrame();
         void SetUpLight(float height);
@@ -47,10 +47,18 @@ namespace Core {
 
     public:
         Scene();
+
         void Update(float dt);
+
         Core::Object& GetObject(size_t index);
         const Core::Object& GetObject(size_t index) const;
         const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetIntensity() const { return m_I; }
+
+        // helper function for creating objects
+        const Core::Object* CreateObject(MeshID meshId, ImageID imageId, const Transform& transform) {
+            //std::make_unique<Object>(ResourceManager::GetInstance().GetMesh(meshId), imageId, transform);
+            return nullptr;
+        }
     };
 }

@@ -489,7 +489,6 @@ namespace Physics {
                 }
             }
 
-
             // Check if body1 is dynamic and apply impulse
             if (contact.objects[1]) {
                 RigidBody* rb = contact.objects[1]->GetRigidBody();
@@ -498,7 +497,7 @@ namespace Physics {
                         rb->GetLinearVelocity() - linearImpulse * rb->GetInverseMass()
                     );
                     rb->SetAngularVelocity(
-                        rb->GetAngularVelocity() - rb->GetInverseInertiaTensorWorld() * angularImpulse1
+                        rb->GetAngularVelocity() - rb->GetInverseInertiaTensorWorld() * angularImpulse2
                     );
                 }
             }
@@ -580,7 +579,7 @@ namespace Physics {
             // Without clamping, might encounter scenarios where objects react unrealistically due to excessively large impulses.
             // causing jittery movements, passing through each other
             // As opposed to solving all collisions simultaneously, current sequential impulse solver requires smaller impulses for each resolution step.
-            static constexpr float MAX_IMPULSE = 0.1f; 
+            static constexpr float MAX_IMPULSE = 10.f; 
             jacobianImpulse = std::max(std::min(jacobianImpulse, MAX_IMPULSE), -MAX_IMPULSE);
 
             // Apply impulses to the bodies
