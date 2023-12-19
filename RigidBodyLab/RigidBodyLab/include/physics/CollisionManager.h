@@ -569,6 +569,13 @@ namespace Physics {
                 return;
             }
 
+            // an arbitrary impulse clamping value to maintain stability and realism.
+            // Without clamping, might encounter scenarios where objects react unrealistically due to excessively large impulses.
+            // causing jittery movements, passing through each other
+            static constexpr float MAX_IMPULSE = 10.0f; 
+            jacobianImpulse = std::min(jacobianImpulse, MAX_IMPULSE);
+
+
             // Clamp the accumulated impulse
             float oldAccumulatedNormalImpulse = contact.accumulatedNormalImpulse;
             contact.accumulatedNormalImpulse = std::max(oldAccumulatedNormalImpulse + jacobianImpulse, 0.0f);
