@@ -552,7 +552,7 @@ namespace Physics {
 
             // Baumgarte Stabilization (for penetration & sinking resolution)a
             float baumgarte = 0.0f;
-            constexpr float CORRECTION_RATIO = 0.15f;
+            constexpr float CORRECTION_RATIO = 0.1f;
             if (contact.penetrationDepth > m_penetrationTolerance) {
                 baumgarte = ((contact.penetrationDepth - m_penetrationTolerance) * CORRECTION_RATIO / deltaTime);
             }
@@ -569,17 +569,19 @@ namespace Physics {
                 return;
             }
 
-            // an arbitrary impulse clamping value to maintain stability and realism.
-            // Without clamping, might encounter scenarios where objects react unrealistically due to excessively large impulses.
-            // causing jittery movements, passing through each other
-            static constexpr float MAX_IMPULSE = 10.0f; 
-            jacobianImpulse = std::min(jacobianImpulse, MAX_IMPULSE);
 
 
             // Clamp the accumulated impulse
             float oldAccumulatedNormalImpulse = contact.accumulatedNormalImpulse;
             contact.accumulatedNormalImpulse = std::max(oldAccumulatedNormalImpulse + jacobianImpulse, 0.0f);
             jacobianImpulse = contact.accumulatedNormalImpulse - oldAccumulatedNormalImpulse;
+
+            // an arbitrary impulse clamping value to maintain stability and realism.
+            // Without clamping, might encounter scenarios where objects react unrealistically due to excessively large impulses.
+            // causing jittery movements, passing through each other
+            // As opposed to solving all collisions simultaneously, current sequential impulse solver requires smaller impulses for each resolution step.
+            static constexpr float MAX_IMPULSE = 0.1f; 
+            jacobianImpulse = std::max(std::min(jacobianImpulse, MAX_IMPULSE), -MAX_IMPULSE);
 
             // Apply impulses to the bodies
             ApplyImpulses(contact, jacobianImpulse, r1, r2, contact.collisionNormal);
