@@ -77,6 +77,9 @@ Mat4 Transpose(const Mat4 &m);
 
 Vec3 Normalize(const Vec3 &v);
 Vec3 Cross(const Vec3 &v1, const Vec3 &v2);
+Vec3 Max(const Vec3& a, const Vec3& b);
+Vec3 Min(const Vec3& a, const Vec3& b);
+
 float Dot(const Vec3 &v1, const Vec3 &v2);
 float Distance(const Vec3 &v1, const Vec3 &v2);
 

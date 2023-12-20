@@ -89,6 +89,7 @@ void Core::Scene::SetUpScene() {
     Transform planeTransform{ {0, BASE_POS_Y, 0} };
     //Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
     std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
+
     planeCollider->SetScale(cubeColliderSize);
     const Mesh* cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
     m_objects.emplace_back(std::make_unique<Core::Object>("plane",cubeMesh, ImageID::STONE_TEX, std::move(planeCollider), planeTransform));
@@ -99,16 +100,18 @@ void Core::Scene::SetUpScene() {
     //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
     Vec3 vaseMeshOffset{ 0.f,-0.85f,0.f };
-    Vec3 vaseColliderSize = {2.f,2.f,2.f};
+    //Vec3 vaseColliderSize = {2.f,2.f,2.f};
     Transform vaseTransform{ {0.5f, 4.5f, 0} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
+
     //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
+    constexpr float VASE_SCL = 1.5f;
     vaseRigidBody->SetMass(mass);
     vaseRigidBody->SetInertiaTensor(inertiaTensor);
 
-    std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(vaseColliderSize);
     const Mesh* vaseMesh = resourceManager.GetMesh(MeshID::VASE);
-    m_objects.emplace_back(std::make_unique<Core::Object>("vase",vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody), vaseMeshOffset));
+    std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(Vec3{VASE_SCL,VASE_SCL,VASE_SCL});
+    m_objects.emplace_back(std::make_unique<Core::Object>("vase",vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody)));
 
     //(3) MIRROR
     //m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);
@@ -116,7 +119,7 @@ void Core::Scene::SetUpScene() {
     //m_mirrorRotationAngle = -EIGHTH_PI;
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.1f };//temp
     //Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{PI-EIGHTH_PI,Vector3{0.f,1.f,0.f}} };
-    Transform mirrorTransform{ {2.0f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
+    Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
     std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
     mirrorRigidBody->SetMass(mass);
     mirrorRigidBody->SetInertiaTensor(inertiaTensor);

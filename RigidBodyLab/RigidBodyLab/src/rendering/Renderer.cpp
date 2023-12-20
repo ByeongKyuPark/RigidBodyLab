@@ -250,11 +250,12 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 	static constexpr float POSITION_THRESHOLD = 0.01f;
 
 	static Core::Transform previousMirrorTransform = scene.m_mirror->GetPosition();
-
 	const Core::Transform& currentMirrorTransform = scene.m_mirror->GetPosition();
-	Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
+
+    Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
 	previousMirrorTransform = currentMirrorTransform;
-	if (positionDelta.Length() > POSITION_THRESHOLD) {
+	
+    if (positionDelta.Length() > POSITION_THRESHOLD) {
 		mirrorCam.moved = true;
 	}
 
@@ -263,7 +264,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 
         Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
         Vec3 mainCamMirrorFrame = Vec3(Inverse(mirrorMat) * Vec4(mainCam.pos, 1.0));
-        
+
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
         if (mainCamMirrorFrame.z >= 0)
         {
@@ -281,10 +282,14 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
         */
 
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
+        Vec3 mirrorNormal = Normalize(Vec3(mirrorMat * Vec4(0, 0, 1, 0)));
 
+        // Setting mirror camera's position and look-at point
         mirrorCam.pos = Vec3(mirrorMat * Vec4(mirrorCamMirrorFrame, 1.0));
         mirrorCam.upVec = Normalize(Vec3(mirrorMat * Vec4(0, 1, 0, 0)));
-        mirrorCam.lookAt = Vec3(mirrorMat * Vec4(0, 0, 0, 1));
+        Vec3 mirrorCenter = scene.m_mirror->GetMesh()->m_boundingBoxes.center;
+        mirrorCam.lookAt = Vec3(mirrorMat* Vec4{ mirrorCenter,1.f });
+
 
         m_mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
@@ -309,7 +314,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
         Vec3 mirrorCamViewMirrorFrame = Normalize(mirrorCam.lookAt - mirrorCam.pos);
 
         //mirror frame
-        std::vector<Vec3> midsPoint = {
+        std::vector<Vec3> midPoints = {
             Vec3(0.5, 0, 0), // Left
             Vec3(-0.5, 0, 0), // Right
             Vec3(0, -0.5, 0), // Bottom
@@ -318,20 +323,21 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 
 
         float nearDist = INFINITY;
-        for (Vec3& midPoint : midsPoint) {
+        for (Vec3& midPoint : midPoints) {
             Vec3 midCamFrame = Vec3(mirrorMat * Vec4(midPoint, 1.0));//mid : mirrorFrame -> cameraFrame
             midPoint = midCamFrame - mirrorCam.pos;//mid : cameraFrame -> mirroredCameraFrame
             float projectionLength = Dot(midPoint, mirrorCamViewMirrorFrame);
             nearDist = std::min(nearDist, projectionLength);
         }
+
         // Note that midsPoint are now in mirrorCameraFrame
 
-        //(minor)
+        //(trivial)
         // Setting the far plane to infinity can lead to depth precision issues, causing distant objects to dominate in reflections. 
         // A minimum near plane distance is set to mitigate this, particularly suitable for this static scene scenarios.
         //mirrorCam.nearPlane = std::max(nearDist, 2.5f);
-        constexpr float MAX_FAR_PLANE = 100.f;
-        constexpr float MIN_NEAR_PLANE = 0.1f;
+        constexpr float MAX_FAR_PLANE = 1000.f;
+        constexpr float MIN_NEAR_PLANE = 0.01f;
 
         mirrorCam.nearPlane = std::max(nearDist, MIN_NEAR_PLANE);
         mirrorCam.farPlane = MAX_FAR_PLANE;
@@ -347,21 +353,21 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
             return mirrorCam.pos + t * midpointMirrorCamFrame;
         };
 
-        Vec3 left = ComputeIntersectionOnNearPlane(midsPoint[0]);
-        Vec3 right = ComputeIntersectionOnNearPlane(midsPoint[1]);
-        Vec3 bottom = ComputeIntersectionOnNearPlane(midsPoint[2]);
-        Vec3 top = ComputeIntersectionOnNearPlane(midsPoint[3]);
+        Vec3 left = ComputeIntersectionOnNearPlane(midPoints[0]);
+        Vec3 right = ComputeIntersectionOnNearPlane(midPoints[1]);
+        Vec3 bottom = ComputeIntersectionOnNearPlane(midPoints[2]);
+        Vec3 top = ComputeIntersectionOnNearPlane(midPoints[3]);
 
         mirrorCam.leftPlane = -(toNearMirrorCamFrame - left).length();
         mirrorCam.rightPlane = (toNearMirrorCamFrame - right).length();
         mirrorCam.bottomPlane = -(toNearMirrorCamFrame - bottom).length();
         mirrorCam.topPlane = (toNearMirrorCamFrame - top).length();
 
-        float viewAngleAdjustFactor = 0.8f; //scales down the frustum planes
-        mirrorCam.leftPlane *= viewAngleAdjustFactor;
-        mirrorCam.rightPlane *= viewAngleAdjustFactor;
-        mirrorCam.bottomPlane *= viewAngleAdjustFactor;
-        mirrorCam.topPlane *= viewAngleAdjustFactor;
+        //float viewAngleAdjustFactor = 1.f; //scales down the frustum planes
+        //mirrorCam.leftPlane *= viewAngleAdjustFactor;
+        //mirrorCam.rightPlane *= viewAngleAdjustFactor;
+        //mirrorCam.bottomPlane *= viewAngleAdjustFactor;
+        //mirrorCam.topPlane *= viewAngleAdjustFactor;
         m_mirrorCamProjMat = mirrorCam.ProjMat();
     }
 }
@@ -439,7 +445,10 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
         m_sphereRef = static_cast<RefType>(refTypeInt); // Cast back to enum class after ImGui interaction
     }
 
-    ImGui::SliderFloat("Sphere Refractive Index", &m_sphereRefIndex, 1.0f, 2.5f); // Adjust the range as needed
+    // Conditionally display the "Sphere Refractive Index" slider
+    if (m_sphereRef != RefType::REFLECTION_ONLY) {
+        ImGui::SliderFloat("Sphere Refractive Index", &m_sphereRefIndex, 1.0f, 2.5f);
+    }
     // Parallax mapping toggling
     ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
 

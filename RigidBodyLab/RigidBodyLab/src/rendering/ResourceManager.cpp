@@ -11,11 +11,10 @@ using namespace Rendering;
 ResourceManager::ResourceManager()
 	:m_meshes{}, m_textureIDs{}
 {
-    m_meshes[TO_INT(MeshID::CUBE)] = std::make_unique<Mesh>(CreateCube(1, 1, 1));
-    m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
-    m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(CreatePlane(1, 1));
-    m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(CreateSphere(16, 16));
-    // Initialization of other resources...
+    m_meshes[TO_INT(MeshID::CUBE)] = std::make_unique<Mesh>(Mesh::CreateCube(1, 1, 1));
+    m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(Mesh::CreatePlane(1, 1));
+    m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(Mesh::CreateSphere(16, 16));
+    m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
 
     stbi_set_flip_vertically_on_load(true);
 

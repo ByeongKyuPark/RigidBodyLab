@@ -14,6 +14,11 @@ void ComputeTangentsBitangents(VertexBuffer& vertices, const IndexBuffer& indice
 void ComputeNormals(Mesh& mesh);
 void ComputeUVs(Mesh& mesh);
 
+Mat4 Rendering::Mesh::GetBoundingBoxMat() const {
+    //adjusts the correct center and then scales
+    return Scale(m_boundingBoxes.extents) * Translate(-m_boundingBoxes.center);
+}
+
 /******************************************************************************/
 /*!
 \fn     Mesh CreatePlane(int stacks, int slices)
@@ -32,7 +37,7 @@ void ComputeUVs(Mesh& mesh);
         The generated plane
 */
 /******************************************************************************/
-Mesh Rendering::CreatePlane(int stacks, int slices)
+Mesh Rendering::Mesh::CreatePlane(int stacks, int slices)
 {
     Mesh mesh;
 
@@ -49,7 +54,6 @@ Mesh Rendering::CreatePlane(int stacks, int slices)
             v.pos = Vec3(col - 0.5f, 0.5f - row, 0.0f);
             v.nrm = Vec3(0.0f, 0.0f, 1.0f);
             v.uv = Vec2(slice, stacks - stack);
-
             addVertex(mesh, v);
         }
     }
@@ -79,7 +83,7 @@ Mesh Rendering::CreatePlane(int stacks, int slices)
 */
 /******************************************************************************/
 //Mesh CreateCube(int height, int length, int width)
-Mesh Rendering::CreateCube(int length, int height, int width)
+Mesh Rendering::Mesh::CreateCube(int length, int height, int width)
 {
     /*  Initial planes and their transformations to form the cube faces */
     Mesh planeMesh[3];
@@ -163,7 +167,7 @@ Mesh Rendering::CreateCube(int length, int height, int width)
         The generated sphere
 */
 /******************************************************************************/
-Mesh Rendering::CreateSphere(int stacks, int slices)
+Mesh Rendering::Mesh::CreateSphere(int stacks, int slices)
 {
     Mesh mesh;
 
@@ -397,9 +401,11 @@ bool readDataLine(char* lineBuf, int* lineNum, FILE* fp, int MAX_LINE_LEN);
         The vertex index to be added.
 */
 /******************************************************************************/
-Mesh Rendering::LoadOBJMesh(char* filename)
+Mesh Rendering::Mesh::LoadOBJMesh(char* filename)
 {
     Mesh mesh;
+    Vec3 minPoint(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3 maxPoint(FLT_MIN, FLT_MIN, FLT_MIN);
 
     const int MAX_LINE_LEN = 1024;
     char lineBuf[MAX_LINE_LEN + 1];
@@ -428,6 +434,10 @@ Mesh Rendering::LoadOBJMesh(char* filename)
                 if (!strcmp(dataType, "v"))
                 {
                     v.pos = Vec3(x, y, z);
+                    // Update bounding box extents
+                    minPoint = Min(minPoint, v.pos);
+                    maxPoint = Max(maxPoint, v.pos);
+
                     if (posID >= mesh.numVertices)
                     {
                         mesh.vertexBuffer.push_back(v);
@@ -512,6 +522,10 @@ Mesh Rendering::LoadOBJMesh(char* filename)
     ComputeNormals(mesh);
     ComputeUVs(mesh);
 
+    //extents of 2 by default (e.g., x=-1 <--> x=1)
+    mesh.m_boundingBoxes.center = (minPoint + maxPoint) * 0.25f;// (=0.5 * 0.5)
+    mesh.m_boundingBoxes.extents = (maxPoint - minPoint)*0.5f;
+    
     return mesh;
 }
 
@@ -658,4 +672,11 @@ void ComputeUVs(Mesh& mesh)
 
         vertex.uv = Vec2(u, v);
     }
+}
+
+Rendering::Mesh::Mesh()
+    : numVertices(0), numTris(0), numIndices(0), VAO{}, VBO{}, IBO{}, m_boundingBoxes{}
+{
+    vertexBuffer.clear();
+    indexBuffer.clear();
 }

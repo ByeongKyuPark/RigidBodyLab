@@ -49,6 +49,7 @@ namespace Rendering {
     class ResourceManager {
 		std::array<std::unique_ptr<Mesh>, TO_INT(MeshID::NUM_MESHES)> m_meshes;
 		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> m_textureIDs;
+
 		GLuint m_bumpTexID, m_normalTexID;
 		GLuint m_skyboxTexID;
 		/*  For generating sphere "reflection/refraction" texture */
@@ -75,7 +76,6 @@ namespace Rendering {
 		void ResourceManager::SetMesh(MeshID id, std::unique_ptr<Mesh> newMesh);
 		GLuint GetTexture(ImageID id);
 		void SetUpTextures();
-
     private:
 		void SetUpObjTextures();
 		void SetUpBaseBumpNormalTextures();
