@@ -450,10 +450,11 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
     // Object list GUI
     static int selectedObject = -1;  // Initialize selected object index
     static int selectedMesh = -1;    // Initialize selected mesh index
+    static int selectedTexture{ -1 };
 
     std::vector<std::string> objectNames;
     for (size_t i = 0; i < scene.m_objects.size(); ++i) {
-        objectNames.push_back("Object " + std::to_string(i));
+        objectNames.emplace_back(scene.m_objects[i]->GetName());
     }
 
     // Lambda to provide access to names
@@ -466,27 +467,64 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
 
     // List of objects
     if (ImGui::ListBox("Objects", &selectedObject, listbox_items_getter, static_cast<void*>(&objectNames), objectNames.size())) {
-        // Item selected, handle it here
-        // empty for now
+        if (selectedObject >= 0) {
+            ResourceManager& resourceManager = ResourceManager::GetInstance();
+
+            // Get the current mesh of the selected object
+            const Mesh* currentMesh = scene.GetObject(selectedObject).GetMesh();
+
+            // Determine the MeshID based on the mesh pointer
+            for (int i = 0; i < TO_INT(MeshID::NUM_MESHES); ++i) {
+                if (currentMesh == resourceManager.GetMesh(static_cast<MeshID>(i))) {
+                    selectedMesh = i;
+                    break;
+                }
+            }
+
+            // Set the selected texture
+            selectedTexture = static_cast<int>(scene.GetObject(selectedObject).GetImageID());
+        }
     }
 
-    // If an object is selected, show mesh selection
+	const static std::vector<std::string> meshNames = { "Cube", "Vase", "Plane", "Sphere" };
+	const char* meshNamesCStr[TO_INT(MeshID::NUM_MESHES)];
+	for (size_t i = 0; i < meshNames.size(); ++i) {
+		meshNamesCStr[i] = meshNames[i].c_str();
+	}
+    constexpr int NumTextures = 3;
+    const static std::vector<std::string> textureNames = {
+        "Stone",
+        "Wood",
+        "Pottery"
+    };
+    const char* textureNamesCStr[NumTextures];
+    for (size_t i = 0; i < textureNames.size(); ++i) {
+        textureNamesCStr[i] = textureNames[i].c_str();
+    }
+
+
+    // Mesh and texture combo logic...
+    // If an object is selected, show mesh and texture selection
     if (selectedObject >= 0) {
-        std::vector<std::string> meshNames = { "Cube", "Vase", "Plane", "Sphere" };
-        const char* meshNamesCStr[TO_INT(MeshID::NUM_MESHES)];
-        for (size_t i = 0; i < meshNames.size(); ++i) {
-            meshNamesCStr[i] = meshNames[i].c_str();
-        }
+        ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-        ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size());
-
-        if (ImGui::Button("Switch Mesh")) {
+        // Mesh selection
+        if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
             if (selectedMesh >= 0) {
-                ResourceManager& resourceManager = ResourceManager::GetInstance();
                 Mesh* newMesh = resourceManager.GetMesh(static_cast<MeshID>(selectedMesh));
                 scene.GetObject(selectedObject).SetMesh(newMesh);
             }
         }
+
+        // Texture selection
+        std::string selectedObjectName = objectNames[selectedObject];
+        if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
+            // Texture selection
+            if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
+                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+            }
+        }
+
     }
 }
 
