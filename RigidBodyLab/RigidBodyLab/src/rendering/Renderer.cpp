@@ -262,11 +262,8 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
     {
 
         Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
-        /*  Computing position of user camera in mirror frame */
-        //Vec3 mainCamMirrorFrame = Vec3(Rotate(-scene.m_mirrorRotationAngle, scene.m_mirrorRotationAxis) 
-        //                                *Translate(-scene.m_mirrorTranslate) * Vec4(mainCam.pos, 1.0));
         Vec3 mainCamMirrorFrame = Vec3(Inverse(mirrorMat) * Vec4(mainCam.pos, 1.0));
-
+        
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
         if (mainCamMirrorFrame.z >= 0)
         {
@@ -286,7 +283,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
         Vec3 mirrorCamMirrorFrame = Vec3(mainCamMirrorFrame.x, mainCamMirrorFrame.y, -mainCamMirrorFrame.z);
 
         mirrorCam.pos = Vec3(mirrorMat * Vec4(mirrorCamMirrorFrame, 1.0));
-        mirrorCam.upVec = BASIS[Y];
+        mirrorCam.upVec = Normalize(Vec3(mirrorMat * Vec4(0, 1, 0, 0)));
         mirrorCam.lookAt = Vec3(mirrorMat * Vec4(0, 0, 0, 1));
 
         m_mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
