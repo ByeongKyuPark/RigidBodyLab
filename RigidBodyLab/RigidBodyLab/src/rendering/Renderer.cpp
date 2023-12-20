@@ -497,9 +497,10 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
 	for (size_t i = 0; i < meshNames.size(); ++i) {
 		meshNamesCStr[i] = meshNames[i].c_str();
 	}
-    constexpr int NumTextures = 3;
+    constexpr int NumTextures = TO_INT(ImageID::NUM_IMAGES);
     const static std::vector<std::string> textureNames = {
         "Stone",
+        "Stone2",
         "Wood",
         "Pottery"
     };

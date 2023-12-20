@@ -92,7 +92,7 @@ void Core::Scene::SetUpScene() {
 
     planeCollider->SetScale(cubeColliderSize);
     const Mesh* cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    m_objects.emplace_back(std::make_unique<Core::Object>("plane",cubeMesh, ImageID::STONE_TEX, std::move(planeCollider), planeTransform));
+    m_objects.emplace_back(std::make_unique<Core::Object>("plane",cubeMesh, ImageID::STONE_TEX_1, std::move(planeCollider), planeTransform));
 
 
     //(2) VASE

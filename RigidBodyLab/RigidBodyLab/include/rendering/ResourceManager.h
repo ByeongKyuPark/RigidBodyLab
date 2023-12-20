@@ -19,7 +19,8 @@ namespace Rendering {
 	/*  The ID for texture loading */
 	enum class ImageID
 	{
-		STONE_TEX = 0,
+		STONE_TEX_1 = 0,
+		STONE_TEX_2,
 		WOOD_TEX,
 		POTTERY_TEX,
 		MIRROR_TEX,
@@ -60,7 +61,11 @@ namespace Rendering {
 		
 		int m_skyboxFaceSize;
 
-		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { "../RigidBodyLab/images/stone.png", "../RigidBodyLab/images/wood.png", "../RigidBodyLab/images/pottery.jpg" };
+		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { 
+			"../RigidBodyLab/images/stone.png", 
+			"../RigidBodyLab/images/stone2.jpg",
+			"../RigidBodyLab/images/wood.png",
+			"../RigidBodyLab/images/pottery.jpg" };
 		/*  For bump/normal texture */
 		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
