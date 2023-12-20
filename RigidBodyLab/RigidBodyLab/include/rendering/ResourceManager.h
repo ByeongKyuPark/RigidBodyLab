@@ -21,8 +21,11 @@ namespace Rendering {
 	{
 		STONE_TEX_1 = 0,
 		STONE_TEX_2,
-		WOOD_TEX,
-		POTTERY_TEX,
+		WOOD_TEX_1,
+		WOOD_TEX_2,
+		POTTERY_TEX_1,
+		POTTERY_TEX_2,
+		POTTERY_TEX_3,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -65,8 +68,12 @@ namespace Rendering {
 			"../RigidBodyLab/images/stone.png", 
 			"../RigidBodyLab/images/stone2.jpg",
 			"../RigidBodyLab/images/wood.png",
-			"../RigidBodyLab/images/pottery.jpg" };
-		/*  For bump/normal texture */
+			"../RigidBodyLab/images/wood_2.jpg",
+			"../RigidBodyLab/images/pottery.jpg",
+			"../RigidBodyLab/images/pottery_2.png",
+			"../RigidBodyLab/images/pottery_3.jpg"
+		};
+/*  For bump/normal texture */
 		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
 		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";

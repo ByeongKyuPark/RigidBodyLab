@@ -111,7 +111,7 @@ void Core::Scene::SetUpScene() {
 
     const Mesh* vaseMesh = resourceManager.GetMesh(MeshID::VASE);
     std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(Vec3{VASE_SCL,VASE_SCL,VASE_SCL});
-    m_objects.emplace_back(std::make_unique<Core::Object>("vase",vaseMesh, ImageID::POTTERY_TEX, std::move(vaseCollider), std::move(vaseRigidBody)));
+    m_objects.emplace_back(std::make_unique<Core::Object>("vase",vaseMesh, ImageID::POTTERY_TEX_1, std::move(vaseCollider), std::move(vaseRigidBody)));
 
     //(3) MIRROR
     //m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);

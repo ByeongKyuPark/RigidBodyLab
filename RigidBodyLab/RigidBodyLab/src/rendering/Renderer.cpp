@@ -501,8 +501,11 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
     const static std::vector<std::string> textureNames = {
         "Stone",
         "Stone2",
-        "Wood",
-        "Pottery"
+        "Wood1",
+        "Wood2",
+        "Pottery1",
+        "Pottery2",
+        "Pottery3"
     };
     const char* textureNamesCStr[NumTextures];
     for (size_t i = 0; i < textureNames.size(); ++i) {
