@@ -36,18 +36,17 @@ namespace Rendering {
 		NUM_IMAGES
 	};
 
-
-	/*  Types of objects */
-	enum class ObjID {
-		BASE = 0,
-		VASE,
-		MIRROR,
-		//MIRRORBASE1,
-		//MIRRORBASE2,
-		//MIRRORBASE3,
-		SPHERE,
-		NUM_OBJS
-	};
+	///*  Types of objects */
+	//enum class ObjID {
+	//	BASE = 0,
+	//	VASE,
+	//	MIRROR,
+	//	//MIRRORBASE1,
+	//	//MIRRORBASE2,
+	//	//MIRRORBASE3,
+	//	SPHERE,
+	//	NUM_OBJS
+	//};
 
 	/*  6 faces of the texture cube */
 	enum class CubeFaceID {

@@ -83,8 +83,9 @@ namespace Core {
             ColliderConfig colliderConfig,
             const Vector3& position = Vector3{ 0.f,0.f,0.f },
             float mass = 1.f,
-            const Quaternion& orientation = Quaternion{}
-        );
+            const Quaternion & orientation = Quaternion{},
+            ObjectType objType = ObjectType::REGULAR
+            );
 
     };
 }

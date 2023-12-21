@@ -200,8 +200,8 @@ void Renderer::SendLightProperties(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeObjMVMats(std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, const Core::Scene& scene)
 {
-    const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
-    for (int i = 0; i < OBJ_SIZE; ++i)
+    const size_t objSize = scene.m_objects.size();
+    for (int i = 0; i < objSize; ++i)
     {
         Mat4 objMat = scene.m_objects[i]->GetModelMatrixGLM();
         MVMat[i] = viewMat * objMat;
@@ -642,6 +642,8 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
 /******************************************************************************/
 void Renderer::AttachScene(const Core::Scene& scene)
 {
+    //0. init matrices
+    InitMatrices(scene.m_objects.size());
 
     //1. Send mesh data only
     ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -718,16 +720,16 @@ Rendering::Renderer::Renderer()
 
     , m_mainCamViewMat{}
     , m_mainCamProjMat{}
-    ,m_mainCamMVMat(TO_INT(ObjID::NUM_OBJS))
-    ,m_mainCamNormalMVMat(TO_INT(ObjID::NUM_OBJS))
+    , m_mainCamMVMat{}
+    , m_mainCamNormalMVMat{}
 
     ,m_mirrorCamViewMat{}
     ,m_mirrorCamProjMat{}
-    ,m_mirrorCamMVMat(TO_INT(ObjID::NUM_OBJS))
-    ,m_mirrorCamNormalMVMat((TO_INT(ObjID::NUM_OBJS)))
-
+    , m_mirrorCamMVMat{}
+    , m_mirrorCamNormalMVMat{}
+    
     ,m_sphereCamProjMat {}
-    ,m_sphereCamViewMat(TO_INT(CubeFaceID::NUM_FACES))
+    , m_sphereCamViewMat(TO_INT(CubeFaceID::NUM_FACES))
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -768,10 +770,6 @@ Rendering::Renderer::Renderer()
 
     m_sphereCamMVMat.resize(TO_INT(CubeFaceID::NUM_FACES));
     m_sphereCamNormalMVMat.resize(TO_INT(CubeFaceID::NUM_FACES));
-    for (int face = 0; face < TO_INT(CubeFaceID::NUM_FACES); ++face) {
-        m_sphereCamMVMat[face].resize(TO_INT(ObjID::NUM_OBJS));
-        m_sphereCamNormalMVMat[face].resize(TO_INT(ObjID::NUM_OBJS));
-    }
 
     m_shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
     m_shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
@@ -808,6 +806,18 @@ void Renderer::Resize(GLFWwindow* window, int w, int h)
 
     if (window) {
         glfwSetWindowSize(window, w, h);
+    }
+}
+
+void Rendering::Renderer::InitMatrices(size_t numObjects) {
+    constexpr int BUFFER = 10;
+    m_mainCamMVMat.resize(numObjects+BUFFER);
+    m_mainCamNormalMVMat.resize(numObjects+BUFFER);
+    m_mirrorCamMVMat.resize(numObjects+BUFFER);
+    m_mirrorCamNormalMVMat.resize(numObjects+BUFFER);
+    for (int face = 0; face < TO_INT(CubeFaceID::NUM_FACES); ++face) {
+        m_sphereCamMVMat[face].resize(numObjects+BUFFER);
+        m_sphereCamNormalMVMat[face].resize(numObjects+BUFFER);
     }
 }
 
@@ -913,6 +923,10 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
+    if (scene.m_sphere == nullptr) {
+        return; // No sphere to render
+    }
+
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
 
     SendCubeTexID(ResourceManager::GetInstance().m_sphereTexID, m_sphereTexCubeLoc);
@@ -926,11 +940,21 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     /*  We need view mat to know our camera orientation */
     SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
-    /*  These are for transforming vertices on the sphere */
-    SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
+    // Compute and send the model-view matrix for the sphere
+    Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrixGLM();
+    Mat4 sphereNMV = Transpose(Inverse(sphereMV)); // or however you calculate the normal model-view matrix
+    SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
+
+    // Send the projection matrix
     SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
 
-    RenderObj(scene.GetObject(TO_INT(ObjID::SPHERE)));
+    // Finally, render the sphere
+    RenderObj(*scene.m_sphere);
+
+    //SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
+    //SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
+
+    //RenderObj(scene.GetObject(TO_INT(ObjID::SPHERE)));
 }
 
 
@@ -979,42 +1003,39 @@ void Renderer::RenderObjsBg(const std::vector<Mat4>& MVMat, const std::vector<Ma
     ResourceManager& resourceManager = ResourceManager::GetInstance();
 
     /*  Send object texture and render them */
-    size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
-    for (int i = 0; i < NUM_OBJS; ++i)
-        if (i == TO_INT(ObjID::SPHERE)) {
+    const size_t numObjs = scene.m_objects.size();
+    for (int i{}; i < numObjs; ++i) {
+        const auto& obj = *scene.m_objects[i];
+        if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
         else
         {
-            if (renderPass == RenderPass::MIRRORTEX_GENERATION
-                && (i == TO_INT(ObjID::MIRROR))
-                    )
-            //        //|| i == TO_INT(ObjID::MIRRORBASE1)
-            //        //|| i == TO_INT(ObjID::MIRRORBASE2) || i == TO_INT(ObjID::MIRRORBASE3))) 
+            if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
             {
                 continue;           /*  Not drawing objects behind mirror & mirror itself */
             }
-            else 
+            else
             {
-                if (renderPass == RenderPass::SPHERETEX_GENERATION && (i == TO_INT(ObjID::MIRROR))) {
+                if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
                     continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
                 }
                 else
                 {
-                    if (i == TO_INT(ObjID::MIRROR))
+                    if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
                         glUniform1i(m_lightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
-                        SendObjTexID(resourceManager.GetTexture(scene.GetObject(i).GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
+                        SendObjTexID(resourceManager.GetTexture(obj.GetImageID()), TO_INT(ActiveTexID::COLOR), m_textureLoc);
                         glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
                     SendMVMat(MVMat[i], normalMVMat[i], m_mainMVMatLoc, m_mainNMVMatLoc);
 
-                    if (i == TO_INT(ObjID::BASE))   /*  apply normal mapping / parallax mapping for the base */
+                    if (obj.GetObjType() == Core::ObjectType::MAPPABLE_PLANE)   /*  apply normal mapping / parallax mapping for the base */
                     {
                         SendObjTexID(resourceManager.m_normalTexID, TO_INT(ActiveTexID::NORMAL), m_normalTexLoc);
                         glUniform1i(m_normalMappingOnLoc, true);
@@ -1034,19 +1055,20 @@ void Renderer::RenderObjsBg(const std::vector<Mat4>& MVMat, const std::vector<Ma
                         Hence we need to perform front-face culling for it.
                         Other objects use back-face culling as usual.
                     */
-                    if (i == TO_INT(ObjID::MIRROR)) {
+                    if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT) {
                         glCullFace(GL_FRONT);
                     }
 
-                    RenderObj(scene.GetObject(i));
+                    RenderObj(obj);
 
                     /*  Trigger back-face culling again */
-                    if (i == TO_INT(ObjID::MIRROR)) {
+                    if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT) {
                         glCullFace(GL_BACK);
                     }
                 }
             }
         }
+    }
 }
 
 

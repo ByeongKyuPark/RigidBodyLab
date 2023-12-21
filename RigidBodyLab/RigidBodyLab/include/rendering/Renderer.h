@@ -50,9 +50,9 @@ namespace Rendering {
 		float m_sphereRefIndex;
 		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
+
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
-
 		bool m_shouldUpdateCubeMapForSphere;
 
 		/******************************************************************************/
@@ -106,7 +106,7 @@ namespace Rendering {
 		GLint m_lightOnLoc;
 		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
 	private:
-
+		void InitMatrices(size_t numObjects);
 		void InitImGui();
 		void InitRendering();
 

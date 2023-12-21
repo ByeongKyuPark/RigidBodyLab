@@ -60,7 +60,7 @@ const Core::Object& Core::Scene::GetObject(size_t index) const{
  *   For a box collider - ColliderConfig colliderConfig = Vec3{1.f, 1.f, 1.f};
  *   For a sphere collider - ColliderConfig colliderConfig = 1.0f;
  */
-Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation)
+Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation, ObjectType objType )
 {
     // Fetch the mesh and texture
     auto mesh = ResourceManager::GetInstance().GetMesh(meshID);
@@ -81,7 +81,8 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             mesh,
             textureID,
             std::move(collider),
-            std::make_unique<RigidBody>(Transform{ position, orientation }, mass, colliderType)
+            std::make_unique<RigidBody>(Transform{ position, orientation }, mass, colliderType), 
+            objType
             ));
     }
     else {
@@ -90,10 +91,11 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             mesh,
             textureID,
             std::move(collider),
-            Transform{ position, orientation }
+            Transform{ position, orientation }, 
+            objType
         ));
     }
-
+    
     return m_objects.back().get();
 }
 
@@ -113,7 +115,7 @@ void Core::Scene::SetUpScene() {
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
     Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
-    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 },0.f);
+    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::MAPPABLE_PLANE);
 
     //(2) VASE
     constexpr float VASE_SCL = 2.f;
@@ -123,11 +125,11 @@ void Core::Scene::SetUpScene() {
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.1f };//temp
     Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
     std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
-    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} });
+    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
     //(4) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
-    m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f });
+    m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 
     SetUpLight(baseSize.x);
 }
