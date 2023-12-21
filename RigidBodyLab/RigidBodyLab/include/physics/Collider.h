@@ -1,7 +1,14 @@
 #pragma once
 #include <math/Math.h>
+#include <math/Matrix4.h>
 #include <variant>
 namespace Physics {
+	using Math::Matrix4;
+
+	enum class ColliderType {
+		BOX=0,
+		SPHERE
+	};
 
 	//pure abstract class (just an interface class)
 	class Collider {
@@ -38,7 +45,7 @@ namespace Physics {
 			return glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
 		}
 		Matrix4 GetScaleMatrix() const override final {
-			return Physics::Matrix4{scale.x,scale.y,scale.z,1.f};
+			return Matrix4{scale.x,scale.y,scale.z,1.f};
 		}
 
 		std::variant<float, Vec3> GetScale() const override final{

@@ -386,7 +386,7 @@ namespace Physics {
             //}
 
         }
-        void Clear() { m_collisions.clear(); }
+        void Reset() { m_collisions.clear(); }
         void ResolveCollision(float dt) {
             for (int i = 0; i < m_iterationLimit; ++i) {
                 for (auto& contact : m_collisions) {

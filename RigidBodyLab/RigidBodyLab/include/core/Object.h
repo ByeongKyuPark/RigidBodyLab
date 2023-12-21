@@ -12,7 +12,6 @@
 namespace Core {
 	using namespace Rendering;
 	using namespace Physics;
-
 	class Object {
 	private:
 		ImageID m_imageID;
@@ -25,11 +24,11 @@ namespace Core {
 		std::string m_name;
 	public:
 		// Constructor for static objects (only Mat4 needed)
-		Object(std::string name,const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform)
+		Object(const std::string& name,const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform)
 			: m_name{name}, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform) {}
 
 		// Constructor for dynamic objects
-		Object(std::string name, const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody)
+		Object(const std::string& name, const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody)
 			:m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)) {}
 
 		Object(const Object& other) = default;

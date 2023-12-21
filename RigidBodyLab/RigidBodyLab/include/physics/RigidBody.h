@@ -1,6 +1,7 @@
 #pragma once
 #include <math/Matrix3.h>
 #include <core/Transform.h>
+#include <physics/Collider.h>
 
 namespace Physics
 {
@@ -27,8 +28,16 @@ namespace Physics
         float linearDamping;
         float angularDamping;
 
+        static constexpr float SPHERE_INERTIA_FACTOR = 0.4f;
+        static constexpr float CUBE_INERTIA_FACTOR = 1 / 6.0f;
     public:
-        RigidBody(Core::Transform& _transform) : transform{_transform},massInverse { 0.f }, linearDamping(0.9f), angularDamping(0.5f) {}
+        RigidBody(Core::Transform& _transform, float _mass = 1.f, ColliderType colliderType=ColliderType::BOX) : transform{ _transform }, massInverse{ 1.f/_mass }, linearDamping(0.9f), angularDamping(0.5f)
+        {
+            Math::Matrix3 inertiaTensor;
+            float diagonal = _mass *  (colliderType == ColliderType::SPHERE) ?  SPHERE_INERTIA_FACTOR : CUBE_INERTIA_FACTOR;
+            inertiaTensor.SetDiagonal(diagonal);
+            SetInertiaTensor(inertiaTensor);
+        }
 
         void Integrate(float duration);
         void AddForceAt(const Vector3& force, const Vector3& point);
