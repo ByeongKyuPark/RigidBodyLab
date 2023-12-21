@@ -63,20 +63,20 @@ namespace Rendering {
 		/*  Viewer camera */
 		Mat4 m_mainCamViewMat;
 		Mat4 m_mainCamProjMat;
-		std::vector<Mat4> m_mainCamMVMat;
-		std::vector<Mat4> m_mainCamNormalMVMat;
+		std::unordered_map<int, Mat4> m_mainCamMVMat;
+		std::unordered_map<int, Mat4> m_mainCamNormalMVMat;
 
 		/*  Mirror camera */
 		Mat4 m_mirrorCamViewMat;
 		Mat4 m_mirrorCamProjMat;
-		std::vector<Mat4> m_mirrorCamMVMat;
-		std::vector<Mat4> m_mirrorCamNormalMVMat;
+		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
+		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
 
 		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
 		Mat4 m_sphereCamProjMat;
-		std::vector<Mat4> m_sphereCamViewMat;
-		std::vector<std::vector<Mat4>> m_sphereCamMVMat;
-		std::vector<std::vector<Mat4>> m_sphereCamNormalMVMat;
+		std::unordered_map<int, Mat4> m_sphereCamViewMat;
+		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamMVMat;
+		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamNormalMVMat;
 
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
@@ -106,7 +106,6 @@ namespace Rendering {
 		GLint m_lightOnLoc;
 		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
 	private:
-		void InitMatrices(size_t numObjects);
 		void InitImGui();
 		void InitRendering();
 
@@ -115,13 +114,17 @@ namespace Rendering {
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
-		void RenderObjsBg(const std::vector<Mat4>& MVMat, const std::vector<Mat4>& normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass, Core::Scene& scene);
+		void RenderObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
+		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
+		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
 		void RenderGui(Scene& scene, float fps);
 
-		void ComputeObjMVMats(std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, const Core::Scene& scene);
+		void ComputeMainCamObjMVMats(const Core::Scene& scene);
+		void ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene);
+		void ComputeSphericalMirrorCamObjMVMats(int faceIdx, const Core::Scene& scene);
 		void ComputeMainCamMats(const Scene& scene);
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
