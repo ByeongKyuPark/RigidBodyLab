@@ -58,8 +58,8 @@ namespace Core {
             ColliderType colliderType,
             const Vec3& scale = {1.f,1.f,1.f},
             const Vector3& position = Vector3{0.f,0.f,0.f},
-            const Quaternion& orientation = Quaternion{},
-            float mass=0.f
+            float mass=1.f,
+            const Quaternion& orientation = Quaternion{}
         )
         {
 
