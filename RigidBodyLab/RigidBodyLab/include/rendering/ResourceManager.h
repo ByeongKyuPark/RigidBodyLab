@@ -13,6 +13,11 @@ namespace Rendering {
 		VASE,
 		PLANE,
 		SPHERE,
+		TEAPOT,
+		DIAMOND,
+		DODECAHEDRON,
+		GOURD,
+		PYRAMID,
 		NUM_MESHES
 	};
 

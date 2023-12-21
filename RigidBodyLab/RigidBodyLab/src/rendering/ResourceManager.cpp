@@ -15,6 +15,11 @@ ResourceManager::ResourceManager()
     m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(Mesh::CreatePlane(1, 1));
     m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(Mesh::CreateSphere(16, 16));
     m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
+    m_meshes[TO_INT(MeshID::TEAPOT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/teapot.obj"));
+    m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
+    m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
+    m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
+    m_meshes[TO_INT(MeshID::PYRAMID)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/pyramid.obj"));
 
     stbi_set_flip_vertically_on_load(true);
 

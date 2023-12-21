@@ -18,10 +18,10 @@ namespace Core {
 		ImageID m_imageID;
 
 		//Dependency Injection
-		const Mesh* m_mesh;     
-		std::unique_ptr<Collider> m_collider;
+		const Mesh* m_mesh;     //not owner
+		std::unique_ptr<Collider> m_collider; //owner
 		//'Rigidbody' for dynamic objects, 'Transform' for static objects
-		std::variant<std::unique_ptr<RigidBody>, Transform> m_physicsOrTransform;
+		std::variant<std::unique_ptr<RigidBody>, Transform> m_physicsOrTransform; //owner
 		std::string m_name;
 	public:
 		// Constructor for static objects (only Mat4 needed)
@@ -37,11 +37,13 @@ namespace Core {
 		Object& operator=(const Object& other) = default;
 		Object& operator=(Object&& other) noexcept = default;
 
+		void SetMesh(const Mesh* mesh) { m_mesh = mesh; }
+		
 		// Getter methods (setters might not be necessary because we are passing by reference)
 		Vector3 GetPosition()const;
 		Vector3 GetAxis(int axisIdx) const;
 		const Mesh* GetMesh() const { return m_mesh; }
-		void SetMesh(const Mesh* mesh) { m_mesh = mesh; }
+
 		//RT only (no scale)
 		Matrix4 GetModelMatrix() const;
 		Mat4 GetUnitModelMatrixGLM() const;

@@ -52,6 +52,7 @@ namespace Rendering {
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
 
+		bool m_shouldUpdateCubeMapForSphere;
 
 		/******************************************************************************/
 		/*  Graphics-related variables                                                */

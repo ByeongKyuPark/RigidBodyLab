@@ -336,8 +336,8 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
         // Setting the far plane to infinity can lead to depth precision issues, causing distant objects to dominate in reflections. 
         // A minimum near plane distance is set to mitigate this, particularly suitable for this static scene scenarios.
         //mirrorCam.nearPlane = std::max(nearDist, 2.5f);
-        constexpr float MAX_FAR_PLANE = 1000.f;
-        constexpr float MIN_NEAR_PLANE = 0.01f;
+        constexpr float MAX_FAR_PLANE = 100.f;
+        constexpr float MIN_NEAR_PLANE = 2.5f;
 
         mirrorCam.nearPlane = std::max(nearDist, MIN_NEAR_PLANE);
         mirrorCam.farPlane = MAX_FAR_PLANE;
@@ -492,7 +492,17 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
         }
     }
 
-	const static std::vector<std::string> meshNames = { "Cube", "Vase", "Plane", "Sphere" };
+	const static std::vector<std::string> meshNames = { 
+        "Cube", 
+        "Vase", 
+        "Plane", 
+        "Sphere" ,
+        "Teapont",
+        "Diamond",
+        "Dodecahedron",
+        "Gourd",
+        "Pyramid"
+    };
 	const char* meshNamesCStr[TO_INT(MeshID::NUM_MESHES)];
 	for (size_t i = 0; i < meshNames.size(); ++i) {
 		meshNamesCStr[i] = meshNames[i].c_str();
@@ -523,6 +533,7 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
             if (selectedMesh >= 0) {
                 Mesh* newMesh = resourceManager.GetMesh(static_cast<MeshID>(selectedMesh));
                 scene.GetObject(selectedObject).SetMesh(newMesh);
+                m_shouldUpdateCubeMapForSphere = true;
             }
         }
 
@@ -532,6 +543,7 @@ void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
             // Texture selection
             if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
                 scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+                m_shouldUpdateCubeMapForSphere = true;
             }
         }
 
@@ -722,6 +734,7 @@ Rendering::Renderer::Renderer()
     : m_window{ nullptr,WindowDeleter }, m_fps(0)
     , m_sphereRef(RefType::REFLECTION_ONLY)
     , m_parallaxMappingOn(true), m_sphereRefIndex{1.33f}//water by default
+    , m_shouldUpdateCubeMapForSphere{true}
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -967,7 +980,6 @@ void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const M
 
     ResourceManager& resourceManager = ResourceManager::GetInstance();
 
-
     /*  Send object texture and render them */
     size_t NUM_OBJS = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < NUM_OBJS; ++i)
@@ -1137,8 +1149,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
     */
-    static bool firstFrame = true;
-    if (firstFrame)
+    if (m_shouldUpdateCubeMapForSphere)
     {
         ComputeSphereCamMats(scene);
         ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -1161,7 +1172,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
             free(sphereCubeMapData[f]);
         }
 
-        firstFrame = false;
+        m_shouldUpdateCubeMapForSphere = false;
     }
 
 

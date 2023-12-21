@@ -101,11 +101,11 @@ void Core::Scene::SetUpScene() {
     //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
     Vec3 vaseMeshOffset{ 0.f,-0.85f,0.f };
     //Vec3 vaseColliderSize = {2.f,2.f,2.f};
-    Transform vaseTransform{ {0.5f, 4.5f, 0} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
+    Transform vaseTransform{ {0.5f, 4.5f, 0.5f} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
     std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
 
     //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
-    constexpr float VASE_SCL = 1.5f;
+    constexpr float VASE_SCL = 2.f;
     vaseRigidBody->SetMass(mass);
     vaseRigidBody->SetInertiaTensor(inertiaTensor);
 
