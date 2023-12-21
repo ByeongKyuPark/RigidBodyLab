@@ -198,7 +198,7 @@ void Renderer::SendLightProperties(const Core::Scene& scene)
         Given view matrix.
 */
 /******************************************************************************/
-void Renderer::ComputeObjMVMats(Mat4* MVMat, Mat4* NMVMat,const Mat4& viewMat, const Core::Scene& scene)
+void Renderer::ComputeObjMVMats(std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, const Core::Scene& scene)
 {
     const size_t OBJ_SIZE = TO_INT(ObjID::NUM_OBJS);
     for (int i = 0; i < OBJ_SIZE; ++i)
@@ -711,10 +711,23 @@ void Renderer::CleanUp()
 }
 
 Rendering::Renderer::Renderer()
-    : m_window{ nullptr,WindowDeleter }, m_fps(0)
-    , m_sphereRef(RefType::REFLECTION_ONLY)
-    , m_parallaxMappingOn(true), m_sphereRefIndex{1.33f}//water by default
-    , m_shouldUpdateCubeMapForSphere{true}
+    :m_window{ nullptr,WindowDeleter }, m_fps(0)
+    ,m_sphereRef(RefType::REFLECTION_ONLY)
+    ,m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
+    ,m_shouldUpdateCubeMapForSphere{ true }
+
+    , m_mainCamViewMat{}
+    , m_mainCamProjMat{}
+    ,m_mainCamMVMat(TO_INT(ObjID::NUM_OBJS))
+    ,m_mainCamNormalMVMat(TO_INT(ObjID::NUM_OBJS))
+
+    ,m_mirrorCamViewMat{}
+    ,m_mirrorCamProjMat{}
+    ,m_mirrorCamMVMat(TO_INT(ObjID::NUM_OBJS))
+    ,m_mirrorCamNormalMVMat((TO_INT(ObjID::NUM_OBJS)))
+
+    ,m_sphereCamProjMat {}
+    ,m_sphereCamViewMat(TO_INT(CubeFaceID::NUM_FACES))
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -753,7 +766,12 @@ Rendering::Renderer::Renderer()
 	InitRendering();
 	InitImGui();
 
-	//need to flip cuz 'stb_image' assumes the image's origin is at the bottom-left corner, while many image formats store the origin at the top-left corner.
+    m_sphereCamMVMat.resize(TO_INT(CubeFaceID::NUM_FACES));
+    m_sphereCamNormalMVMat.resize(TO_INT(CubeFaceID::NUM_FACES));
+    for (int face = 0; face < TO_INT(CubeFaceID::NUM_FACES); ++face) {
+        m_sphereCamMVMat[face].resize(TO_INT(ObjID::NUM_OBJS));
+        m_sphereCamNormalMVMat[face].resize(TO_INT(ObjID::NUM_OBJS));
+    }
 
     m_shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
     m_shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
@@ -942,7 +960,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
         We need this flag because each pass only render certain objects.
 */
 /******************************************************************************/
-void Renderer::RenderObjsBg(const Mat4 * MVMat, const Mat4 *normalMVMat, const Mat4& viewMat, const Mat4& projMat,
+void Renderer::RenderObjsBg(const std::vector<Mat4>& MVMat, const std::vector<Mat4>& normalMVMat, const Mat4& viewMat, const Mat4& projMat,
     int viewportWidth, int viewportHeight,
     RenderPass renderPass, Core::Scene& scene)
 {

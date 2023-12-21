@@ -5,6 +5,7 @@
 #include <core/Object.h>
 #include <core/Scene.h>
 #include <unordered_map>
+#include <vector>
 #include <rendering/Shader.h>
 #include <array>
 
@@ -58,22 +59,27 @@ namespace Rendering {
 		/*  Graphics-related variables                                                */
 		/******************************************************************************/
 
-		/*  For clearing depth buffer */
-		GLfloat one = 1.0f;
-
 		/*  Matrices for view/projetion transformations */
 		/*  Viewer camera */
-		Mat4 m_mainCamViewMat, m_mainCamProjMat, m_mainCamMVMat[TO_INT(ObjID::NUM_OBJS)], m_mainCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
+		Mat4 m_mainCamViewMat;
+		Mat4 m_mainCamProjMat;
+		std::vector<Mat4> m_mainCamMVMat;
+		std::vector<Mat4> m_mainCamNormalMVMat;
 
 		/*  Mirror camera */
-		Mat4 m_mirrorCamViewMat, m_mirrorCamProjMat, m_mirrorCamMVMat[TO_INT(ObjID::NUM_OBJS)], m_mirrorCamNormalMVMat[TO_INT(ObjID::NUM_OBJS)];
+		Mat4 m_mirrorCamViewMat;
+		Mat4 m_mirrorCamProjMat;
+		std::vector<Mat4> m_mirrorCamMVMat;
+		std::vector<Mat4> m_mirrorCamNormalMVMat;
 
 		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
-		Mat4 m_sphereCamViewMat[TO_INT(CubeFaceID::NUM_FACES)],
-			m_sphereCamProjMat,
-			m_sphereCamMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)],
-			m_sphereCamNormalMVMat[TO_INT(CubeFaceID::NUM_FACES)][TO_INT(ObjID::NUM_OBJS)];
+		Mat4 m_sphereCamProjMat;
+		std::vector<Mat4> m_sphereCamViewMat;
+		std::vector<std::vector<Mat4>> m_sphereCamMVMat;
+		std::vector<std::vector<Mat4>> m_sphereCamNormalMVMat;
 
+		/*  For clearing depth buffer */
+		GLfloat one = 1.0f;
 
 		/*  Locations of the variables in the shader. */
 		/*  Locations of transform matrices */
@@ -109,13 +115,13 @@ namespace Rendering {
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
-		void RenderObjsBg(const Mat4* MVMat, const Mat4* normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass, Scene& scene);
+		void RenderObjsBg(const std::vector<Mat4>& MVMat, const std::vector<Mat4>& normalMVMat, const Mat4& viewMat, const Mat4& projMat, int viewportWidth, int viewportHeight, RenderPass renderPass, Core::Scene& scene);
 		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
 		void RenderGui(Scene& scene, float fps);
 
-		void ComputeObjMVMats(Mat4* MVMat,Mat4* NMVMat, const Mat4& viewMat, const Scene& scene);
+		void ComputeObjMVMats(std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, const Core::Scene& scene);
 		void ComputeMainCamMats(const Scene& scene);
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
