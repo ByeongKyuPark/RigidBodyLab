@@ -37,132 +37,97 @@ const Core::Object& Core::Scene::GetObject(size_t index) const{
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
 
+/**
+ * Creates and returns a pointer to a new Object with the specified parameters.
+ *
+ * The function utilizes a `std::variant` for the collider configuration, allowing
+ * the flexibility to specify either a radius for a sphere collider or a scale
+ * for a box collider. This approach streamlines the function signature and
+ * ensures type safety and clarity in specifying collider properties.
+ *
+ * @param name The name of the object to be created.
+ * @param meshID The ID of the mesh to be used for the object.
+ * @param textureID The ID of the texture to be applied to the object.
+ * @param colliderType The type of collider to be attached to the object (e.g., BOX, SPHERE).
+ * @param colliderConfig A `std::variant` holding either a float for sphere collider's radius
+ *                       or a Vec3 for box collider's scale, depending on `colliderType`.
+ * @param position The initial position of the object in the world (defaulted to {0.f, 0.f, 0.f}).
+ * @param mass The mass of the object (defaulted to 1.0f).
+ * @param orientation The initial orientation of the object (defaulted to an identity quaternion).
+ * @return A pointer to the newly created Object.
+ *
+ * Usage examples:
+ *   For a box collider - ColliderConfig colliderConfig = Vec3{1.f, 1.f, 1.f};
+ *   For a sphere collider - ColliderConfig colliderConfig = 1.0f;
+ */
+Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation)
+{
+    // Fetch the mesh and texture
+    auto mesh = ResourceManager::GetInstance().GetMesh(meshID);
+
+    std::unique_ptr<Collider> collider;
+    // Determine the type of collider to create
+    if (colliderType == ColliderType::BOX) {
+        collider = std::make_unique<BoxCollider>(std::get<Vec3>(colliderConfig));
+    }
+    else if (colliderType == ColliderType::SPHERE) {
+        collider = std::make_unique<SphereCollider>(std::get<float>(colliderConfig));
+    }
+
+    // Create the object with the appropriate collider
+    if (mass != 0.f) {
+        m_objects.emplace_back(std::make_unique<Core::Object>(
+            name,
+            mesh,
+            textureID,
+            std::move(collider),
+            std::make_unique<RigidBody>(Transform{ position, orientation }, mass, colliderType)
+            ));
+    }
+    else {
+        m_objects.emplace_back(std::make_unique<Core::Object>(
+            name,
+            mesh,
+            textureID,
+            std::move(collider),
+            Transform{ position, orientation }
+        ));
+    }
+
+    return m_objects.back().get();
+}
+
 void Core::Scene::SetUpScene() {
     using Physics::BoxCollider;
     using Physics::SphereCollider;
     using Physics::RigidBody;
     using Core::Transform;
 
-    //constexpr float BASE_POS_Y = -4.5f;
     constexpr float BASE_POS_Y = 0.f;
     constexpr float BASE_SCL_Y = 2.f;//7.5
     constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
     ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-    //Dependency Injection pattern
-
-    //float mass = 1.f;
-    //Math::Matrix3 inertiaTensor;
-    //inertiaTensor.SetDiagonal(mass * CUBE_INERTIA_FACTOR);
-
-    //(1) PLANE
-    //Vec3 baseSize = Vec3(11.0f, BASE_SCL_Y, 7.0f);
-    //Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
-    //std::unique_ptr<RigidBody> planeRigidBody= std::make_unique<RigidBody>();
-    //std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
-    //auto& cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::STONE_TEX, Translate(0, BASE_POS_Y, 0) * Scale(baseSize), planeRigidBody.release(), planeCollider.release()));
     
     //(1) PLANE
-
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
     Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
-    //Vec3 baseSize = Vec3(1.0f, 1.f, 1.0f);
-    //Vec3 cubeColliderSize = baseSize; // Set appropriate dimensions for the collider
-    //std::unique_ptr<RigidBody> planeRigidBody = std::make_unique<RigidBody>();
-    //planeRigidBody->SetPosition(Math::Vector3(basePos.x, basePos.y, basePos.z));  // Set the initial position
-    //planeRigidBody->SetMass(mass);
-    ////angle
-    //{
-    //    float angleDegrees = 45.0f; // Angle in degrees
-    //    Math::Vector3 axis(0, 1, 0); // Y-axis for example
-
-    //    // Create a quaternion representing the rotation
-    //    Math::Quaternion rotation(angleDegrees, axis);
-
-    //    // Set this rotation to the rigid body
-    //    planeRigidBody->SetOrientation(rotation);
-    //}
-    //planeRigidBody->SetInertiaTensor(inertiaTensor);
-    //Transform planeTransform{ {0, BASE_POS_Y, 0} };
-    ////Mat4 planeModelToWorldMat = Translate(0, BASE_POS_Y, 0);// * Scale(baseSize);
-    //std::unique_ptr<BoxCollider>planeCollider = std::make_unique<BoxCollider>(cubeColliderSize);
-
-    //planeCollider->SetScale(cubeColliderSize);
-    //const Mesh* cubeMesh = resourceManager.GetMesh(MeshID::CUBE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>("plane",cubeMesh, ImageID::STONE_TEX_1, std::move(planeCollider), planeTransform));
-
     CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 },0.f);
 
     //(2) VASE
-    //Vec3 vasePos{ 0.0f, 0.995f, 0.0f };
-    //Vec3 vasePos{ 0.0f, 1.2f, 0.0f };
-    //Vec3 vasePos{ 1.0f, -0.645f, 2.0f };
-    //Vec3 vaseMeshOffset{ 0.f,-0.85f,0.f };
-    //Vec3 vaseColliderSize = {2.f,2.f,2.f};
-    //Transform vaseTransform{ {0.5f, 4.5f, 0.5f} ,Quaternion{30.f,Vector3{1.f,0.f,0.f}} };
-    //std::unique_ptr<RigidBody> vaseRigidBody = std::make_unique<RigidBody>(vaseTransform);
-
-    //vaseRigidBody->SetPosition(Math::Vector3(vasePos.x, vasePos.y, vasePos.z));  // Set the initial position
     constexpr float VASE_SCL = 2.f;
-    //vaseRigidBody->SetMass(mass);
-    //vaseRigidBody->SetInertiaTensor(inertiaTensor);
-
-    //const Mesh* vaseMesh = resourceManager.GetMesh(MeshID::VASE);
-    //std::unique_ptr<BoxCollider>vaseCollider = std::make_unique<BoxCollider>(Vec3{VASE_SCL,VASE_SCL,VASE_SCL});
-    //m_objects.emplace_back(std::make_unique<Core::Object>("vase",vaseMesh, ImageID::POTTERY_TEX_1, std::move(vaseCollider), std::move(vaseRigidBody)));
-    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, { VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
+    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
 
     //(3) MIRROR
-    //m_mirrorTranslate = Vec3(4.0f, MIRROR_POS_Y, -4.5f);
-    //m_mirrorRotationAxis = BASIS[Y];
-    //m_mirrorRotationAngle = -EIGHTH_PI;
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.1f };//temp
-    //Transform mirrorTransform{ {4.0f, MIRROR_POS_Y, -4.5f} ,Quaternion{PI-EIGHTH_PI,Vector3{0.f,1.f,0.f}} };
     Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
     std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
-    //mirrorRigidBody->SetMass(mass);
-    //mirrorRigidBody->SetInertiaTensor(inertiaTensor);
-    //std::unique_ptr<BoxCollider> mirrorCollider = std::make_unique<BoxCollider>(mirrorColliderSize);
-    //const Mesh* planeMesh = resourceManager.GetMesh(MeshID::PLANE);
-
-    //m_objects.emplace_back(std::make_unique<Core::Object>("planar mirror",planeMesh, ImageID::MIRROR_TEX, std::move(mirrorCollider), std::move(mirrorRigidBody)));
     m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} });
-    //m_mirror = m_objects.back().get();
-
-    //// Setup the base of the mirror
-    //constexpr float MIRROR_FRAME_OFFSET = 0.45f;
-    //Vec3 mirrorPartColliderSize = Vec3{ 5.f,5.f,5.f };//temp
-    //std::unique_ptr<RigidBody> mirrorPart1RigidBody = std::make_unique<RigidBody>();
-    //std::unique_ptr<BoxCollider> mirrorPart1Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, 0, -0.03f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(MIRROR_SCL + MIRROR_FRAME_OFFSET, MIRROR_SCL + MIRROR_FRAME_OFFSET, 0.05f),std::move(mirrorPart1RigidBody),std::move(mirrorPart1Collider)));
-
-    //std::unique_ptr<RigidBody> mirrorPart2RigidBody = std::make_unique<RigidBody>();
-    //std::unique_ptr<BoxCollider> mirrorPart2Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -3.1, -0.6f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Scale(3.0f, 0.1f, 1.0f), std::move(mirrorPart2RigidBody), std::move(mirrorPart2Collider)));
-
-    //std::unique_ptr<RigidBody> mirrorPart3RigidBody = std::make_unique<RigidBody>();
-    //std::unique_ptr<BoxCollider> mirrorPart3Collider = std::make_unique<BoxCollider>(mirrorPartColliderSize);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(cubeMesh, ImageID::WOOD_TEX, Translate(m_mirrorTranslate + Vec3(0, -2.1, -0.53f)) * Rotate(m_mirrorRotationAngle, m_mirrorRotationAxis) * Rotate(TWO_PI / 3, BASIS[X]) * Scale(0.5f, 0.1f, 1.7f), std::move(mirrorPart3RigidBody), std::move(mirrorPart3Collider)));
 
     //(4) SPHERE
-    //inertiaTensor.SetDiagonal(mass* SPHERE_INERTIA_FACTOR);
-
     constexpr float SPHERE_RAD = 3.5f;
-    // Setup the sphere
-    Transform sphereTransform{ {-4.5f, 7.f, -1.5f}};
-    std::unique_ptr<RigidBody> sphereRigidBody = std::make_unique<RigidBody>(sphereTransform);
-    //sphereRigidBody->SetMass(mass);
-    //sphereRigidBody->SetInertiaTensor(inertiaTensor);
-    //Translate(m_spherePos)* Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD)
-    std::unique_ptr<SphereCollider> sphereCollider = std::make_unique<SphereCollider>(SPHERE_RAD);
-    //m_spherePos = Vec3(-4.5f, 7.f, -1.5f);
-    const Mesh* sphereMesh = resourceManager.GetMesh(MeshID::SPHERE);
-    //m_objects.emplace_back(std::make_unique<Core::Object>(sphereMesh, ImageID::SPHERE_TEX, Translate(m_spherePos) * Scale(SPHERE_RAD, SPHERE_RAD, SPHERE_RAD), std::move(sphereRigidBody), std::move(sphereCollider)));
-    m_objects.emplace_back(std::make_unique<Core::Object>("spherical mirror",sphereMesh, ImageID::SPHERE_TEX, std::move(sphereCollider), std::move(sphereRigidBody)));
-    m_sphere = m_objects.back().get();
+    m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f });
 
     SetUpLight(baseSize.x);
 }
