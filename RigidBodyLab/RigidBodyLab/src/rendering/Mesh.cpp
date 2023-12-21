@@ -15,9 +15,7 @@ void ComputeNormals(Mesh& mesh);
 void ComputeUVs(Mesh& mesh);
 
 Mat4 Rendering::Mesh::GetBoundingBoxMat() const {
-    return 
-        Scale(m_boundingBoxes.extents) * 
-        Translate(-m_boundingBoxes.center);
+    return Scale(m_boundingBoxes.extents) * Translate(-m_boundingBoxes.center);
 }
 
 /******************************************************************************/

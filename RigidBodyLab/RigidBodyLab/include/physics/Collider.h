@@ -3,7 +3,10 @@
 #include <math/Matrix4.h>
 #include <variant>
 namespace Physics {
+
 	using Math::Matrix4;
+
+	using ColliderConfig = std::variant<float, Vec3>; // float for radius, Vec3 for scale
 
 	enum class ColliderType {
 		BOX=0,

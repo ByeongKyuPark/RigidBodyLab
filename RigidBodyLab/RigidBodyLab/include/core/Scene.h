@@ -9,7 +9,6 @@
 namespace Core {
     using Physics::CollisionData;
     using Physics::CollisionManager;
-    using ColliderConfig = std::variant<float, Vec3>; // float for radius, Vec3 for scale
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;

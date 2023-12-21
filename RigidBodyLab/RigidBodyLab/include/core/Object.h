@@ -7,11 +7,11 @@
 #include <physics/Collider.h>
 #include <memory>
 #include <vector>
-#include <variant>
 
 namespace Core {
 	using namespace Rendering;
 	using namespace Physics;
+
 	class Object {
 	private:
 		ImageID m_imageID;

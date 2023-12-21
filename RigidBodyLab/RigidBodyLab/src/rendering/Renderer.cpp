@@ -13,6 +13,7 @@
 #include <rendering/Camera.h>
 #include <core/Scene.h>
 #include <rendering/ResourceManager.h>
+#include <physics/Collider.h>
 #include <input/input.h>
 #include <math/Math.h>
 #include <utilities/ToUnderlyingEnum.h>
@@ -433,120 +434,99 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
-void Rendering::Renderer::RenderGui(Scene& scene,float fps) {
+void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
     ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
-    // Displaying FPS
-    ImGui::Text("Frame Rate: %.1f", fps); // Assuming fps is a float variable
 
+    // Displaying FPS
+    ImGui::Text("Frame Rate: %.1f", fps);
+
+    // Sphere Reflection/Refraction settings
     int refTypeInt = static_cast<int>(m_sphereRef);
     const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
     if (ImGui::Combo("Sphere", &refTypeInt, refTypes, IM_ARRAYSIZE(refTypes))) {
-        m_sphereRef = static_cast<RefType>(refTypeInt); // Cast back to enum class after ImGui interaction
+        m_sphereRef = static_cast<RefType>(refTypeInt);
     }
-
-    // Conditionally display the "Sphere Refractive Index" slider
     if (m_sphereRef != RefType::REFLECTION_ONLY) {
         ImGui::SliderFloat("Sphere Refractive Index", &m_sphereRefIndex, 1.0f, 2.5f);
     }
-    // Parallax mapping toggling
+
+    // Parallax Mapping Toggle
     ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
 
-    //----------------------
-    // Object list GUI
-    static int selectedObject = -1;  // Initialize selected object index
-    static int selectedMesh = -1;    // Initialize selected mesh index
-    static int selectedTexture{ -1 };
-
+    // Object List GUI
+    static int selectedObject = -1;
     std::vector<std::string> objectNames;
     for (size_t i = 0; i < scene.m_objects.size(); ++i) {
         objectNames.emplace_back(scene.m_objects[i]->GetName());
     }
-
-    // Lambda to provide access to names
-    auto listbox_items_getter = [](void* data, int idx, const char** out_text) -> bool {
+    if (ImGui::ListBox("Objects", &selectedObject, [](void* data, int idx, const char** out_text) -> bool {
         const auto& vector = *static_cast<const std::vector<std::string>*>(data);
-        if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
-        *out_text = vector.at(idx).c_str();
-        return true;
-    };
-
-    // List of objects
-    if (ImGui::ListBox("Objects", &selectedObject, listbox_items_getter, static_cast<void*>(&objectNames), objectNames.size())) {
-        if (selectedObject >= 0) {
-            ResourceManager& resourceManager = ResourceManager::GetInstance();
-
-            // Get the current mesh of the selected object
-            const Mesh* currentMesh = scene.GetObject(selectedObject).GetMesh();
-
-            // Determine the MeshID based on the mesh pointer
-            for (int i = 0; i < TO_INT(MeshID::NUM_MESHES); ++i) {
-                if (currentMesh == resourceManager.GetMesh(static_cast<MeshID>(i))) {
-                    selectedMesh = i;
-                    break;
-                }
-            }
-
-            // Set the selected texture
-            selectedTexture = static_cast<int>(scene.GetObject(selectedObject).GetImageID());
-        }
+    if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+    *out_text = vector.at(idx).c_str();
+    return true;
+        }, static_cast<void*>(&objectNames), objectNames.size())) {
+        // Code to handle object selection
     }
 
-	const static std::vector<std::string> meshNames = { 
-        "Cube", 
-        "Vase", 
-        "Plane", 
-        "Sphere" ,
-        "Teapont",
-        "Diamond",
-        "Dodecahedron",
-        "Gourd",
-        "Pyramid"
-    };
-	const char* meshNamesCStr[TO_INT(MeshID::NUM_MESHES)];
-	for (size_t i = 0; i < meshNames.size(); ++i) {
-		meshNamesCStr[i] = meshNames[i].c_str();
-	}
-    constexpr int NumTextures = TO_INT(ImageID::NUM_IMAGES);
-    const static std::vector<std::string> textureNames = {
-        "Stone",
-        "Stone2",
-        "Wood1",
-        "Wood2",
-        "Pottery1",
-        "Pottery2",
-        "Pottery3"
-    };
-    const char* textureNamesCStr[NumTextures];
+    // Mesh and Texture Names Setup
+    const static std::array<std::string,TO_INT(MeshID::NUM_MESHES)> meshNames = {"Cube", "Vase", "Plane", "Sphere", "Teapont", "Diamond", "Dodecahedron", "Gourd", "Pyramid"};
+    const static std::array<std::string, TO_INT(ImageID::NUM_IMAGES)> textureNames = { "Stone", "Stone2", "Wood1", "Wood2", "Pottery1", "Pottery2", "Pottery3" };
+
+    // Convert std::string vectors to const char* arrays for ImGui
+    const char* meshNamesCStr[meshNames.size()];
+    const char* textureNamesCStr[textureNames.size()];
+    for (size_t i = 0; i < meshNames.size(); ++i) {
+        meshNamesCStr[i] = meshNames[i].c_str();
+    }
     for (size_t i = 0; i < textureNames.size(); ++i) {
         textureNamesCStr[i] = textureNames[i].c_str();
     }
 
+    // Object Creation Section
+    if (ImGui::CollapsingHeader("Add Object", ImGuiTreeNodeFlags_DefaultOpen)) {
+        static char objectName[128] = "";
+        static int meshID = 0;
+        static int textureID = 0;
+        static int colliderType = 0;
+        static float radius = 1.0f;
+        static float scale[3] = { 1.0f, 1.0f, 1.0f };
+        static float position[3] = { 0.0f, 0.0f, 0.0f };
+        static float mass = 1.0f;
+        static float angleDegrees = 0.0f;
+        static Math::Vector3 rotationAxis = Math::Vector3{ 0.0f, 1.0f, 0.0f };
 
-    // Mesh and texture combo logic...
-    // If an object is selected, show mesh and texture selection
-    if (selectedObject >= 0) {
-        ResourceManager& resourceManager = ResourceManager::GetInstance();
+        ImGui::InputText("Object Name", objectName, IM_ARRAYSIZE(objectName));
+        ImGui::Combo("Mesh", &meshID, meshNamesCStr, meshNames.size());
+        ImGui::Combo("Texture", &textureID, textureNamesCStr, textureNames.size());
+        ImGui::RadioButton("Box Collider", &colliderType, 0); ImGui::SameLine();
+        ImGui::RadioButton("Sphere Collider", &colliderType, 1);
 
-        // Mesh selection
-        if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
-            if (selectedMesh >= 0) {
-                Mesh* newMesh = resourceManager.GetMesh(static_cast<MeshID>(selectedMesh));
-                scene.GetObject(selectedObject).SetMesh(newMesh);
-                m_shouldUpdateCubeMapForSphere = true;
-            }
+        if (colliderType == 1) { ImGui::InputFloat("Radius", &radius); }
+        else { ImGui::InputFloat3("Scale", scale); }
+
+        ImGui::InputFloat3("Position", position);
+        ImGui::InputFloat("Mass", &mass);
+        ImGui::InputFloat("Rotation Angle (Degrees)", &angleDegrees);
+        ImGui::InputFloat3("Rotation Axis", reinterpret_cast<float*>(&rotationAxis));
+
+        if (ImGui::Button("Add")) {
+            Core::ColliderConfig colliderConfig = (colliderType == 1) ?
+                Core::ColliderConfig(radius) :
+                Core::ColliderConfig(Vec3{ scale[0], scale[1], scale[2] });
+            Math::Quaternion orientation(angleDegrees, rotationAxis);
+
+            scene.CreateObject(
+                objectName,
+                static_cast<MeshID>(meshID),
+                static_cast<ImageID>(textureID),
+                static_cast<Physics::ColliderType>(colliderType),
+                colliderConfig,
+                { position[0], position[1], position[2] },
+                mass,
+                orientation
+            );
         }
-
-        // Texture selection
-        std::string selectedObjectName = objectNames[selectedObject];
-        if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
-            // Texture selection
-            if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
-                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
-                m_shouldUpdateCubeMapForSphere = true;
-            }
-        }
-
     }
 }
 
