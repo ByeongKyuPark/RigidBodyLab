@@ -6,6 +6,8 @@ uniform mat4 viewMat;
 
 uniform int sphereRef;
 
+uniform float sphereRefIndex;
+
 in vec3 view, normal;
 
 
@@ -22,8 +24,7 @@ void main(void)
         If sphereRef = 2 then there are both reflection and refraction.
         In that case, assume that reflection accounts for 70% of the color.
 		
-		The refractive index for the sphere is 1.5. For simplicity, we also
-		assume that each ray going into the sphere is refracted only once.
+        For simplicity, we also assume that each ray going into the sphere is refracted only once.
     */
         vec3 viewNorm = normalize(view);
         vec3 normalNorm = normalize(normal);
@@ -41,7 +42,7 @@ void main(void)
         // Handle refraction
         if (sphereRef == 1 || sphereRef == 2)
         {
-            refractDir = refract(viewNorm, normalNorm, 1.f / 1.5f);
+            refractDir = refract(viewNorm, normalNorm, 1.f / sphereRefIndex); //1.0 : the index of refraction of air
             refractDir = invViewMat * refractDir;
             colorRefract = texture(texCube, refractDir);
         }

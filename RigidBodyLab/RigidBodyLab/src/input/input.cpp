@@ -10,7 +10,7 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		switch (key)
 		{
 		case GLFW_KEY_ESCAPE:
-			Rendering::Renderer::GetInstance().CleanUp();
+			glfwSetWindowShouldClose(window, GLFW_TRUE); 
 			break;
 
 		case GLFW_KEY_W:

@@ -15,7 +15,6 @@ namespace Rendering {
         Vec3 pos, nrm, tan, bitan;
         Vec2 uv;
     };
-
     const int vertexSize = sizeof(Vertex);
     const int indexSize = sizeof(int);
 
@@ -31,6 +30,14 @@ namespace Rendering {
         int offset;
     };
 
+    struct BoundingBoxInfo {
+        Vec3 center;
+        Vec3 extents;
+
+        BoundingBoxInfo() : center(Vec3(0, 0, 0)), extents(Vec3(1.f, 1.f, 1.f)) {}
+        BoundingBoxInfo(const Vec3& center, const Vec3& extents) : center(center), extents(extents) {}
+    };
+
     const VertexLayout vLayout[] =
     {
         { 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos) },
@@ -43,22 +50,16 @@ namespace Rendering {
     const int layoutSize = sizeof(VertexLayout);
     const int numAttribs = sizeof(vLayout) / layoutSize;
 
-
-    typedef std::vector<Vertex> VertexBufferType;
-    typedef std::vector<int> IndexBufferType;
+    using VertexBuffer=std::vector<Vertex>;
+    using IndexBuffer=std::vector<int>;
 
     /*  Mesh format, only contains geometric data but not color/texture */
     struct Mesh
     {
-        Mesh() : numVertices(0), numTris(0), numIndices(0)
-        {
-            vertexBuffer.clear();
-            indexBuffer.clear();
-        }
-
+        Mesh();
         /*  Storing the actual vertex/index data */
-        VertexBufferType vertexBuffer;
-        IndexBufferType indexBuffer;
+        VertexBuffer vertexBuffer;
+        IndexBuffer indexBuffer;
 
         int numVertices;
         int numTris;
@@ -72,11 +73,15 @@ namespace Rendering {
         GLuint VAO;
         GLuint VBO;
         GLuint IBO;
+        
+        BoundingBoxInfo m_boundingBoxes;//be default scl=(1,1,1), center={0,0,0}
+
+        Mat4 GetBoundingBoxMat()const;
+        /*  Mesh function(s) */
+        static Mesh CreatePlane(int stacks, int slices);
+        static Mesh CreateCube(int length, int height, int width);
+        static Mesh CreateSphere(int stacks, int slices);
+        static Mesh LoadOBJMesh(char* filename);
     };
 
-    /*  Mesh function(s) */
-    Mesh CreatePlane(int stacks, int slices);
-    Mesh CreateCube(int length, int height, int width);
-    Mesh CreateSphere(int stacks, int slices);
-    Mesh LoadOBJMesh(char* filename);
 }

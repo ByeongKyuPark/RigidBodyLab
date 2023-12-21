@@ -28,11 +28,11 @@ std::string ReadTextFile(const char* filename) {
     return buffer.str();
 }
 
-Shader::Shader() : programID(0) {}
+Shader::Shader() : m_programID(0) {}
 
 Shader::~Shader() {
-    if (programID != 0) {
-        glDeleteProgram(programID);
+    if (m_programID != 0) {
+        glDeleteProgram(m_programID);
     }
 }
 
@@ -47,7 +47,7 @@ string Shader::ReadShaderFile(const string& filePath) {
         shaderFile.close();
         return shaderStream.str();
     }
-    catch (std::ifstream::failure& e) {
+    catch ([[maybe_unused]]std::ifstream::failure& e) {
         std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << filePath << std::endl;
         return "";
     }
@@ -142,7 +142,7 @@ bool Shader::LoadShader(const std::string& vertexPath, const std::string& fragme
     ValidateShader(fragmentShaderID, fragmentPath.c_str()); // Validate fragment shader
 
     if (!LinkProgram(vertexShaderID, fragmentShaderID)) return false;
-    ValidateProgram(programID); // Validate the shader program
+    ValidateProgram(m_programID); // Validate the shader program
 
     glDeleteShader(vertexShaderID);
     glDeleteShader(fragmentShaderID);
@@ -152,13 +152,13 @@ bool Shader::LoadShader(const std::string& vertexPath, const std::string& fragme
 
 
 void Shader::Use() {
-    if (programID > 0) {
-        glUseProgram(programID);
+    if (m_programID > 0) {
+        glUseProgram(m_programID);
     }
 }
 
 // Getters for Shader Program ID
-GLuint Shader::GetProgramID() const { return programID; }
+GLuint Shader::GetProgramID() const { return m_programID; }
 
 bool Shader::CompileShader(const std::string& source, GLenum shaderType, GLuint& shaderID) {
     const char* shaderSource = source.c_str();
@@ -178,16 +178,16 @@ bool Shader::CompileShader(const std::string& source, GLenum shaderType, GLuint&
 }
 
 bool Shader::LinkProgram(GLuint vertexShaderID, GLuint fragmentShaderID) {
-    programID = glCreateProgram();
-    glAttachShader(programID, vertexShaderID);
-    glAttachShader(programID, fragmentShaderID);
-    glLinkProgram(programID);
+    m_programID = glCreateProgram();
+    glAttachShader(m_programID, vertexShaderID);
+    glAttachShader(m_programID, fragmentShaderID);
+    glLinkProgram(m_programID);
 
     GLint success;
-    glGetProgramiv(programID, GL_LINK_STATUS, &success);
+    glGetProgramiv(m_programID, GL_LINK_STATUS, &success);
     if (!success) {
         char infoLog[512];
-        glGetProgramInfoLog(programID, 512, nullptr, infoLog);
+        glGetProgramInfoLog(m_programID, 512, nullptr, infoLog);
         std::cerr << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         return false;
     }

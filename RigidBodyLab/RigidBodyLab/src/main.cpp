@@ -5,23 +5,30 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
+#include <core/ApplicationState.h>
 #include <rendering/Renderer.h>
 
-using namespace Rendering;
+using Rendering::Renderer;
+using Core::Scene;
 
-void MainLoop(Renderer& renderer){
+void MainLoop(ApplicationState& appState){
+    Renderer& renderer = Renderer::GetInstance();
     while (!renderer.ShouldClose()) {
         glfwPollEvents();
 
-        // Rendering
-        renderer.Render();
+        appState.UpdateTime();
+        float deltaTime = appState.GetDeltaTime();
+        // 1. physics update
+        appState.getScene().Update(deltaTime);
+
+        // 2. render
+        renderer.Render(appState.getScene(),appState.GetFPS());
     }
 }
 
 int main() {
-    Renderer& renderer = Renderer::GetInstance();
-    renderer.SetUpDemoScene();
-    MainLoop(renderer);
+    ApplicationState appState;
+    Renderer::GetInstance().AttachScene(appState.getScene());
+    MainLoop(appState);
     return 0;
 }
