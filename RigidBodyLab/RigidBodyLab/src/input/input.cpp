@@ -41,10 +41,8 @@ void MouseClick(GLFWwindow* window, int button, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		switch (button) {
 		case GLFW_MOUSE_BUTTON_LEFT:
-			// Handle left mouse button press
 			break;
 		case GLFW_MOUSE_BUTTON_RIGHT:
-			// Handle right mouse button press
 			break;
 		}
 	}
@@ -52,7 +50,7 @@ void MouseClick(GLFWwindow* window, int button, int action, int mods) {
 
 
 void MouseMove(GLFWwindow* window, double xpos, double ypos) {
-	// xpos and ypos are the new cursor positions
+	// xpos and ypos are the new cursor positions !
 }
 
 void MouseScroll(GLFWwindow* window, double xoffset, double yoffset) {

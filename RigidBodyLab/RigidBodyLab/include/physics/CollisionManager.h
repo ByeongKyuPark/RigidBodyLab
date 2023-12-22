@@ -38,10 +38,31 @@ namespace Physics {
         void FindCollisionFeaturesSphereBox(const SphereCollider* sphere, const BoxCollider* box, Object* sphereObj, Object* boxObj);
 
         // Function to handle Sphere-Sphere collision
-        void FindCollisionFeaturesSphereSphere(const SphereCollider* sphere1, const SphereCollider* sphere2,
-            Object* obj1, Object* obj2) {
-            // Implement Sphere-Sphere collision detection logic here
-            return;
+        void FindCollisionFeaturesSphereSphere(const SphereCollider* sphere1, const SphereCollider* sphere2, Object* sphereObj1, Object* sphereObj2) {
+            const Vector3& spherePos1 = sphereObj1->GetPosition();
+            const Vector3& spherePos2 = sphereObj2->GetPosition();
+
+            float distanceSquared = (spherePos1-spherePos2).LengthSquared();
+            float radius1 = std::get<float>(sphere1->GetScale());//std::variant<Vec3, float>
+            float radius2 = std::get<float>(sphere2->GetScale());//std::variant<Vec3, float>
+
+            float radiusSum = radius1 + radius2;
+            if (distanceSquared > radiusSum * radiusSum) {
+                return; // no collision
+            }
+
+            Vector3 normal = (spherePos1 - spherePos2).Normalize();
+
+            CollisionData newContact;
+            newContact.objects[0] = sphereObj1;
+            newContact.objects[1] = sphereObj2;
+            newContact.collisionNormal = normal;
+            newContact.contactPoint = { { true, Vector3(spherePos1 - normal * radius1) },
+                                        { true, Vector3(spherePos2 + normal * radius2) } };
+            newContact.penetrationDepth = radiusSum - sqrtf(distanceSquared);
+            newContact.restitution = m_objectRestitution;
+            newContact.friction = m_friction;
+            m_collisions.push_back(newContact);
         }
 
         // Function to handle Box-Box collision
@@ -64,7 +85,7 @@ namespace Physics {
 
     public:
         CollisionManager()
-            : m_friction(0.6f), m_objectRestitution(0.2f), m_groundRestitution(0.2f),
+            : m_friction(0.85f), m_objectRestitution(0.7f), m_groundRestitution(0.6f),
             m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
         void CheckCollision(Core::Object* obj1, Core::Object* obj2);
