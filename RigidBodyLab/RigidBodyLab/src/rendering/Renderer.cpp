@@ -458,8 +458,8 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 }
 
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
-    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
-    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
+    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE, 0));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 2.f));
 
     // displaying FPS
     ImGui::Text("Frame Rate: %.1f", fps);
@@ -503,6 +503,34 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     }
     for (size_t i = 0; i < textureNames.size(); ++i) {
         textureNamesCStr[i] = textureNames[i].c_str();
+    }
+
+    // Ensure selected object index is within valid range
+    if (selectedObject >= 0 && selectedObject < static_cast<int>(objectNames.size())) {
+        std::string selectedObjectName = objectNames[selectedObject];
+
+        static int selectedMesh{ -1 };
+        static int selectedTexture{ -1 };
+
+        // Mesh selection
+        if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
+            if (selectedMesh >= 0) {
+                Mesh* newMesh = ResourceManager::GetInstance().GetMesh(static_cast<MeshID>(selectedMesh));
+                scene.GetObject(selectedObject).SetMesh(newMesh);
+                m_shouldUpdateCubeMapForSphere = true;
+            }
+        }
+
+        // Texture selection
+        if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
+            if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
+                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+                m_shouldUpdateCubeMapForSphere = true;
+            }
+        }
+    }
+    else {
+        ImGui::Text("No object selected");
     }
 
     // object Creation Section
@@ -774,7 +802,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE+Camera::GUI_WIDTH, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1337,6 +1365,7 @@ void Renderer::RenderToScreen(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::Render(Core::Scene& scene, float fps)
 {
+
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
@@ -1369,6 +1398,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         m_shouldUpdateCubeMapForSphere = false;
     }
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving

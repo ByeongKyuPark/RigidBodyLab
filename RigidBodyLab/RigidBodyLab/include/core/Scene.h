@@ -13,7 +13,7 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
-        static constexpr int NUM_PROJECTILES = 25;
+        static constexpr int NUM_PROJECTILES = 50;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;

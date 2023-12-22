@@ -136,7 +136,7 @@ void Core::Scene::SetUpScene() {
     CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::MAPPABLE_PLANE);
 
     //(2) VASE
-    constexpr float VASE_SCL = 2.f;
+    constexpr float VASE_SCL = 3.f;
     CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
 
     //(3) MIRROR
