@@ -200,7 +200,6 @@ void Renderer::SendLightProperties(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeMainCamObjMVMats(const Core::Scene& scene)
 {
-    //std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, 
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
     {
@@ -492,7 +491,6 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     return true;
         }, static_cast<void*>(&objectNames), objectNames.size())) {
     }
-
     // mesh and texture Names Setup
     const static std::array<std::string,TO_INT(MeshID::NUM_MESHES)> meshNames = {"Cube", "Vase", "Plane", "Sphere", "Teapot", "Diamond", "Dodecahedron", "Gourd"};
     const static std::array<std::string, TO_INT(ImageID::NUM_IMAGES)> textureNames = { "Stone", "Stone2", "Wood1", "Wood2", "Pottery1", "Pottery2", "Pottery3" };
@@ -509,6 +507,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
     // Ensure selected object index is within valid range
     if (selectedObject >= 0 && selectedObject < static_cast<int>(objectNames.size())) {
+        int sceneObjectIndex = m_guiToObjectIndexMap[selectedObject];
         std::string selectedObjectName = objectNames[selectedObject];
 
         static int selectedMesh{ -1 };
@@ -518,7 +517,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
             if (selectedMesh >= 0) {
                 Mesh* newMesh = ResourceManager::GetInstance().GetMesh(static_cast<MeshID>(selectedMesh));
-                scene.GetObject(selectedObject).SetMesh(newMesh);
+                scene.GetObject(sceneObjectIndex).SetMesh(newMesh);
                 m_shouldUpdateCubeMapForSphere = true;
             }
         }
@@ -526,7 +525,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         // Texture selection
         if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
             if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
-                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+                scene.GetObject(sceneObjectIndex).SetImageID(static_cast<ImageID>(selectedTexture));
                 m_shouldUpdateCubeMapForSphere = true;
             }
         }
@@ -567,7 +566,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 Core::ColliderConfig(radius) :
                 Core::ColliderConfig(Vec3{ scale[0], scale[1], scale[2] });
             Math::Quaternion orientation(angleDegrees, rotationAxis);
-
+            std::cout << meshID << '\n';
             scene.CreateObject(
                 objectName,
                 static_cast<MeshID>(meshID),
@@ -578,6 +577,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 mass,
                 orientation
             );
+            UpdateGuiToObjectIndexMap(scene);
         }
     }
 
@@ -587,6 +587,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
             // create and launch a projectile
             scene.ShootProjectile({ mainCam.GetPos().x,mainCam.GetPos().y,mainCam.GetPos().z });
         }
+        UpdateGuiToObjectIndexMap(scene);
     }
 }
 
@@ -774,10 +775,10 @@ void Renderer::CleanUp()
 }
 
 Rendering::Renderer::Renderer()
-    :m_window{ nullptr,WindowDeleter }, m_fps(0)
-    ,m_sphereRef(RefType::REFLECTION_ONLY)
-    ,m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
-    ,m_shouldUpdateCubeMapForSphere{ true }
+    : m_window{ nullptr,WindowDeleter }, m_fps(0)
+    , m_sphereRef(RefType::REFLECTION_ONLY)
+    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
+    , m_shouldUpdateCubeMapForSphere{ true }
 
     , m_mainCamViewMat{}
     , m_mainCamProjMat{}
@@ -1370,7 +1371,6 @@ void Renderer::RenderToScreen(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::Render(Core::Scene& scene, float fps)
 {
-
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
@@ -1403,7 +1403,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         m_shouldUpdateCubeMapForSphere = false;
     }
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving

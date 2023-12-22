@@ -14,6 +14,7 @@ class Application {
     int m_frameCount;
     float m_secCount;        /*  Num of seconds from prevTime to currTime */
     float m_fps;
+    static constexpr float FIXED_DT= 1/120.f;
 
     //TODO
     //1. settings or preferences that might change during runtime, like graphics settings, audio levels, or control configurations.

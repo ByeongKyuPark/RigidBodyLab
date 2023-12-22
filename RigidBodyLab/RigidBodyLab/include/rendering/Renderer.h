@@ -47,6 +47,8 @@ namespace Rendering {
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
 									//custom deleter
 		std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> m_window;// Pointer to the window
+		std::vector<int> m_guiToObjectIndexMap;
+
 		float m_sphereRefIndex;
 		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
@@ -110,6 +112,15 @@ namespace Rendering {
 		void InitRendering();
 
 		void UpdateLightPosViewFrame(Scene& scene);
+		// Function to update the mapping when objects are added/removed
+		void UpdateGuiToObjectIndexMap(const Core::Scene& scene) {
+			m_guiToObjectIndexMap.clear();
+			for (size_t i = 0; i < scene.m_objects.size(); ++i) {
+				if (scene.m_objects[i]->GetCollider()->GetCollisionEnabled() == true) {
+					m_guiToObjectIndexMap.push_back(i);
+				}
+			}
+		}
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);

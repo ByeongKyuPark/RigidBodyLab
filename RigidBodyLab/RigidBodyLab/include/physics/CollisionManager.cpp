@@ -475,7 +475,7 @@ void Physics::CollisionManager::SequentialImpulse(CollisionData& contact, float 
 
     // Baumgarte Stabilization (for penetration & sinking resolution)a
     float baumgarte = 0.0f;
-    constexpr float CORRECTION_RATIO = 0.05f;
+    constexpr float CORRECTION_RATIO = 0.15f;
     if (contact.penetrationDepth > m_penetrationTolerance) {
         baumgarte = ((contact.penetrationDepth - m_penetrationTolerance) * CORRECTION_RATIO / deltaTime);
     }

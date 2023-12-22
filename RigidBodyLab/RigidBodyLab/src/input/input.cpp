@@ -47,7 +47,7 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			}
 			break;
 		}
-		case GLFW_KEY_V:
+		case GLFW_KEY_F:
 			mainCam.Reset();
 			break;
 

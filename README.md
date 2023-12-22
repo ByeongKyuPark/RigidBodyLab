@@ -8,7 +8,7 @@ RigidBodyLab is an evolving game engine that excels in intricate physics simulat
 - **Dynamic Object Manipulation**: Supports loading objects from text files and altering meshes and textures in real-time via a GUI.
 - **Procedural Object Generation**: Geometric modeling is achieved through procedural generation, ensuring variety and complexity.
 - **Physics Simulations**: Uses Separating Axis Theorem (SAT) for box collisions and an impulse-based approach for collision detection and resolution.
-- **Intuitive Camera Controls**: Allows for camera rotation and positioning with keyboard inputs (W, A, S, D, and V).
+- **Intuitive Camera Controls**: Allows for camera rotation and positioning with keyboard inputs (W, A, S, D, and F).
 - **Object Interaction**: Launch up to 50 random objects with varied shapes and textures using the spacebar. Retrieve and reload them with 'R'.
 - **Optimized Rendering**: For performance efficiency, mirrors do not reflect each other's images.
 - **Utilizes SSE2** for efficient matrix operations, laying the foundation for a multi-threaded engine.
