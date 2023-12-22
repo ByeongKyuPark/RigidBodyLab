@@ -1,13 +1,17 @@
-# RigidBodyLab: A Multi-threaded Game Engine Project
+# RigidBodyLab: Advanced Physics and Graphics Engine
 
-RigidBodyLab is an in-development multi-threaded game engine focusing on robust physics simulations and performance. At its core, it leverages advanced mathematical constructs like Vectors, Matrices, and Quaternions. The project is in its initial stages, currently featuring a suite of test cases and foundational code.
+RigidBodyLab is an evolving game engine that excels in intricate physics simulations and advanced graphics rendering. It's built with a focus on robust mathematics, including Vectors, Matrices, and Quaternions, and is designed to handle complex simulations with high performance.
 
 ## Key Features
 
-- Utilizes SSE2 for efficient matrix operations.
-- Foundation for a multi-threaded game engine.
-- Initial focus on Vector, Matrix, and Quaternion classes.
-- Includes both the main project (`RigidBodyLab`) and a test suite (`RigidBodyLab_Test`).
+- **Advanced Graphical Techniques**: Implements bump, normal, and parallax mapping for planes, alongside translucency, refraction, and reflection for beads and mirrors.
+- **Dynamic Object Manipulation**: Supports loading objects from text files and altering meshes and textures in real-time via a GUI.
+- **Procedural Object Generation**: Geometric modeling is achieved through procedural generation, ensuring variety and complexity.
+- **Physics Simulations**: Uses Separating Axis Theorem (SAT) for box collisions and an impulse-based approach for collision detection and resolution.
+- **Intuitive Camera Controls**: Allows for camera rotation and positioning with keyboard inputs (W, A, S, D, and V).
+- **Object Interaction**: Launch up to 50 random objects with varied shapes and textures using the spacebar. Retrieve and reload them with 'R'.
+- **Optimized Rendering**: For performance efficiency, mirrors do not reflect each other's images.
+- **Utilizes SSE2** for efficient matrix operations, laying the foundation for a multi-threaded engine.
 
 ## Building the Project
 
@@ -18,49 +22,17 @@ RigidBodyLab is an in-development multi-threaded game engine focusing on robust 
 
 ### Automated Build Setup
 
-A batch file named `build_project.bat` is included at the root of the project to automate the build process.
-
-1. **Run the Batch File**
-
-   Double-click on `build_project.bat`. This script performs the following actions:
-
-   - Initializes and updates Git submodules.
-   - Navigates to the `RigidBodyLab` directory.
-   - Creates a build directory and navigates into it.
-   - Runs CMake to generate the Visual Studio solution.
-
-2. **Check the Build Output**
-
-   After the script execution, check the `build` directory for the generated Visual Studio solution.
+Run `build_project.bat` to automate the build process, including Git submodule initialization, CMake configuration, and Visual Studio solution generation.
 
 ### Manual Build Steps
 
-If you prefer manual setup, follow these steps:
-
-1. **Initialize and Update Submodules**
-
-   Navigate to the top-level folder `RigidBodyLab` and run:
-
-   ```sh
-   git submodule init
-   git submodule update
-   ```
-
-2. **Build with CMake**
-
-   In the `RigidBodyLab` directory, execute:
-
-   ```sh
-   mkdir build
-   cd build
-   cmake .. -G "Visual Studio 17 2022"
-   ```
+Alternatively, manually initialize Git submodules and use CMake to build the project in the `RigidBodyLab` directory.
 
 ## Project Structure
 
-- `RigidBodyLab`: The main game engine project.
-- `RigidBodyLab_Test`: Contains test cases for Vector, Matrix, and Quaternion classes.
+- `RigidBodyLab`: The main engine project, encompassing physics simulations and graphical rendering.
+- `RigidBodyLab_Test`: Test suite for foundational classes like Vector, Matrix, and Quaternion.
 
 ## Contributing
 
-As this project is in its nascent stage, contributions in the form of additional features, performance improvements, or bug fixes are highly welcome.
+Contributions are welcome to enhance features, improve performance, or fix bugs. As the project grows, diverse input is invaluable for its development.
