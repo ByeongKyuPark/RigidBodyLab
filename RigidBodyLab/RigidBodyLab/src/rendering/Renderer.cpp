@@ -1403,7 +1403,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         m_shouldUpdateCubeMapForSphere = false;
     }
 
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving
