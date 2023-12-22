@@ -15,7 +15,10 @@ namespace Physics {
 
 	//pure abstract class (just an interface class)
 	class Collider {
+	protected:
+		bool m_isCollisionEnabled;
 	public:
+		Collider(bool isCollisionEnabled) :m_isCollisionEnabled{isCollisionEnabled} {}
 		template<typename T>
 		void SetScale(const T& scale) {
 			if constexpr (std::is_same_v<T, Vec3>) {
@@ -25,7 +28,8 @@ namespace Physics {
 				static_cast<SphereCollider*>(this)->SetScaleInternal(scale);
 			}
 		}
-		virtual bool IsCollidingWith(const Collider& other) const = 0;
+		virtual void SetCollisionEnabled(bool collisionEnabled) { m_isCollisionEnabled = collisionEnabled; }
+		virtual bool GetCollisionEnabled()const { return m_isCollisionEnabled; }
 		virtual Mat4 GetScaleMatrixGLM() const = 0;
 		virtual Matrix4 GetScaleMatrix() const = 0;
 
@@ -37,10 +41,7 @@ namespace Physics {
 	class BoxCollider : public Collider {
 		Vec3 scale; // the dimensions of the box
 	public:
-		BoxCollider(const Vec3& _scale) : scale(_scale) {}
-		bool IsCollidingWith(const Collider& other) const override final {
-			return false;
-		}
+		BoxCollider(const Vec3& _scale, bool _isCollisionEnabled=true) : scale(_scale), Collider{_isCollisionEnabled} {}
 		void SetScaleInternal(const Vec3& _scale) {
 			scale = _scale;
 		}
@@ -60,11 +61,8 @@ namespace Physics {
 	class SphereCollider : public Collider {
 		float radius;
 	public:
-		SphereCollider(float _radius) : radius(_radius) {}
+		SphereCollider(float _radius, bool _isCollisionEnabled = true) : radius(_radius), Collider{ _isCollisionEnabled } {}
 
-		bool IsCollidingWith(const Collider& other) const override final {
-			return false;
-		}
 		void SetScaleInternal(float scale) {
 			radius = scale;
 		}

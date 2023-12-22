@@ -38,10 +38,11 @@ namespace Rendering
         void MoveRight();
         void MoveCloser();
         void MoveFarther();
-
         void ComputeUpVec();
         Mat4 ViewMat();
         Mat4 ProjMat() const;
+        Vec3 GetPos()const { return pos; }
+        Vec3 GetUpVec()const { return upVec; }
 
         int GetWidth() const { return width; }
         int GetHeight() const { return height; }

@@ -33,7 +33,6 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			mainCam.Reset();
 			break;
 
-			// Add other keys as needed
 		}
 	}
 }
@@ -47,7 +46,6 @@ void MouseClick(GLFWwindow* window, int button, int action, int mods) {
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			// Handle right mouse button press
 			break;
-			// Add other mouse buttons as needed
 		}
 	}
 }
@@ -58,14 +56,15 @@ void MouseMove(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void MouseScroll(GLFWwindow* window, double xoffset, double yoffset) {
-	// xoffset and yoffset are the scroll offsets
+	ImGuiIO& io = ImGui::GetIO();
 
-	if (yoffset > 0) {
-		// Scrolled up
-		mainCam.MoveFarther();
-	}
-	else if (yoffset < 0) {
-		// Scrolled down
-		mainCam.MoveCloser();
+	// only adjust camera zoom if the mouse is not over any ImGui window
+	if (!io.WantCaptureMouse) {
+		if (yoffset > 0) {
+			mainCam.MoveFarther();
+		}
+		else if (yoffset < 0) {
+			mainCam.MoveCloser();
+		}
 	}
 }

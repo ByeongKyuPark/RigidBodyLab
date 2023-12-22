@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/Object.h>
+#include <core/Projectile.h>
 #include <physics/CollisionData.h>
 #include <physics/CollisionManager.h>
 #include <vector>
@@ -12,9 +13,10 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_LIGHTS = 1;
+        static constexpr int NUM_PROJECTILES = 25;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
-
+        std::vector<Projectile> m_projectiles;
         /*  Light pos are defined in world frame, but we need to compute their pos in view frame for
             lighting. In this frame, the vertex positions are not too large, hence the computation
             is normally more accurate.
@@ -35,7 +37,10 @@ namespace Core {
         const Core::Object* m_sphere;//spherical mirror (or refraction)
 
     private:
-        //void UpdateLightPosViewFrame();
+        //Integrated the projectiles directly into the m_objects vector within the Scene class,
+        //so as not to alter the whole rendering process. 
+        //the key is to manage these projectile objects effectively within the existing structure just for the demo.
+        void SetUpProjectiles();
         void SetUpLight(float height);
         void SetUpScene();
         void ApplyBroadPhase();
@@ -84,8 +89,10 @@ namespace Core {
             const Vector3& position = Vector3{ 0.f,0.f,0.f },
             float mass = 1.f,
             const Quaternion & orientation = Quaternion{},
-            ObjectType objType = ObjectType::REGULAR
+            ObjectType objType = ObjectType::REGULAR,
+            bool isCollisionEnabled=true
             );
 
+        void ShootProjectile(const Vector3& position);
     };
 }
