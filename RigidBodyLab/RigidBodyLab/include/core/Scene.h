@@ -94,5 +94,6 @@ namespace Core {
             );
 
         void ShootProjectile(const Vector3& position);
+        void ReloadProjectiles();
     };
 }

@@ -5,16 +5,18 @@
 #include <core/Scene.h>
 #include <unordered_map>
 
-//Dependency Injection
 class InputHandler {
-    Core::Scene& scene;
     using KeyActionFunction = std::function<void(int key, int action)>;
 
-public:
+    Core::Scene& scene;
+    std::unordered_map<int, KeyActionFunction> keyActions;
 
+    void ProcessSpacebar();
+    void ProcessRKey();
+
+    friend void Keyboard(GLFWwindow*, int, int, int, int);
+public:
     InputHandler(Core::Scene& scene) : scene(scene){}
     void RegisterKeyAction(int key, KeyActionFunction action);
-    void ProcessSpacebar();
-private:
-    std::unordered_map<int, KeyActionFunction> keyActions;
+
 };

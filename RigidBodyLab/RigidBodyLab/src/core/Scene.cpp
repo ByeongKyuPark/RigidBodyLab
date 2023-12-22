@@ -114,6 +114,11 @@ void Core::Scene::ShootProjectile(const Vector3& position) {
         }
     }
 }
+void Core::Scene::ReloadProjectiles() {
+    for (auto& projectile : m_projectiles) {
+        projectile.Deactivate();
+    }
+}
 
 void Core::Scene::SetUpScene() {
     using Physics::BoxCollider;

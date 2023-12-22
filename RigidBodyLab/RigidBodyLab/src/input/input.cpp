@@ -40,6 +40,14 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			break;
 		}
 		case GLFW_KEY_R:
+		{
+			Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+			if (app) {
+				app->GetInputHandler().ProcessRKey();
+			}
+			break;
+		}
+		case GLFW_KEY_V:
 			mainCam.Reset();
 			break;
 
