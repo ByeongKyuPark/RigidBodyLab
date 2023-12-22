@@ -56,6 +56,7 @@ namespace Core {
 		Mat4 GetUnitModelMatrixGLM() const;
 		Mat4 GetModelMatrixGLM() const;
 		const Collider* GetCollider() const;
+		Collider* GetCollider();
 		RigidBody* GetRigidBody();
 		const RigidBody* GetRigidBody() const;
 		std::string GetName() const { return m_name; }

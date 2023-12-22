@@ -159,8 +159,7 @@ MoveFarther()
         so that the camera coordinate frame is constructed correctly.
 */
 /******************************************************************************/
-void Camera::
-ComputeUpVec()
+void Camera::ComputeUpVec()
 {
     if (alpha == NUM_STEPS_HALF_PI)
         upVec = Mat3(Rotate(-ONE_STEP * beta, BASIS[Y])) * -BASIS[X];

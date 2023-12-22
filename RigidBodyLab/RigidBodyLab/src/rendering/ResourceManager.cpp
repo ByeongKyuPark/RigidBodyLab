@@ -19,7 +19,6 @@ ResourceManager::ResourceManager()
     m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
     m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
     m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
-    m_meshes[TO_INT(MeshID::PYRAMID)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/pyramid.obj"));
 
     stbi_set_flip_vertically_on_load(true);
 

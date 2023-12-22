@@ -227,8 +227,8 @@ void Rendering::Renderer::ComputeSphericalMirrorCamObjMVMats(int faceIdx,const C
     for (int i = 0; i < objSize; ++i)
     {
         Mat4 objMat = scene.m_objects[i]->GetModelMatrixGLM();
-        m_sphereCamMVMat[faceIdx][i] = m_sphereCamViewMat[faceIdx] * objMat;
-        m_sphereCamNormalMVMat[faceIdx][i] = Transpose(Inverse(m_sphereCamMVMat[faceIdx][i]));
+        m_sphereCamMVMat[i][faceIdx] = m_sphereCamViewMat[faceIdx] * objMat;
+        m_sphereCamNormalMVMat[i][faceIdx] = Transpose(Inverse(m_sphereCamMVMat[i][faceIdx]));
     }
 }
 
@@ -458,13 +458,13 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 }
 
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
-    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE - Camera::GUI_WIDTH, 0));
-    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 0.3));
+    ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE, 0));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 2.f));
 
-    // Displaying FPS
+    // displaying FPS
     ImGui::Text("Frame Rate: %.1f", fps);
 
-    // Sphere Reflection/Refraction settings
+    // sphere Reflection/Refraction settings
     int refTypeInt = static_cast<int>(m_sphereRef);
     const char* refTypes[] = { "Reflection Only", "Refraction Only", "Reflection & Refraction" };
     if (ImGui::Combo("Sphere", &refTypeInt, refTypes, IM_ARRAYSIZE(refTypes))) {
@@ -474,14 +474,16 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         ImGui::SliderFloat("Sphere Refractive Index", &m_sphereRefIndex, 1.0f, 2.5f);
     }
 
-    // Parallax Mapping Toggle
+    // parallax Mapping Toggle
     ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
 
-    // Object List GUI
+    // obj List GUI
     static int selectedObject = -1;
     std::vector<std::string> objectNames;
     for (size_t i = 0; i < scene.m_objects.size(); ++i) {
-        objectNames.emplace_back(scene.m_objects[i]->GetName());
+        if (scene.m_objects[i]->GetCollider()->GetCollisionEnabled() == true) {
+            objectNames.emplace_back(scene.m_objects[i]->GetName());
+        }
     }
     if (ImGui::ListBox("Objects", &selectedObject, [](void* data, int idx, const char** out_text) -> bool {
         const auto& vector = *static_cast<const std::vector<std::string>*>(data);
@@ -489,14 +491,13 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     *out_text = vector.at(idx).c_str();
     return true;
         }, static_cast<void*>(&objectNames), objectNames.size())) {
-        // Code to handle object selection
     }
 
-    // Mesh and Texture Names Setup
-    const static std::array<std::string,TO_INT(MeshID::NUM_MESHES)> meshNames = {"Cube", "Vase", "Plane", "Sphere", "Teapot", "Diamond", "Dodecahedron", "Gourd", "Pyramid"};
+    // mesh and texture Names Setup
+    const static std::array<std::string,TO_INT(MeshID::NUM_MESHES)> meshNames = {"Cube", "Vase", "Plane", "Sphere", "Teapot", "Diamond", "Dodecahedron", "Gourd"};
     const static std::array<std::string, TO_INT(ImageID::NUM_IMAGES)> textureNames = { "Stone", "Stone2", "Wood1", "Wood2", "Pottery1", "Pottery2", "Pottery3" };
 
-    // Convert std::string vectors to const char* arrays for ImGui
+    // convert std::string vectors to const char* arrays for ImGui
     const char* meshNamesCStr[meshNames.size()];
     const char* textureNamesCStr[textureNames.size()];
     for (size_t i = 0; i < meshNames.size(); ++i) {
@@ -506,7 +507,35 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         textureNamesCStr[i] = textureNames[i].c_str();
     }
 
-    // Object Creation Section
+    // Ensure selected object index is within valid range
+    if (selectedObject >= 0 && selectedObject < static_cast<int>(objectNames.size())) {
+        std::string selectedObjectName = objectNames[selectedObject];
+
+        static int selectedMesh{ -1 };
+        static int selectedTexture{ -1 };
+
+        // Mesh selection
+        if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
+            if (selectedMesh >= 0) {
+                Mesh* newMesh = ResourceManager::GetInstance().GetMesh(static_cast<MeshID>(selectedMesh));
+                scene.GetObject(selectedObject).SetMesh(newMesh);
+                m_shouldUpdateCubeMapForSphere = true;
+            }
+        }
+
+        // Texture selection
+        if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
+            if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
+                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+                m_shouldUpdateCubeMapForSphere = true;
+            }
+        }
+    }
+    else {
+        ImGui::Text("No object selected");
+    }
+
+    // object Creation Section
     if (ImGui::CollapsingHeader("Add Object", ImGuiTreeNodeFlags_DefaultOpen)) {
         static char objectName[128] = "";
         static int meshID = 0;
@@ -549,6 +578,14 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 mass,
                 orientation
             );
+        }
+    }
+
+    // projectile Launch Section
+    if (ImGui::CollapsingHeader("Launch Projectile", ImGuiTreeNodeFlags_DefaultOpen)) {
+        if (ImGui::Button("Shoot Projectile")) {
+            // create and launch a projectile
+            scene.ShootProjectile({ mainCam.GetPos().x,mainCam.GetPos().y,mainCam.GetPos().z });
         }
     }
 }
@@ -621,6 +658,10 @@ void SendCubeTexID(int texID, GLint texCubeLoc)
     glUniform1i(texCubeLoc, 0);
 }
 
+GLFWwindow* Rendering::Renderer::GetWindow() const {
+    return m_window.get();
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendMirrorTexID()
@@ -665,7 +706,6 @@ void SendObjTexID(GLuint texID, int activeTex, GLint texLoc)
 /******************************************************************************/
 void Renderer::AttachScene(const Core::Scene& scene)
 {
-
     //1. Send mesh data only
     ResourceManager& resourceManager = ResourceManager::GetInstance();
     size_t NUM_MESHES = TO_INT(MeshID::NUM_MESHES);
@@ -744,12 +784,12 @@ Rendering::Renderer::Renderer()
     , m_mainCamMVMat{}
     , m_mainCamNormalMVMat{}
 
-    ,m_mirrorCamViewMat{}
-    ,m_mirrorCamProjMat{}
+    , m_mirrorCamViewMat{}
+    , m_mirrorCamProjMat{}
     , m_mirrorCamMVMat{}
     , m_mirrorCamNormalMVMat{}
     
-    ,m_sphereCamProjMat {}
+    , m_sphereCamProjMat {}
     , m_sphereCamViewMat(TO_INT(CubeFaceID::NUM_FACES))
 {
 	// Initialize GLFW
@@ -767,7 +807,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE+Camera::GUI_WIDTH, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1206,7 +1246,7 @@ void Rendering::Renderer::RenderObjsBgSphereCam(int faceIdx, RenderPass renderPa
                         glUniform1i(m_lightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
-                    SendMVMat(m_sphereCamMVMat[faceIdx][i], m_sphereCamNormalMVMat[faceIdx][i], m_mainMVMatLoc, m_mainNMVMatLoc);
+                    SendMVMat(m_sphereCamMVMat[i][faceIdx], m_sphereCamNormalMVMat[i][faceIdx], m_mainMVMatLoc, m_mainNMVMatLoc);
 
                     if (obj.GetObjType() == Core::ObjectType::MAPPABLE_PLANE)   /*  apply normal mapping / parallax mapping for the base */
                     {
@@ -1330,6 +1370,7 @@ void Renderer::RenderToScreen(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::Render(Core::Scene& scene, float fps)
 {
+
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
@@ -1362,6 +1403,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         m_shouldUpdateCubeMapForSphere = false;
     }
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving

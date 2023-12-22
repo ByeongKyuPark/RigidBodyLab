@@ -175,6 +175,10 @@ const Physics::Collider* Core::Object::GetCollider() const {
 	return m_collider.get();
 }
 
+Physics::Collider* Core::Object::GetCollider(){
+	return m_collider.get();
+}
+
 bool Core::Object::IsDynamic() const {
 	return std::holds_alternative<std::unique_ptr<Physics::RigidBody>>(m_physicsOrTransform);
 }

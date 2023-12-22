@@ -38,16 +38,17 @@ namespace Rendering
         void MoveRight();
         void MoveCloser();
         void MoveFarther();
-
         void ComputeUpVec();
         Mat4 ViewMat();
         Mat4 ProjMat() const;
+        Vec3 GetPos()const { return pos; }
+        Vec3 GetUpVec()const { return upVec; }
 
         int GetWidth() const { return width; }
         int GetHeight() const { return height; }
 
         static constexpr int DISPLAY_SIZE = 1080;
-        static constexpr int GUI_WIDTH = 150;
+        static constexpr int GUI_WIDTH = 600;
         /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
         /*  The steps for rotation */
