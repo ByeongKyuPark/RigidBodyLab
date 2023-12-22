@@ -658,6 +658,10 @@ void SendCubeTexID(int texID, GLint texCubeLoc)
     glUniform1i(texCubeLoc, 0);
 }
 
+GLFWwindow* Rendering::Renderer::GetWindow() const {
+    return m_window.get();
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendMirrorTexID()

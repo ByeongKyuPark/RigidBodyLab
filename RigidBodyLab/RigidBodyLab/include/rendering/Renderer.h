@@ -160,17 +160,19 @@ namespace Rendering {
 		void AttachScene(const Scene& scene);
 		void Render(Scene& scene, float fps);
 
-		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
-		bool& GetParallaxMapping() { return m_parallaxMappingOn; }
-		void SetParallaxMapping(bool on) { m_parallaxMappingOn = on; }
-
 		bool ShouldClose()const { return glfwWindowShouldClose(m_window.get()); }
 		void CleanUp();
 
-		// Getter and setter for sphere reflection/refraction type
+		// Getter and setters
+		bool& GetParallaxMapping() { return m_parallaxMappingOn; }
 		int GetSphereRef() const { return TO_INT(m_sphereRef); }
+		GLFWwindow* GetWindow() const;
+
+		void SetParallaxMapping(bool on) { m_parallaxMappingOn = on; }
 		void SetSphereRef(RefType type) { m_sphereRef = type; }
 		void SendMirrorTexID();
+
+		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
 	};
 
 }

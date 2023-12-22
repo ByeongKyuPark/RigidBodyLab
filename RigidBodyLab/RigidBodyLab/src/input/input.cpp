@@ -32,11 +32,13 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			break;
 
 		case GLFW_KEY_SPACE:
-			//ApplicationState* appState = reinterpret_cast<ApplicationState*>(glfwGetWindowUserPointer(window));
-			//if (appState) {
-			//	//appState->getInputHandler().ProcessKeyInput(window, key, scancode, action, mods);
-			//}
+		{
+			Application* app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+			if (app) {
+				app->GetInputHandler().ProcessSpacebar();
+			}
 			break;
+		}
 		case GLFW_KEY_R:
 			mainCam.Reset();
 			break;

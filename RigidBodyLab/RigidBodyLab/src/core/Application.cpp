@@ -6,13 +6,19 @@ using Rendering::Renderer;
 
 Application::Application()
     :m_scene{}, m_currTime{  }, m_prevTime{},
-    m_frameCount{}, m_secCount{}, m_deltaTime{}, m_fps{}, m_inputHandler{ std::make_unique<InputHandler>() }
+    m_frameCount{}, m_secCount{}, m_deltaTime{}, m_fps{}, m_inputHandler{ std::make_unique<InputHandler>(m_scene) }
 {
     Renderer::GetInstance().AttachScene(m_scene);
 }
 
 void Application::Run() {
     Renderer& renderer = Renderer::GetInstance();
+
+    // sets a custom pointer to the GLFW window. This allows us to associate custom data 
+    //(in this case, the "this" pointer of the Application instance) with the GLFW window. 
+    // later, will retrieve this pointer in the GLFW callback functions to access application's state or methods.
+    glfwSetWindowUserPointer(renderer.GetWindow(), this); 
+
     while (!renderer.ShouldClose()) {
 
         glfwPollEvents();

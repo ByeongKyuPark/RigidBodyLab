@@ -2,16 +2,19 @@
 
 #include <GLFW/glfw3.h>
 #include <functional>
+#include <core/Scene.h>
 #include <unordered_map>
 
-//Dependency Injection pattern
+//Dependency Injection
 class InputHandler {
-public:
+    Core::Scene& scene;
     using KeyActionFunction = std::function<void(int key, int action)>;
 
-    void RegisterKeyAction(int key, KeyActionFunction action);
-    void ProcessKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods);
+public:
 
+    InputHandler(Core::Scene& scene) : scene(scene){}
+    void RegisterKeyAction(int key, KeyActionFunction action);
+    void ProcessSpacebar();
 private:
     std::unordered_map<int, KeyActionFunction> keyActions;
 };
