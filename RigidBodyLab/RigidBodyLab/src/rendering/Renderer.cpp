@@ -481,7 +481,9 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     static int selectedObject = -1;
     std::vector<std::string> objectNames;
     for (size_t i = 0; i < scene.m_objects.size(); ++i) {
-        objectNames.emplace_back(scene.m_objects[i]->GetName());
+        if (scene.m_objects[i]->GetCollider()->GetCollisionEnabled() == true) {
+            objectNames.emplace_back(scene.m_objects[i]->GetName());
+        }
     }
     if (ImGui::ListBox("Objects", &selectedObject, [](void* data, int idx, const char** out_text) -> bool {
         const auto& vector = *static_cast<const std::vector<std::string>*>(data);
