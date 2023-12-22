@@ -1,11 +1,13 @@
 #include <rendering/Camera.h>
 #include <rendering/Renderer.h>
 #include <input/input.h>
+#include <core/Application.h>
 #include "imgui_impl_glfw.h"
 
 using Rendering::mainCam;
 
 void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
 	if (action == GLFW_PRESS || action == GLFW_REPEAT) {
 		switch (key)
 		{
@@ -30,6 +32,12 @@ void Keyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 			break;
 
 		case GLFW_KEY_SPACE:
+			//ApplicationState* appState = reinterpret_cast<ApplicationState*>(glfwGetWindowUserPointer(window));
+			//if (appState) {
+			//	//appState->getInputHandler().ProcessKeyInput(window, key, scancode, action, mods);
+			//}
+			break;
+		case GLFW_KEY_R:
 			mainCam.Reset();
 			break;
 

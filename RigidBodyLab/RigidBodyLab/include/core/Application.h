@@ -1,10 +1,11 @@
 #pragma once
 #include <core/Scene.h>
 #include <chrono>
-
-class ApplicationState {
-    //could have multiple scenes, as well. std::vector<Scene> m_scenes;
+#include <input/InputHandler.h>
+class Application {
+    //std::vector<Scene> m_scenes; for multiple scenes
     Core::Scene m_scene;
+    std::unique_ptr<InputHandler> m_inputHandler;
 
     /*  For displaying FPS */
     std::chrono::high_resolution_clock::time_point m_prevTime;
@@ -21,10 +22,14 @@ class ApplicationState {
     //4. (done) information related to timing, like the current frame count or elapsed time, which might be useful for animations or physics updates.
     //5. information about the connection status, incoming data for Network State
     //6. logging system, a configuration manager
-public:
-    ApplicationState();
+    void UpdateTime();
     float GetDeltaTime() const;
     float GetFPS()const { return m_fps; }
-    Core::Scene& getScene() { return m_scene; }
-    void UpdateTime();
+public:
+    Application();
+
+    InputHandler& GetInputHandler() { return *m_inputHandler; }
+    void ProcessInput() {
+    }
+    void Run();
 };
