@@ -4,7 +4,8 @@
 RigidBodyLab is a custom game engine, demonstrating an impressive blend of custom-built physics simulations and advanced graphics rendering, all crafted using OpenGL. With a solid foundation in mathematics, including Vectors, Matrices, and Quaternions, it's tailored to handle complex simulations with remarkable performance.
 
 ## Showcase
-Witness the capabilities of RigidBodyLab in action. Watch the [![RigidBodyLab Demo](https://img.youtube.com/vi/0FwfPBcQ4XA/0.jpg)](https://www.youtube.com/watch?v=0FwfPBcQ4XA) for a closer look at the engine's custom physics and graphics prowess.
+ [![RigidBodyLab Demo](https://img.youtube.com/vi/0FwfPBcQ4XA/0.jpg)](https://www.youtube.com/watch?v=0FwfPBcQ4XA)
+Witness the capabilities of RigidBodyLab in action. Watch the demo for a closer look at the engine's custom physics and graphics prowess.
 
 ## Key Features
 
