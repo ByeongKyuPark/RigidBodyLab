@@ -11,6 +11,7 @@ namespace Math
 {
     struct Matrix4
     {
+        //row-major
         alignas(16) std::array<__m128, 4> columns;
 
 
@@ -26,7 +27,8 @@ namespace Math
         Matrix4& operator-=(const Matrix4& other);
         Matrix4 operator*(const Matrix4& other) const;
         Matrix4& operator*=(const Matrix4& other);
-        Vector4 operator*(const Vector4& vec) const;
+        //Vector3 operator*(const Vector3& vec) const;
+        Vector3 operator*(const Vector4& vec) const;
         Matrix4 operator*(const float value) const;
         Matrix4& operator*=(const float value);
         float operator[](int idx) const;

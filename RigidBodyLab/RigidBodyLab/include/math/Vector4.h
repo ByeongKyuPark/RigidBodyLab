@@ -25,8 +25,10 @@ namespace Math {
         float w;
 
         //by default a point
-        Vector4(const Vector3& _vec3, float _w = 1.0f)
+        Vector4(const Vector3& _vec3, float _w = 1.f)
             : vec3(_vec3), w(_w) {}
+        Vector4(float _x, float _y, float _z,float _w = 1.f)
+            : vec3(_x,_y,_z), w(_w) {}
 
         float& operator[](unsigned int idx) {
             if (idx > 3) throw std::out_of_range("index out of range");
@@ -42,10 +44,4 @@ namespace Math {
             return vec3;
         }
     };
-
-    std::ostream& operator<<(std::ostream& os, const Vector4& v) {
-        os << '[' << v.vec3.x << ", " << v.vec3.y << ", " << v.vec3.z << ", " << v.w << ']';
-        return os;
-    }
-
 }

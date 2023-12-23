@@ -420,6 +420,9 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 {
+    if (!scene.m_sphere) {
+        return;
+    }
     /*  Compute the lookAt positions for the 6 faces of the sphere cubemap.
         The sphere camera is at spherePos.
         The front and back faces are -z and +z.
@@ -1401,8 +1404,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
     */
-    if (m_shouldUpdateCubeMapForSphere 
-        || ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared())==true)
+    if (scene.m_sphere &&
+        ((m_shouldUpdateCubeMapForSphere || ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared())==true)))
     {
         ComputeSphereCamMats(scene);
         ResourceManager& resourceManager = ResourceManager::GetInstance();

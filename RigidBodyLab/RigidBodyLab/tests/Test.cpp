@@ -631,3 +631,19 @@ TEST(glm_comparison, transform) {
         }
     }
 }
+
+Matrix3 Extract3x3Matrix_old(Matrix4 ths) {
+    Matrix3 result;
+
+    float* matrix3Data = &result.entries[0][0];
+    for (int col{}; col < 3; ++col) {
+        float tmp[4];
+        _mm_storeu_ps(tmp, ths.columns[col]);
+
+        for (int row{}; row < 3; ++row) {
+            matrix3Data[col * 3 + row] = tmp[row];
+        }
+    }
+
+    return result;
+}
