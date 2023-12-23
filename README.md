@@ -1,38 +1,38 @@
-# RigidBodyLab: Advanced Physics and Graphics Engine
+# RigidBodyLab: Custom Physics and Graphics Engine
 
-RigidBodyLab is an evolving game engine that excels in intricate physics simulations and advanced graphics rendering. It's built with a focus on robust mathematics, including Vectors, Matrices, and Quaternions, and is designed to handle complex simulations with high performance.
+RigidBodyLab is a custom game engine, demonstrating an impressive blend of custom-built physics simulations and advanced graphics rendering, all crafted using OpenGL. With a solid foundation in mathematics, including Vectors, Matrices, and Quaternions, it's tailored to handle complex simulations with remarkable performance.
 
 ## Key Features
 
-- **Advanced Graphical Techniques**: Implements bump, normal, and parallax mapping for planes, alongside translucency, refraction, and reflection for beads and mirrors.
-- **Dynamic Object Manipulation**: Supports loading objects from text files and altering meshes and textures in real-time via a GUI.
-- **Procedural Object Generation**: Geometric modeling is achieved through procedural generation, ensuring variety and complexity.
-- **Physics Simulations**: Uses Separating Axis Theorem (SAT) for box collisions and an impulse-based approach for collision detection and resolution.
-- **Intuitive Camera Controls**: Allows for camera rotation and positioning with keyboard inputs (W, A, S, D, and F).
-- **Object Interaction**: Launch up to 50 random objects with varied shapes and textures using the spacebar. Retrieve and reload them with 'R'.
-- **Optimized Rendering**: For performance efficiency, mirrors do not reflect each other's images.
-- **Utilizes SSE2** for efficient matrix operations, laying the foundation for a multi-threaded engine.
+- **Custom Physics and Graphics**:  Developed with a combination of custom and GLM vector and matrix operations, and OpenGL functions.
+- **Advanced Graphical Techniques**: Features bump, normal, and parallax mapping for planes, translucency, refraction, and reflection for beads and mirrors.
+- **Unique Mirror Implementation**: Includes both planar and spherical mirrors, with the latter using a 6-face cube map, rendering reflected images with a slight lag for a realistic effect.
+- **Dynamic Object Manipulation**: Offers real-time modification of meshes and textures through a user-friendly GUI.
+- **Procedural Object Generation**: Employs procedural generation for geometric modeling, adding diversity and intricacy.
+- **Rigorous Physics Simulations**: Utilizes the Separating Axis Theorem (SAT) for box collisions and an impulse-based method for collision detection and resolution.
+- **Intuitive Camera Controls**: Provides seamless camera movement using keyboard commands (W, A, S, D, and F).
+- **Interactive Object Dynamics**: Enables launching and retrieving up to 50 varied objects at the press of a button.
+- **Optimization Techniques**: Mirrors are designed to avoid mutual reflections for enhanced performance.
+- **SSE2 Utilization**: Incorporates SSE2 for efficient matrix operations, a stepping stone towards a multi-threaded architecture.
 
 ## Building the Project
 
 ### Prerequisites
-
 - CMake
 - Visual Studio 17 2022 or later
 
-### Automated Build Setup
+### Build Options
+- **Automated**: Run `build_project.bat` for a streamlined build process.
+- **Manual**: Initialize Git submodules and use CMake in the `RigidBodyLab` directory.
 
-Run `build_project.bat` to automate the build process, including Git submodule initialization, CMake configuration, and Visual Studio solution generation.
-
-### Manual Build Steps
-
-Alternatively, manually initialize Git submodules and use CMake to build the project in the `RigidBodyLab` directory.
-
-## Project Structure
-
-- `RigidBodyLab`: The main engine project, encompassing physics simulations and graphical rendering.
-- `RigidBodyLab_Test`: Test suite for foundational classes like Vector, Matrix, and Quaternion.
+## Project Composition
+- **RigidBodyLab**: The core engine, combining physics and graphics.
+- **RigidBodyLab_Test**: Tests for key mathematical components.
 
 ## Contributing
+Your contributions are invaluable to the engine's evolution. Enhance features, optimize performance, or debug to help RigidBodyLab grow.
 
-Contributions are welcome to enhance features, improve performance, or fix bugs. As the project grows, diverse input is invaluable for its development.
+## Showcase
+Witness the capabilities of RigidBodyLab in action. Watch the [demo video](https://www.youtube.com/watch?v=0FwfPBcQ4XA) for a closer look at the engine's custom physics and graphics prowess.
+
+Your interest and contributions can significantly shape the development of RigidBodyLab. Join us in this exciting journey of game engine innovation!
