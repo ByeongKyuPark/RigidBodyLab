@@ -5,7 +5,8 @@ RigidBodyLab is a custom game engine, demonstrating an impressive blend of custo
 
 ## Showcase
  [![RigidBodyLab Demo](https://img.youtube.com/vi/0FwfPBcQ4XA/0.jpg)](https://www.youtube.com/watch?v=0FwfPBcQ4XA)
-Witness the capabilities of RigidBodyLab in action. Watch the demo for a closer look at the engine's custom physics and graphics prowess.
+ 
+Please watch the demo for a closer look at the engine's custom physics and graphics prowess.
 
 ## Key Features
 
