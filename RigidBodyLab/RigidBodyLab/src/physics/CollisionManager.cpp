@@ -1,5 +1,4 @@
-#include "CollisionManager.h"
-
+#include <physics/CollisionManager.h>
 Math::Vector3 Physics::CollisionManager::GetBoxContactVertexLocal(const Vector3& axis1, const Vector3& axis2, const Vector3& axis3, Vector3 collisionNormal, std::function<bool(float, float)> cmp) const {
     Vector3 contactPoint{ 0.5f,0.5f,0.5f };
 

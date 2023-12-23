@@ -11,8 +11,6 @@
 using Rendering::Renderer;
 using Core::Scene;
 
-
-
 int main() {
     Application appState;
     appState.Run();

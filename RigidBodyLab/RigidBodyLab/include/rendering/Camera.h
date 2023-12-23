@@ -48,7 +48,7 @@ namespace Rendering
         int GetHeight() const { return height; }
 
         static constexpr int DISPLAY_SIZE = 1080;
-        static constexpr int GUI_WIDTH = 600;
+        static constexpr int GUI_WIDTH = 400;
         /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
         /*  The steps for rotation */
