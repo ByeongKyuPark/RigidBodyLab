@@ -18,10 +18,10 @@
         The resulting scaling matrix
 */
 /******************************************************************************/
-Mat4 Scale(float sx, float sy, float sz)
-{
-    return glm::scale(Mat4(1.0f), Vec3(sx, sy, sz));
-}
+//Mat4 Scale(float sx, float sy, float sz)
+//{
+//    return glm::scale(Mat4(1.0f), Vec3(sx, sy, sz));
+//}
 
 
 /******************************************************************************/
@@ -77,10 +77,10 @@ Mat4 Rotate(float angle, const Vec3 &axis)
         The resulting rotation matrix
 */
 /******************************************************************************/
-Mat4 Rotate(float angle, float ax, float ay, float az)
-{
-    return glm::rotate(Mat4(1.0f), angle, Vec3(ax, ay, az));
-}
+//Mat4 Rotate(float angle, float ax, float ay, float az)
+//{
+//    return glm::rotate(Mat4(1.0f), angle, Vec3(ax, ay, az));
+//}
 
 
 /******************************************************************************/
@@ -98,10 +98,10 @@ Mat4 Rotate(float angle, float ax, float ay, float az)
         The resulting translation matrix
 */
 /******************************************************************************/
-Mat4 Translate(float tx, float ty, float tz)
-{
-    return glm::translate(Mat4(1.0f), Vec3(tx, ty, tz));
-}
+//Mat4 Translate(float tx, float ty, float tz)
+//{
+//    return glm::translate(Mat4(1.0f), Vec3(tx, ty, tz));
+//}
 
 
 /******************************************************************************/
@@ -329,17 +329,17 @@ Mat4 Transpose(const Mat4 &m)
         The input matrix
 */
 /******************************************************************************/
-void PrintMat(const Mat4 &m)
-{
-    std::cout << std::fixed;
-    for (int i = 0; i < 4; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-            std::cout << std::setw(8) << std::setprecision(2) << m[j][i] << " ";
-        std::cout << "\n";
-    }
-    std::cout << "\n";
-}
+//void PrintMat(const Mat4 &m)
+//{
+//    std::cout << std::fixed;
+//    for (int i = 0; i < 4; ++i)
+//    {
+//        for (int j = 0; j < 4; ++j)
+//            std::cout << std::setw(8) << std::setprecision(2) << m[j][i] << " ";
+//        std::cout << "\n";
+//    }
+//    std::cout << "\n";
+//}
 
 
 /******************************************************************************/
@@ -351,13 +351,13 @@ void PrintMat(const Mat4 &m)
         The input vector
 */
 /******************************************************************************/
-void PrintVec(const Vec3 &v)
-{
-    std::cout << std::fixed;
-    for (int i = 0; i < 3; ++i)
-        std::cout << std::setw(8) << std::setprecision(2) << v[i] << " ";
-    std::cout << "\n";
-}
+//void PrintVec(const Vec3 &v)
+//{
+//    std::cout << std::fixed;
+//    for (int i = 0; i < 3; ++i)
+//        std::cout << std::setw(8) << std::setprecision(2) << v[i] << " ";
+//    std::cout << "\n";
+//}
 
 
 /******************************************************************************/
@@ -369,13 +369,13 @@ void PrintVec(const Vec3 &v)
         The input vector
 */
 /******************************************************************************/
-void PrintVec(const Vec4 &v)
-{
-    std::cout << std::fixed;
-    for (int i = 0; i < 4; ++i)
-        std::cout << std::setw(8) << std::setprecision(2) << v[i] << " ";
-    std::cout << "\n";
-}
+//void PrintVec(const Vec4 &v)
+//{
+//    std::cout << std::fixed;
+//    for (int i = 0; i < 4; ++i)
+//        std::cout << std::setw(8) << std::setprecision(2) << v[i] << " ";
+//    std::cout << "\n";
+//}
 
 
 /******************************************************************************/
