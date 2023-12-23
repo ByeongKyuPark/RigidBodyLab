@@ -49,6 +49,7 @@ namespace Rendering {
 		std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> m_window;// Pointer to the window
 		std::vector<int> m_guiToObjectIndexMap;
 
+		int m_sphereMirrorCubeMapFrameCounter;
 		float m_sphereRefIndex;
 		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
@@ -113,14 +114,7 @@ namespace Rendering {
 
 		void UpdateLightPosViewFrame(Scene& scene);
 		// Function to update the mapping when objects are added/removed
-		void UpdateGuiToObjectIndexMap(const Core::Scene& scene) {
-			m_guiToObjectIndexMap.clear();
-			for (size_t i = 0; i < scene.m_objects.size(); ++i) {
-				if (scene.m_objects[i]->GetCollider()->GetCollisionEnabled() == true) {
-					m_guiToObjectIndexMap.push_back(i);
-				}
-			}
-		}
+		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
@@ -146,6 +140,8 @@ namespace Rendering {
 		void SetUpSphereUniformLocations(GLuint prog); 
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
+
+		bool ShouldUpdateSphereCubemap(float speedSqrd);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 		static void WindowDeleter(GLFWwindow* window);
