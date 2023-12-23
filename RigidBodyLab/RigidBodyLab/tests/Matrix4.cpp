@@ -28,6 +28,7 @@ Matrix4::Matrix4(float e00, float e01, float e02, float e03,
     columns[2] = _mm_set_ps(e32, e22, e12, e02);
     columns[3] = _mm_set_ps(e33, e23, e13, e03);
 }
+
 Matrix4 Matrix4::Transpose() const {
     Matrix4 result;
 
@@ -135,15 +136,13 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
     for (int i{}; i < 4; ++i) { // columns (in the result)
         for (int j{}; j < 4; ++j) { // rows (in the result)
 
-            __m128 a_row = _mm_set_ps(columns[3].m128_f32[i], columns[2].m128_f32[i], columns[1].m128_f32[i], columns[0].m128_f32[i]);
-            __m128 prod = _mm_mul_ps(a_row, other.columns[j]);
+            __m128 row = _mm_setr_ps(columns[i].m128_f32[0], columns[i].m128_f32[1], columns[i].m128_f32[2], columns[i].m128_f32[3]);
+            __m128 col = _mm_setr_ps(other.columns[0].m128_f32[j], other.columns[1].m128_f32[j], other.columns[2].m128_f32[j], other.columns[3].m128_f32[j]);
 
-            prod = _mm_hadd_ps(prod, prod);  // Horizontal add
-            prod = _mm_hadd_ps(prod, prod);
-
-            // Flip the result both vertically and horizontally
-            // Given that the result is flipped both vertically and horizontally, I've adjust the way the result is stored.
-            result.columns[3 - j].m128_f32[3 - i] = _mm_cvtss_f32(prod);
+            __m128 mul = _mm_mul_ps(row, col);
+            mul = _mm_hadd_ps(mul, mul);
+            mul = _mm_hadd_ps(mul, mul);
+            result.columns[i].m128_f32[j] = _mm_cvtss_f32(mul);
         }
     }
 
@@ -160,18 +159,17 @@ Matrix4& Matrix4::operator*=(const Matrix4& other) {
     return *this;
 }
 
+Vector4 Matrix4::operator*(const Vector4& vec) const {
+    float x = columns[0].m128_f32[0] * vec.vec3.x + columns[0].m128_f32[1] * vec.vec3.y + columns[0].m128_f32[2] * vec.vec3.z + vec.w * columns[0].m128_f32[3];
+    float y = columns[1].m128_f32[0] * vec.vec3.x + columns[1].m128_f32[1] * vec.vec3.y + columns[1].m128_f32[2] * vec.vec3.z + vec.w * columns[1].m128_f32[3];
+    float z = columns[2].m128_f32[0] * vec.vec3.x + columns[2].m128_f32[1] * vec.vec3.y + columns[2].m128_f32[2] * vec.vec3.z + vec.w * columns[2].m128_f32[3];
+    float w = columns[3].m128_f32[0] * vec.vec3.x + columns[3].m128_f32[1] * vec.vec3.y + columns[3].m128_f32[2] * vec.vec3.z + vec.w * columns[3].m128_f32[3];
 
-Vector3 Matrix4::operator*(const Vector3& vec) const {
-    float x = columns[0].m128_f32[0] * vec.x + columns[1].m128_f32[0] * vec.y + columns[2].m128_f32[0] * vec.z + columns[3].m128_f32[0];
-    float y = columns[0].m128_f32[1] * vec.x + columns[1].m128_f32[1] * vec.y + columns[2].m128_f32[1] * vec.z + columns[3].m128_f32[1];
-    float z = columns[0].m128_f32[2] * vec.x + columns[1].m128_f32[2] * vec.y + columns[2].m128_f32[2] * vec.z + columns[3].m128_f32[2];
-    float w = columns[0].m128_f32[3] * vec.x + columns[1].m128_f32[3] * vec.y + columns[2].m128_f32[3] * vec.z + columns[3].m128_f32[3];
-
-    if (w != 1.f && w != 0.f) {
-        x /= w;
-        y /= w;
-        z /= w;
-    }
+    //if (w != 1.f && w != 0.f) {
+    //    x /= w;
+    //    y /= w;
+    //    z /= w;
+    //}
 
     return Vector3(x, y, z);
 }
@@ -270,7 +268,7 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
         _mm_storeu_ps(tmp, columns[col]);
 
         for (int row{}; row < 3; ++row) {
-            matrix3Data[col * 3 + row] = tmp[row];
+            matrix3Data[row * 3 + col] = tmp[row];
         }
     }
 

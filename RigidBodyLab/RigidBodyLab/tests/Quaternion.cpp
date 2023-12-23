@@ -1,7 +1,7 @@
-#include "Quaternion.h"
+#include "math/Quaternion.h"
 #include <glm/glm.hpp> // For glm::radians
 
-using namespace physics;
+using namespace Math;
 
 Quaternion::Quaternion(float _w, float _x, float _y, float _z) : w(_w), x(_x), y(_y), z(_z) {}
 
@@ -92,7 +92,7 @@ void Quaternion::operator*=(float scalar) {
     z *= scalar;
 }
 
-Vector3 physics::Quaternion::RotateVectorByQuaternion(const Vector3& vec) {
+Vector3 Quaternion::RotateVectorByQuaternion(const Vector3& vec) {
     // Convert vector to a quaternion with zero scalar part
     Quaternion vecQuat(0, vec.x, vec.y, vec.z);
 
