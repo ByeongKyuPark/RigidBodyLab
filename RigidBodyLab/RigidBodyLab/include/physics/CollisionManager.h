@@ -85,7 +85,7 @@ namespace Physics {
 
     public:
         CollisionManager()
-            : m_friction(0.85f), m_objectRestitution(0.7f), m_groundRestitution(0.6f),
+            : m_friction(10.f), m_objectRestitution(0.7f), m_groundRestitution(0.6f),
             m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
         void CheckCollision(Core::Object* obj1, Core::Object* obj2);

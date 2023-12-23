@@ -15,7 +15,7 @@ void ComputeNormals(Mesh& mesh);
 void ComputeUVs(Mesh& mesh);
 
 Mat4 Rendering::Mesh::GetBoundingBoxMat() const {
-    return Scale(m_boundingBoxes.extents) * Translate(-m_boundingBoxes.center);
+    return Scale(m_boundingBox.extents) * Translate(-m_boundingBox.center);
 }
 
 /******************************************************************************/
@@ -522,8 +522,8 @@ Mesh Rendering::Mesh::LoadOBJMesh(char* filename)
     ComputeUVs(mesh);
 
     //extents of 2 by default (e.g., x=-1 <--> x=1)
-    mesh.m_boundingBoxes.center = (minPoint + maxPoint) * 0.5f;// (=0.5 * 0.5)
-    mesh.m_boundingBoxes.extents = 1.f / (maxPoint - minPoint);
+    mesh.m_boundingBox.center = (minPoint + maxPoint) * 0.5f;// (=0.5 * 0.5)
+    mesh.m_boundingBox.extents = 1.f / (maxPoint - minPoint);
     
     return mesh;
 }
@@ -674,7 +674,7 @@ void ComputeUVs(Mesh& mesh)
 }
 
 Rendering::Mesh::Mesh()
-    : numVertices(0), numTris(0), numIndices(0), VAO{}, VBO{}, IBO{}, m_boundingBoxes{}
+    : numVertices(0), numTris(0), numIndices(0), VAO{}, VBO{}, IBO{}, m_boundingBox{}
 {
     vertexBuffer.clear();
     indexBuffer.clear();

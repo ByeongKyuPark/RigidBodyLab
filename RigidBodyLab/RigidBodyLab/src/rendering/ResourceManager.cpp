@@ -16,21 +16,14 @@ ResourceManager::ResourceManager()
     m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(Mesh::CreateSphere(16, 16));
     m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
     m_meshes[TO_INT(MeshID::TEAPOT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/teapot.obj"));
+    // adjust the teapot's bounding box. The original model has an elongated shape (oval), so we scale its x-dimension to achieve a more proportionate and visually pleasing appearance.
     m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
     m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
     m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
 
-    stbi_set_flip_vertically_on_load(true);
+    m_meshes[TO_INT(MeshID::TEAPOT)]->m_boundingBox.extents.x *= 2.f; 
 
-    //SetUpObjTextures();
-    ///*  Set up bump map and normal map for the base object */
-    //SetUpBaseBumpNormalTextures();
-    ///*  Set up skybox texture for background rendering */
-    //SetUpSkyBoxTexture();
-    ///*  Set up texture object for mirror reflection. This texture object hasn't stored any data yet.
-    //    We will render the reflected data for this texture on the fly.
-    //*/
-    //SetUpMirrorTexture();
+    stbi_set_flip_vertically_on_load(true);
 }
 
 ResourceManager& ResourceManager::GetInstance()
@@ -139,12 +132,6 @@ void Rendering::ResourceManager::SetUpBaseBumpNormalTextures()
     int imgWidth, imgHeight, numComponents;
 
     /*  Load bump image */
-    //bumpImgData = stbi_load(bumpTexFile, &imgWidth, &imgHeight, &numComponents,0);
-    //if (!bumpImgData)
-    //{
-    //    std::cerr << "Reading " << bumpTexFile << " failed.\n";
-    //    exit(1);
-    //}
     if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0)
     {
         std::cerr << "Reading " << bumpTexFile << " failed.\n";
