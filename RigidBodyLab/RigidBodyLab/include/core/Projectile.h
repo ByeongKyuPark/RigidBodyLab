@@ -4,7 +4,7 @@
 namespace Core {
 
     struct Projectile {
-        constexpr static float INITIAL_SPEED = 1.f;
+        constexpr static float INITIAL_SPEED = 2.f;
 
         bool m_isActive;
         Object* m_object;//not an owner

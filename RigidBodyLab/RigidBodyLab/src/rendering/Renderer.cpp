@@ -158,6 +158,21 @@ void Renderer::SetUpShaders() {
     SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
 }
 
+bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
+    constexpr float MIN_SPEED_SQRD = 0.001f;
+    if (speedSqrd <= MIN_SPEED_SQRD) {
+        return false;
+    }
+
+    constexpr int UPDATE_INTERVAL = 50;
+    m_sphereMirrorCubeMapFrameCounter++;
+    if (m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
+        m_sphereMirrorCubeMapFrameCounter = 0;
+        return true;
+    }
+    return false;
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendLightProperties()
@@ -200,7 +215,6 @@ void Renderer::SendLightProperties(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeMainCamObjMVMats(const Core::Scene& scene)
 {
-    //std::vector<Mat4>& MVMat, std::vector<Mat4>& NMVMat, const Mat4& viewMat, 
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
     {
@@ -210,7 +224,7 @@ void Renderer::ComputeMainCamObjMVMats(const Core::Scene& scene)
     }
 }
 
-void Rendering::Renderer::ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene)
+void Renderer::ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene)
 {
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
@@ -221,7 +235,7 @@ void Rendering::Renderer::ComputePlanarMirrorCamObjMVMats(const Core::Scene& sce
     }
 }
 
-void Rendering::Renderer::ComputeSphericalMirrorCamObjMVMats(int faceIdx,const Core::Scene& scene)
+void Renderer::ComputeSphericalMirrorCamObjMVMats(int faceIdx,const Core::Scene& scene)
 {
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
@@ -273,11 +287,11 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 	// Thresholds for movement
 	static constexpr float POSITION_THRESHOLD = 0.01f;
 
-	static Core::Transform previousMirrorTransform = scene.m_mirror->GetPosition();
-	const Core::Transform& currentMirrorTransform = scene.m_mirror->GetPosition();
+	static Math::Vector3 previousMirrorPos = scene.m_mirror->GetPosition();
+	const Math::Vector3& currentMirrorPos = previousMirrorPos;
 
-    Math::Vector3 positionDelta = currentMirrorTransform.m_position - previousMirrorTransform.m_position;
-	previousMirrorTransform = currentMirrorTransform;
+    Math::Vector3 positionDelta = currentMirrorPos - previousMirrorPos;
+	previousMirrorPos = currentMirrorPos;
 	
     if (positionDelta.Length() > POSITION_THRESHOLD) {
 		mirrorCam.moved = true;
@@ -295,8 +309,9 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
             m_mirrorVisible = false;
             return;
         }
-        else
+        else {
             m_mirrorVisible = true;
+        }
 
         /*  In mirror frame, mirror camera position is defined as (x, y, -z) in which (x, y, z) is the
             user camera position in mirror frame.
@@ -311,9 +326,8 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
         // Setting mirror camera's position and look-at point
         mirrorCam.pos = Vec3(mirrorMat * Vec4(mirrorCamMirrorFrame, 1.0));
         mirrorCam.upVec = Normalize(Vec3(mirrorMat * Vec4(0, 1, 0, 0)));
-        Vec3 mirrorCenter = scene.m_mirror->GetMesh()->m_boundingBoxes.center;
+        Vec3 mirrorCenter = scene.m_mirror->GetMesh()->m_boundingBox.center;
         mirrorCam.lookAt = Vec3(mirrorMat* Vec4{ mirrorCenter,1.f });
-
 
         m_mirrorCamViewMat = LookAt(mirrorCam.pos, mirrorCam.lookAt, mirrorCam.upVec);
 
@@ -413,7 +427,7 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
         The bottom and top faces are -y and +y.
     */
     // Directions for the cubemap faces
-    Vec3 lookAt[TO_INT(CubeFaceID::NUM_FACES)] = {
+    const static Vec3 lookAt[TO_INT(CubeFaceID::NUM_FACES)] = {
         BASIS[0], // RIGHT
         -BASIS[0], // LEFT
         BASIS[1], // TOP
@@ -428,7 +442,7 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
         upVec is pointing backward.
     */
     // Up vectors for the cubemap faces
-    Vec3 upVec[TO_INT(CubeFaceID::NUM_FACES)] = {
+    const static Vec3 upVec[TO_INT(CubeFaceID::NUM_FACES)] = {
         -BASIS[1], // RIGHT flipped
         -BASIS[1], // LEFT flipped
         BASIS[2],  // TOP flipped
@@ -436,7 +450,6 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
         -BASIS[1], // BACK flipped
         -BASIS[1]  // FRONT flipped
     };
-
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
@@ -451,15 +464,15 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
         The near plane distance is 0.01f. The far plane distance is equal to mainCam's farPlane.
     */
     // Compute the projection matrix for the sphere camera
-    float fov = PI / 2.f; // 90 degrees in radians
-    float aspectRatio = 1.0f;
-    float nearPlane = 0.01f; // near plane is 0.01, and far plane is the same as the main camera's far plane
+    constexpr float fov = PI / 2.f; // 90 degrees in radians
+    constexpr float aspectRatio = 1.f;
+    constexpr float nearPlane = 0.01f; // near plane is 0.01, and far plane is the same as the main camera's far plane
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE, 0));
-    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 2.f));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 3.f));
 
     // displaying FPS
     ImGui::Text("Frame Rate: %.1f", fps);
@@ -492,7 +505,6 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     return true;
         }, static_cast<void*>(&objectNames), objectNames.size())) {
     }
-
     // mesh and texture Names Setup
     const static std::array<std::string,TO_INT(MeshID::NUM_MESHES)> meshNames = {"Cube", "Vase", "Plane", "Sphere", "Teapot", "Diamond", "Dodecahedron", "Gourd"};
     const static std::array<std::string, TO_INT(ImageID::NUM_IMAGES)> textureNames = { "Stone", "Stone2", "Wood1", "Wood2", "Pottery1", "Pottery2", "Pottery3" };
@@ -509,6 +521,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
     // Ensure selected object index is within valid range
     if (selectedObject >= 0 && selectedObject < static_cast<int>(objectNames.size())) {
+        int sceneObjectIndex = m_guiToObjectIndexMap[selectedObject];
         std::string selectedObjectName = objectNames[selectedObject];
 
         static int selectedMesh{ -1 };
@@ -518,7 +531,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         if (ImGui::Combo("Meshes", &selectedMesh, meshNamesCStr, meshNames.size())) {
             if (selectedMesh >= 0) {
                 Mesh* newMesh = ResourceManager::GetInstance().GetMesh(static_cast<MeshID>(selectedMesh));
-                scene.GetObject(selectedObject).SetMesh(newMesh);
+                scene.GetObject(sceneObjectIndex).SetMesh(newMesh);
                 m_shouldUpdateCubeMapForSphere = true;
             }
         }
@@ -526,7 +539,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         // Texture selection
         if (selectedObjectName != "spherical mirror" && selectedObjectName != "planar mirror") {
             if (ImGui::Combo("Textures", &selectedTexture, textureNamesCStr, textureNames.size())) {
-                scene.GetObject(selectedObject).SetImageID(static_cast<ImageID>(selectedTexture));
+                scene.GetObject(sceneObjectIndex).SetImageID(static_cast<ImageID>(selectedTexture));
                 m_shouldUpdateCubeMapForSphere = true;
             }
         }
@@ -567,7 +580,6 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 Core::ColliderConfig(radius) :
                 Core::ColliderConfig(Vec3{ scale[0], scale[1], scale[2] });
             Math::Quaternion orientation(angleDegrees, rotationAxis);
-
             scene.CreateObject(
                 objectName,
                 static_cast<MeshID>(meshID),
@@ -578,6 +590,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 mass,
                 orientation
             );
+            UpdateGuiToObjectIndexMap(scene);
         }
     }
 
@@ -587,6 +600,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
             // create and launch a projectile
             scene.ShootProjectile({ mainCam.GetPos().x,mainCam.GetPos().y,mainCam.GetPos().z });
         }
+        UpdateGuiToObjectIndexMap(scene);
     }
 }
 
@@ -774,10 +788,11 @@ void Renderer::CleanUp()
 }
 
 Rendering::Renderer::Renderer()
-    :m_window{ nullptr,WindowDeleter }, m_fps(0)
-    ,m_sphereRef(RefType::REFLECTION_ONLY)
-    ,m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
-    ,m_shouldUpdateCubeMapForSphere{ true }
+    : m_window{ nullptr,WindowDeleter }, m_fps(0)
+    , m_sphereRef(RefType::REFLECTION_ONLY)
+    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
+    , m_shouldUpdateCubeMapForSphere{ true }
+    , m_sphereMirrorCubeMapFrameCounter{}
 
     , m_mainCamViewMat{}
     , m_mainCamProjMat{}
@@ -911,6 +926,17 @@ void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
     }
 }
 
+// Function to update the mapping when objects are added/removed
+
+void Rendering::Renderer::UpdateGuiToObjectIndexMap(const Core::Scene& scene) {
+    m_guiToObjectIndexMap.clear();
+    for (size_t i = 0; i < scene.m_objects.size(); ++i) {
+        if (scene.m_objects[i]->GetCollider()->GetCollisionEnabled() == true) {
+            m_guiToObjectIndexMap.push_back(i);
+        }
+    }
+}
+
 // GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 // therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 void Renderer::WindowDeleter(GLFWwindow* window) {
@@ -970,7 +996,7 @@ void Renderer::RenderObj(const Core::Object& obj)
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
     if (scene.m_sphere == nullptr) {
-        return; // No sphere to render
+        return; // no sphere to render
     }
 
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
@@ -988,7 +1014,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
 
     // Compute and send the model-view matrix for the sphere
     Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrixGLM();
-    Mat4 sphereNMV = Transpose(Inverse(sphereMV)); // or however you calculate the normal model-view matrix
+    Mat4 sphereNMV = Transpose(Inverse(sphereMV));
     SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
 
     // Send the projection matrix
@@ -996,11 +1022,6 @@ void Renderer::RenderSphere(const Core::Scene& scene)
 
     // Finally, render the sphere
     RenderObj(*scene.m_sphere);
-
-    //SendMVMat(m_mainCamMVMat[TO_INT(ObjID::SPHERE)], m_mainCamNormalMVMat[TO_INT(ObjID::SPHERE)], m_sphereMVMatLoc, m_sphereNMVMatLoc);
-    //SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
-
-    //RenderObj(scene.GetObject(TO_INT(ObjID::SPHERE)));
 }
 
 
@@ -1342,6 +1363,7 @@ void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().m_mirrorFrameBufferID);
     RenderObjsBgMirrorCam(RenderPass::MIRRORTEX_GENERATION,scene);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); //reset
 }
 
 
@@ -1370,14 +1392,17 @@ void Renderer::RenderToScreen(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::Render(Core::Scene& scene, float fps)
 {
-
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
     */
-    if (m_shouldUpdateCubeMapForSphere)
+    if (m_shouldUpdateCubeMapForSphere 
+        || ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared())==true)
     {
         ComputeSphereCamMats(scene);
         ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -1402,8 +1427,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
         m_shouldUpdateCubeMapForSphere = false;
     }
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving

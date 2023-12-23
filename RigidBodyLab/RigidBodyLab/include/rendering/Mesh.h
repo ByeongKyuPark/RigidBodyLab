@@ -74,7 +74,7 @@ namespace Rendering {
         GLuint VBO;
         GLuint IBO;
         
-        BoundingBoxInfo m_boundingBoxes;//be default scl=(1,1,1), center={0,0,0}
+        BoundingBoxInfo m_boundingBox;//be default scl=(1,1,1), center={0,0,0}
 
         Mat4 GetBoundingBoxMat()const;
         /*  Mesh function(s) */
