@@ -566,7 +566,6 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 Core::ColliderConfig(radius) :
                 Core::ColliderConfig(Vec3{ scale[0], scale[1], scale[2] });
             Math::Quaternion orientation(angleDegrees, rotationAxis);
-            std::cout << meshID << '\n';
             scene.CreateObject(
                 objectName,
                 static_cast<MeshID>(meshID),
@@ -1343,6 +1342,7 @@ void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().m_mirrorFrameBufferID);
     RenderObjsBgMirrorCam(RenderPass::MIRRORTEX_GENERATION,scene);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); //reset
 }
 
 
@@ -1374,6 +1374,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
     */
@@ -1402,8 +1404,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
         m_shouldUpdateCubeMapForSphere = false;
     }
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving

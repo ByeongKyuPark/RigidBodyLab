@@ -223,6 +223,21 @@ void Rendering::ResourceManager::SetUpMirrorTexture()
 	glBindFramebuffer(GL_FRAMEBUFFER, m_mirrorFrameBufferID);
 
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_mirrorTexID, 0);
+
+    //create a renderbuffer for depth attachment
+    GLuint depthRenderBuffer;
+    glGenRenderbuffers(1, &depthRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mirrorCam.GetWidth(), mirrorCam.GetHeight());
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+
+    // check if framebuffer is complete
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Mirror Framebuffer is not complete!\n";
+    }
+
+    //reset
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /******************************************************************************/
