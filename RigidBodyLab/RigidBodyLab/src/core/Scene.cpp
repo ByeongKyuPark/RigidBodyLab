@@ -191,7 +191,7 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 					})
 			);
 		}
-	}
+	}    
 
     // wait for all collision checks to complete
     for (auto& future : m_collisionDetectionFutures) {
