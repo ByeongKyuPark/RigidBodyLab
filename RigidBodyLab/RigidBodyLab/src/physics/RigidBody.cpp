@@ -186,5 +186,5 @@ Physics::Matrix4 Physics::RigidBody::GetLocalToWorldMatrix() const{
 }
 
 glm::mat4 RigidBody::GetLocalToWorldMatrixGLM() const{
-    return transform.m_localToWorld.ConvertToGLM();
+    return transform.m_localToWorld;
 }

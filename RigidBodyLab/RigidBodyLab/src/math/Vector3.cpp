@@ -128,8 +128,12 @@ namespace Math {
         return !(*this == rhs);
     }
 
+    Vector3::operator glm::vec3() const {
+        return glm::vec3(x, y, z);
+    }
+
     std::ostream& operator<<(std::ostream& os, const Vector3& v) {
         os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
         return os;
     }
-} // namespace Math
+}

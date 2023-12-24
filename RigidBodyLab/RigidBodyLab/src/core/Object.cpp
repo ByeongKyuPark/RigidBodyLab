@@ -133,7 +133,7 @@ Mat4 Core::Object::GetUnitModelMatrixGLM() const {
 		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetLocalToWorldMatrixGLM();
 	}
 	else {
-		return std::get<Transform>(m_physicsOrTransform).m_localToWorld.ConvertToGLM();
+		return std::get<Transform>(m_physicsOrTransform).m_localToWorld;
 	}
 }
 
@@ -166,7 +166,7 @@ Mat4 Core::Object::GetModelMatrixGLM() const {
 	}
 	else {
 		// For static objects, combine Transform's transformation with the collider's scale and mesh offset
-		return std::get<Transform>(m_physicsOrTransform).m_localToWorld.ConvertToGLM()
+		return static_cast<Mat4>(std::get<Transform>(m_physicsOrTransform).m_localToWorld)
 			* m_collider->GetScaleMatrixGLM() * m_mesh->GetBoundingBoxMat();
 	}
 }

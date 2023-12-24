@@ -5,6 +5,8 @@
 
 using namespace Math;
 
+//'_mm_set_ps' takes four arguments, and it places the first argument in the highest bitsand the last in the lowest bits of the register.
+//Essentially, it stores the values in REVERSE order.
 Matrix4::Matrix4(float value) {
     columns[0] = _mm_set_ps(0.0f, 0.0f, 0.0f, value);
     columns[1] = _mm_set_ps(0.0f, 0.0f, value, 0.0f);
@@ -277,14 +279,24 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
 }
 
 
-glm::mat4 Matrix4::ConvertToGLM() const noexcept {
-    glm::mat4 result;
+//glm::mat4 Matrix4::ConvertToGLM() const noexcept {
+//    glm::mat4 result;
+//
+//    for (int row = 0; row < 4; ++row) {
+//        for (int col = 0; col < 4; ++col) {
+//            result[row][col] = columns[row].m128_f32[col];
+//        }
+//    }
+//
+//    return result;
+//}
 
+Math::Matrix4::operator glm::mat4() const noexcept {
+    glm::mat4 result;
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             result[row][col] = columns[row].m128_f32[col];
         }
     }
-
     return result;
 }

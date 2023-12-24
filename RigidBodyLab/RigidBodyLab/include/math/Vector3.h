@@ -4,6 +4,8 @@
 #include <ostream>
 #include <stdexcept>
 
+#include <glm/glm.hpp>
+
 namespace Math {
 
     struct Vector3 {
@@ -35,7 +37,7 @@ namespace Math {
         Vector3 operator-() const;
         bool operator==(const Vector3& rhs) const;
         bool operator!=(const Vector3& rhs) const;
-
+        operator glm::vec3() const;
         friend std::ostream& operator<<(std::ostream& os, const Vector3& v);
     };
 

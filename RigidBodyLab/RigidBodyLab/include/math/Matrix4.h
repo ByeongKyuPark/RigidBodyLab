@@ -41,6 +41,6 @@ namespace Math
         void Set(int row, int column, float value);
 
         Matrix3 Extract3x3Matrix() const;
-        glm::mat4 ConvertToGLM()const noexcept;
+        operator glm::mat4() const noexcept;
     };
 }
