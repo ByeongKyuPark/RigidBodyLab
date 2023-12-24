@@ -159,6 +159,8 @@ void Core::Scene::SetUpScene() {
 
 void Core::Scene::ApplyBroadPhase()
 {
+    //TODO::Octree Partitioning 
+    //https://www.gamedeveloper.com/programming/octree-partitioning-techniques
 }
 
 void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
