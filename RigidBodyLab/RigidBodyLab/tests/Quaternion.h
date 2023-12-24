@@ -3,7 +3,7 @@
 #include "Vector3.h"
 #include <cmath>
 
-namespace physics {
+namespace Math {
     using Math::Vector3;
 
     struct Quaternion {

@@ -52,9 +52,8 @@ namespace Core {
 		Vector3 GetAxis(int axisIdx) const;
 		const Mesh* GetMesh() const { return m_mesh; }
 		//RT only (no scale)
-		Matrix4 GetModelMatrix() const;
-		Mat4 GetUnitModelMatrixGLM() const;
-		Mat4 GetModelMatrixGLM() const;
+		Matrix4 GetUnitModelMatrix() const;
+		Mat4 GetModelMatrix() const;
 		const Collider* GetCollider() const;
 		Collider* GetCollider();
 		RigidBody* GetRigidBody();

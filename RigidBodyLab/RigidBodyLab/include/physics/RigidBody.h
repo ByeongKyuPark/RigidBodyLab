@@ -84,6 +84,5 @@ namespace Physics
         Vector3 GetAcceleration() const;
         float GetLinearDamping() const;
         Matrix4 GetLocalToWorldMatrix() const;
-        glm::mat4 GetLocalToWorldMatrixGLM() const;
     }; 
 }

@@ -5,6 +5,8 @@
 
 using namespace Math;
 
+//'_mm_set_ps' takes four arguments, and it places the first argument in the highest bitsand the last in the lowest bits of the register.
+//Essentially, it stores the values in REVERSE order.
 Matrix4::Matrix4(float value) {
     columns[0] = _mm_set_ps(0.0f, 0.0f, 0.0f, value);
     columns[1] = _mm_set_ps(0.0f, 0.0f, value, 0.0f);
@@ -135,18 +137,17 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
     for (int i{}; i < 4; ++i) { // columns (in the result)
         for (int j{}; j < 4; ++j) { // rows (in the result)
 
-            __m128 a_row = _mm_set_ps(columns[3].m128_f32[i], columns[2].m128_f32[i], columns[1].m128_f32[i], columns[0].m128_f32[i]);
-            __m128 prod = _mm_mul_ps(a_row, other.columns[j]);
+            // perform the dot product of the i-th row of 'this' with the j-th column of 'other'
+            __m128 row = _mm_setr_ps(columns[0].m128_f32[i], columns[1].m128_f32[i], columns[2].m128_f32[i], columns[3].m128_f32[i]);
+            __m128 col = _mm_setr_ps(other.columns[j].m128_f32[0], other.columns[j].m128_f32[1], other.columns[j].m128_f32[2], other.columns[j].m128_f32[3]);
 
-            prod = _mm_hadd_ps(prod, prod);  // Horizontal add
-            prod = _mm_hadd_ps(prod, prod);
+            __m128 mul = _mm_mul_ps(row, col);
+            mul = _mm_hadd_ps(mul, mul);
+            mul = _mm_hadd_ps(mul, mul);
 
-            // Flip the result both vertically and horizontally
-            // Given that the result is flipped both vertically and horizontally, I've adjust the way the result is stored.
-            result.columns[3 - j].m128_f32[3 - i] = _mm_cvtss_f32(prod);
+            result.columns[j].m128_f32[i] = _mm_cvtss_f32(mul);
         }
     }
-
     return result;
 }
 
@@ -161,17 +162,17 @@ Matrix4& Matrix4::operator*=(const Matrix4& other) {
 }
 
 
-Vector3 Matrix4::operator*(const Vector3& vec) const {
-    float x = columns[0].m128_f32[0] * vec.x + columns[1].m128_f32[0] * vec.y + columns[2].m128_f32[0] * vec.z + columns[3].m128_f32[0];
-    float y = columns[0].m128_f32[1] * vec.x + columns[1].m128_f32[1] * vec.y + columns[2].m128_f32[1] * vec.z + columns[3].m128_f32[1];
-    float z = columns[0].m128_f32[2] * vec.x + columns[1].m128_f32[2] * vec.y + columns[2].m128_f32[2] * vec.z + columns[3].m128_f32[2];
-    float w = columns[0].m128_f32[3] * vec.x + columns[1].m128_f32[3] * vec.y + columns[2].m128_f32[3] * vec.z + columns[3].m128_f32[3];
+Vector3 Matrix4::operator*(const Vector4& vec) const {
+    float x = columns[0].m128_f32[0] * vec.vec3.x + columns[1].m128_f32[0] * vec.vec3.y + columns[2].m128_f32[0] * vec.vec3.z + vec.w * columns[3].m128_f32[0];
+    float y = columns[0].m128_f32[1] * vec.vec3.x + columns[1].m128_f32[1] * vec.vec3.y + columns[2].m128_f32[1] * vec.vec3.z + vec.w * columns[3].m128_f32[1];
+    float z = columns[0].m128_f32[2] * vec.vec3.x + columns[1].m128_f32[2] * vec.vec3.y + columns[2].m128_f32[2] * vec.vec3.z + vec.w * columns[3].m128_f32[2];
+    //float w = columns[0].m128_f32[3] * vec.x + columns[1].m128_f32[3] * vec.y + columns[2].m128_f32[3] * vec.z + columns[3].m128_f32[3];
 
-    if (w != 1.f && w != 0.f) {
-        x /= w;
-        y /= w;
-        z /= w;
-    }
+    //if (w != 1.f && w != 0.f) {
+    //    x /= w;
+    //    y /= w;
+    //    z /= w;
+    //}
 
     return Vector3(x, y, z);
 }
@@ -278,15 +279,24 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
 }
 
 
-glm::mat4 Matrix4::ConvertToGLM() const noexcept {
+Math::Matrix4::operator glm::mat4() const noexcept {
     glm::mat4 result;
-
     for (int row = 0; row < 4; ++row) {
         for (int col = 0; col < 4; ++col) {
             result[row][col] = columns[row].m128_f32[col];
         }
     }
-
     return result;
 }
 
+Matrix4 Math::Matrix4::Scale(const Vector3& scl) {
+    return { scl.x, scl.y, scl.z };
+}
+
+Matrix4 Math::Matrix4::Translate(const Vector3& translate) {
+    Matrix4 result{};
+
+    result.columns[3] = _mm_set_ps(1.0f, translate.z, translate.y, translate.x);
+
+    return result;
+}

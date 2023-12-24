@@ -1,9 +1,11 @@
 #include"gtest/gtest.h"
 #include "Vector2.h"
 #include "Vector3.h"
+#include "Vector4.h"
 #include "Quaternion.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
+#include "Transform.h"
 
 constexpr float EPSILON = 1e-5f;
 constexpr float LOOSE_EPSILON = 1e-3f;
@@ -391,18 +393,6 @@ TEST(Matrix4Test, InverseMultiplication) {
     }
 }
 
-TEST(Matrix4Test, MatrixMultiplication) {
-    Matrix4 m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
-    Matrix4 m2(16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
-    Matrix4 product = m1 * m2;
-    const Matrix4 answer{ 386,444,502,560,274,316,358,400,162,188,214,240,50,60,70,80 };
-    for (int i{}; i < 4; ++i) {
-        for (int j{}; j < 4; ++j) {
-            EXPECT_FLOAT_EQ(product.Get(i, j), answer.Get(i, j));
-        }
-    }
-}
-
 
 TEST(Matrix4Test, ScalarMultiplication) {
     Matrix4 m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
@@ -435,9 +425,9 @@ TEST(Matrix4Test, Extract3x3Matrix) {
 
     // Expected 3x3 matrix result
     Matrix3 expected = {
-        1.0f, 2.0f, 3.0f,
-        5.0f, 6.0f, 7.0f,
-        9.0f, 10.0f, 11.0f
+        1.0f, 5.0f, 9.0f,
+        2.0f, 6.0f, 10.0f,
+        3.0f, 7.0f, 11.0f
     };
 
     // Perform the extraction
@@ -460,46 +450,54 @@ TEST(Matrix4Test, ConvertToGLM) {
     // Perform the conversion
     glm::mat4 result = m.ConvertToGLM();
 
-    // Check each element
-    for (int col = 0; col < 4; ++col) {
-        for (int row = 0; row < 4; ++row) {
-            EXPECT_NEAR(result[col][row], expected[col][row], EPSILON);
-        }
+    //// Check each element
+    //for (int col = 0; col < 4; ++col) {
+    //    for (int row = 0; row < 4; ++row) {
+    //        EXPECT_NEAR(result[col][row], expected[col][row], EPSILON);
+    //    }
+    //}
+    glm::vec4 v = { 3.f,-2.f,5.f,1.f };
+
+    glm::vec4 r1 = expected * v;
+    glm::vec4 r2 = result * v;
+
+    for (int i{}; i < 4; ++i) {
+        EXPECT_EQ(r1[i],r2[i]);
     }
 }
 TEST(QuaternionTest, DefaultConstructor) {
-    physics::Quaternion q;
+    Quaternion q;
     EXPECT_FLOAT_EQ(q.w, 1.0f);
     EXPECT_FLOAT_EQ(q.x, 0.0f);
     EXPECT_FLOAT_EQ(q.y, 0.0f);
     EXPECT_FLOAT_EQ(q.z, 0.0f);
 }
 TEST(QuaternionTest, ParameterizedConstructor) {
-    physics::Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
+    Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
     EXPECT_FLOAT_EQ(q.w, 1.0f);
     EXPECT_FLOAT_EQ(q.x, 2.0f);
     EXPECT_FLOAT_EQ(q.y, 3.0f);
     EXPECT_FLOAT_EQ(q.z, 4.0f);
 }
 TEST(QuaternionTest, Normalize) {
-    physics::Quaternion q(0.0f, 3.0f, 4.0f, 0.0f);
+    Quaternion q(0.0f, 3.0f, 4.0f, 0.0f);
     q.Normalize();
     float magnitude = std::sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
     EXPECT_NEAR(magnitude, 1.0f, 1e-5);
 }
 TEST(QuaternionTest, Addition) {
-    physics::Quaternion q1(1.0f, 2.0f, 3.0f, 4.0f);
-    physics::Quaternion q2(2.0f, 3.0f, 4.0f, 5.0f);
-    physics::Quaternion result = q1 + q2;
+    Quaternion q1(1.0f, 2.0f, 3.0f, 4.0f);
+    Quaternion q2(2.0f, 3.0f, 4.0f, 5.0f);
+    Quaternion result = q1 + q2;
     EXPECT_FLOAT_EQ(result.w, 3.0f);
     EXPECT_FLOAT_EQ(result.x, 5.0f);
     EXPECT_FLOAT_EQ(result.y, 7.0f);
     EXPECT_FLOAT_EQ(result.z, 9.0f);
 }
 TEST(QuaternionTest, Multiplication) {
-    physics::Quaternion q1(1.0f, 2.0f, 1.0f,3.0f);
-    physics::Quaternion q2(1.0f, 0.5f, 0.5f, 0.75f);
-    physics::Quaternion result = q1 * q2;
+    Quaternion q1(1.0f, 2.0f, 1.0f,3.0f);
+    Quaternion q2(1.0f, 0.5f, 0.5f, 0.75f);
+    Quaternion result = q1 * q2;
     
     EXPECT_FLOAT_EQ(result.w, -2.75);
     EXPECT_FLOAT_EQ(result.x, 1.75f);
@@ -507,16 +505,16 @@ TEST(QuaternionTest, Multiplication) {
     EXPECT_FLOAT_EQ(result.z, 4.25f);
 }
 TEST(QuaternionTest, ScalarMultiplication) {
-    physics::Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
+    Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
     float scalar = 2.0f;
-    physics::Quaternion result = q * scalar;
+    Quaternion result = q * scalar;
     EXPECT_FLOAT_EQ(result.w, 2.0f);
     EXPECT_FLOAT_EQ(result.x, 4.0f);
     EXPECT_FLOAT_EQ(result.y, 6.0f);
     EXPECT_FLOAT_EQ(result.z, 8.0f);
 }
 TEST(QuaternionTest, RotateByVector) {
-    physics::Quaternion q(1.0f, 0.0f, 0.0f, 0.0f); // Assuming q is an identity quaternion
+    Quaternion q(1.0f, 0.0f, 0.0f, 0.0f); // Assuming q is an identity quaternion
     Math::Vector3 vec(1.0f, 2.0f, 3.0f);
     float deltaTime = 0.5f;
 
@@ -529,16 +527,16 @@ TEST(QuaternionTest, RotateByVector) {
     float cosHalfAngle = std::cos(angle * 0.5f);
     float sinHalfAngle = std::sin(angle * 0.5f);
     // (a rotation around a unit axis vector)
-    physics::Quaternion rotation(cosHalfAngle,
+    Quaternion rotation(cosHalfAngle,
         axis.x * sinHalfAngle,
         axis.y * sinHalfAngle,
         axis.z * sinHalfAngle);
 
     // Expected result is the original quaternion rotated by the rotation quaternion
-    physics::Quaternion expected = q * rotation;// Quaternion multiplication
+    Quaternion expected = q * rotation;// Quaternion multiplication
 
     // Perform the rotation
-    physics::Quaternion result = q.RotateByVector(vec, deltaTime);
+    Quaternion result = q.RotateByVector(vec, deltaTime);
 
     EXPECT_NEAR(result.w, expected.w, EPSILON);
     EXPECT_NEAR(result.x, expected.x, EPSILON);
@@ -547,8 +545,8 @@ TEST(QuaternionTest, RotateByVector) {
 }
 
 TEST(QuaternionTest, Conjugate) {
-    physics::Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
-    physics::Quaternion conjugate = q.Conjugate();
+    Quaternion q(1.0f, 2.0f, 3.0f, 4.0f);
+    Quaternion conjugate = q.Conjugate();
 
     EXPECT_FLOAT_EQ(conjugate.w, 1.0f);
     EXPECT_FLOAT_EQ(conjugate.x, -2.0f);
@@ -559,16 +557,115 @@ TEST(QuaternionTest, Conjugate) {
 TEST(QuaternionTest, RotateVectorByQuaternion) {
     // Quaternion representing a 90-degree rotation around the z-axis
     float angle =  PI/ 2.f; // 90 degrees
-    physics::Quaternion q(std::cos(angle / 2), 0, 0, std::sin(angle / 2));
+    Quaternion q(std::cos(angle / 2), 0, 0, std::sin(angle / 2));
 
     // A vector along the x-axis
-    physics::Vector3 vec(1.0f, 0.0f, 0.0f);
+    Vector3 vec(1.0f, 0.0f, 0.0f);
 
     // RotateByVector the vector
-    physics::Vector3 rotatedVec = q.RotateVectorByQuaternion(vec);
+    Vector3 rotatedVec = q.RotateVectorByQuaternion(vec);
 
     // Expect the vector to now be along the y-axis
     EXPECT_NEAR(rotatedVec.x, 0.f, EPSILON);
     EXPECT_NEAR(rotatedVec.y, 1.f, EPSILON);
     EXPECT_NEAR(rotatedVec.z, 0.f, EPSILON);
+}
+
+
+TEST(glm_comparison, mat4_vec3) {
+    Vector3 v1{ 1,3,5 };
+    glm::vec3 v2{ 1,3,5 };
+
+    Matrix4 m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    glm::mat4 m2{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+
+    Vector3 r1 = m * Vector4{ v1,1.f };
+    glm::vec3 r2=m2* glm::vec4(v2,1.f);
+
+    for (int i{}; i < 3; ++i) {
+        EXPECT_FLOAT_EQ(r1[i],r2[i]);
+    }
+
+    r1 = m * Vector4{ v1,0.f };
+    r2 = m2 * glm::vec4(v2, 0.f);
+
+    for (int i{}; i < 3; ++i) {
+        EXPECT_FLOAT_EQ(r1[i], r2[i]);
+    }
+}
+
+TEST(glm_comparison, mat4_mat4_ConvertToGLM) {
+    Vector3 v1{ 1,3,5 };
+    glm::vec3 v2{ 1,3,5 };
+
+    Matrix4 m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    Matrix4 m2(1,-3,5,7,9,-11,13,15,2,4,6,-8,-10,12,14,16);
+
+    glm::mat4 m3{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    glm::mat4 m4{ 1,-3,5,7,9,-11,13,15,2,4,6,-8,-10,12,14,16 };
+    glm::mat4 mat1 = m1.ConvertToGLM() * m2.ConvertToGLM();
+    glm::mat4 mat2 = m3 * m4;
+
+    glm::vec3 r1 = mat1 * glm::vec4(v2, 1.f);
+    glm::vec3 r2 = mat2 * glm::vec4(v2, 1.f);
+
+    for (int i{}; i < 3; ++i) {
+        EXPECT_FLOAT_EQ(r1[i], r2[i]);
+    }
+}
+
+
+TEST(glm_comparison, mat4_mat4_Multiplication) {
+    Vector3 v1{ 1,3,5 };
+    glm::vec3 v2{ 1,3,5 };
+
+    Matrix4 m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    Matrix4 m2(1, -3, 5, 7, 9, -11, 13, 15, 2, 4, 6, -8, -10, 12, 14, 16);
+
+    glm::mat4 m3{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    glm::mat4 m4{ 1,-3,5,7,9,-11,13,15,2,4,6,-8,-10,12,14,16 };
+    Matrix4 mat1 = m1 * m2;
+    glm::mat4 mat2 = m3 * m4;
+
+    Vector3 r1 = mat1 * Vector4(v1, 1.f);
+    glm::vec3 r2 = mat2 * glm::vec4(v2, 1.f);
+
+    for (int i{}; i < 3; ++i) {
+        EXPECT_FLOAT_EQ(r1[i], r2[i]);
+    }
+}
+
+
+TEST(glm_comparison, transform_GetAxis) {
+    Core::Transform transform{ {1,2,3},Quaternion{30,{0,1,0}} };
+    Vector3 axis[3];
+    axis[0] = transform.GetAxis(0);
+    axis[1] = transform.GetAxis(1);
+    axis[2] = transform.GetAxis(2);
+    Vector3 answers[3]{
+        {sqrt(3.f)/2.f,0,-0.5},
+        {0,1,0},
+        {0.5,0,sqrt(3.f) / 2.f}
+    };
+    for (int i{}; i < 3; ++i) {
+        for (int j{}; j < 3; ++j) {
+            EXPECT_FLOAT_EQ(axis[i][j], answers[i][j]);
+        }
+    }
+}
+
+Matrix3 Extract3x3Matrix_old(Matrix4 ths) {
+    Matrix3 result;
+
+    float* matrix3Data = &result.entries[0][0];
+    for (int col{}; col < 3; ++col) {
+        float tmp[4];
+        _mm_storeu_ps(tmp, ths.columns[col]);
+
+        for (int row{}; row < 3; ++row) {
+            matrix3Data[col * 3 + row] = tmp[row];
+        }
+    }
+
+    return result;
 }

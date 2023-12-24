@@ -184,7 +184,3 @@ float RigidBody::GetLinearDamping() const{
 Physics::Matrix4 Physics::RigidBody::GetLocalToWorldMatrix() const{
     return transform.m_localToWorld;
 }
-
-glm::mat4 RigidBody::GetLocalToWorldMatrixGLM() const{
-    return transform.m_localToWorld.ConvertToGLM();
-}

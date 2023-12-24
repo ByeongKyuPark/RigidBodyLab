@@ -55,20 +55,17 @@ bool DegenerateTri(const Vec3 &v0, const Vec3 &v1, const Vec3 &v2);
 /*  Wrappers for GLM functions                                                */
 /******************************************************************************/
 
-Mat4 Scale(float sx, float sy, float sz);
+//Mat4 Scale(float sx, float sy, float sz);
 Mat4 Scale(const Vec3 &s);
 
 Mat4 Rotate(float angle, const Vec3 &axis);
-Mat4 Rotate(float angle, float ax, float ay, float az);
 
-Mat4 Translate(float tx, float ty, float tz);
 Mat4 Translate(const Vec3 &t);
 
 Mat4 Frustum(float leftPlane, float rightPlane, 
              float bottomPlane, float topPlane, 
              float nearPlane, float farPlane);
 Mat4 Perspective(float fovy, float aspect, float near, float far);
-
 
 Mat4 LookAt(const Vec3 &eye, const Vec3 &center, const Vec3 &up);
 
@@ -85,7 +82,3 @@ float Distance(const Vec3 &v1, const Vec3 &v2);
 
 template <typename T>
 float *ValuePtr(T value) {  return glm::value_ptr(value);   }
-
-void PrintMat(const Mat4 &m);   /*  for debugging matrices */
-void PrintVec(const Vec3 &v);   /*  for debugging vectors */
-void PrintVec(const Vec4 &v);   /*  for debugging vectors */

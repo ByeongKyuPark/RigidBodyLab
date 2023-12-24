@@ -3,7 +3,10 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <math/Math.h>
+#include <math/Vector3.h>
+#include <math/Matrix4.h>
 
+using Math::Vector3;
 namespace Rendering {
     /*  Vertex format */
     struct Vertex
@@ -31,11 +34,10 @@ namespace Rendering {
     };
 
     struct BoundingBoxInfo {
-        Vec3 center;
-        Vec3 extents;
+        Vector3 center;
+        Vector3 extents;
 
-        BoundingBoxInfo() : center(Vec3(0, 0, 0)), extents(Vec3(1.f, 1.f, 1.f)) {}
-        BoundingBoxInfo(const Vec3& center, const Vec3& extents) : center(center), extents(extents) {}
+        BoundingBoxInfo(const Vector3& center= Vector3(0, 0, 0), const Vector3& extents= Vector3(1.f, 1.f, 1.f)) : center(center), extents(extents) {}
     };
 
     const VertexLayout vLayout[] =
@@ -76,7 +78,7 @@ namespace Rendering {
         
         BoundingBoxInfo m_boundingBox;//be default scl=(1,1,1), center={0,0,0}
 
-        Mat4 GetBoundingBoxMat()const;
+        Math::Matrix4 GetBoundingBoxMat()const;
         /*  Mesh function(s) */
         static Mesh CreatePlane(int stacks, int slices);
         static Mesh CreateCube(int length, int height, int width);

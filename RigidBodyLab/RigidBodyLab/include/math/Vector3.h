@@ -4,6 +4,8 @@
 #include <ostream>
 #include <stdexcept>
 
+#include <glm/glm.hpp>
+
 namespace Math {
 
     struct Vector3 {
@@ -13,6 +15,7 @@ namespace Math {
 
         Vector3(float _x=0.f, float _y=0.f, float _z=0.f);
         Vector3(std::initializer_list<float> list);
+        Vector3(const glm::vec3& v) :x{ v.x }, y{ v.y }, z{ v.z } {}
 
         float Length() const;
         float LengthSquared() const;
@@ -35,7 +38,7 @@ namespace Math {
         Vector3 operator-() const;
         bool operator==(const Vector3& rhs) const;
         bool operator!=(const Vector3& rhs) const;
-
+        operator glm::vec3() const;
         friend std::ostream& operator<<(std::ostream& os, const Vector3& v);
     };
 

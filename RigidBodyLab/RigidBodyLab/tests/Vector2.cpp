@@ -1,4 +1,4 @@
-#include "Vector2.h"
+#include "math/Vector2.h"
 
 // Constructor
 Vector2::Vector2(float x, float y) : x(x), y(y) {}

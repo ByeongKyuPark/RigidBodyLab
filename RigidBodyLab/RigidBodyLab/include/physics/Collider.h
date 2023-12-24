@@ -30,7 +30,6 @@ namespace Physics {
 		}
 		virtual void SetCollisionEnabled(bool collisionEnabled) { m_isCollisionEnabled = collisionEnabled; }
 		virtual bool GetCollisionEnabled()const { return m_isCollisionEnabled; }
-		virtual Mat4 GetScaleMatrixGLM() const = 0;
 		virtual Matrix4 GetScaleMatrix() const = 0;
 
 		// GetScale method that returns either a float or Vec3
@@ -44,9 +43,6 @@ namespace Physics {
 		BoxCollider(const Vec3& _scale, bool _isCollisionEnabled=true) : scale(_scale), Collider{_isCollisionEnabled} {}
 		void SetScaleInternal(const Vec3& _scale) {
 			scale = _scale;
-		}
-		Mat4 GetScaleMatrixGLM() const override final{
-			return glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
 		}
 		Matrix4 GetScaleMatrix() const override final {
 			return Matrix4{scale.x,scale.y,scale.z,1.f};
@@ -65,9 +61,6 @@ namespace Physics {
 
 		void SetScaleInternal(float scale) {
 			radius = scale;
-		}
-		Mat4 GetScaleMatrixGLM() const override final{
-			return glm::scale(glm::mat4(1.0f), glm::vec3(radius, radius, radius));
 		}
 		Matrix4 GetScaleMatrix() const override final {
 			return Matrix4{ radius,radius,radius,1.f };
