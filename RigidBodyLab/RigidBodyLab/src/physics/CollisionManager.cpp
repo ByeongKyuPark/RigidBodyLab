@@ -1,4 +1,6 @@
 #include <physics/CollisionManager.h>
+#include <utilities/ThreadPool.h>
+
 Math::Vector3 Physics::CollisionManager::GetBoxContactVertexLocal(const Vector3& axis1, const Vector3& axis2, const Vector3& axis3, Vector3 collisionNormal, std::function<bool(float, float)> cmp) const {
     Vector3 contactPoint{ 0.5f,0.5f,0.5f };
 
@@ -310,10 +312,24 @@ void Physics::CollisionManager::CheckCollision(Core::Object* obj1, Core::Object*
 }
 
 void Physics::CollisionManager::ResolveCollision(float dt) {
+    ThreadPool& pool = ThreadPool::GetInstance();
+    m_resolveFutures.clear();
+
+    std::lock_guard<std::mutex> lock(m_collisionResolveMutex);
+
     for (int i = 0; i < m_iterationLimit; ++i) {
         for (auto& contact : m_collisions) {
-            SequentialImpulse(contact, dt);
+            // enqueue each collision resolution as a separate task
+            m_resolveFutures.push_back(
+                pool.enqueue([this, &contact, dt]() {
+                    SequentialImpulse(contact, dt);
+                    })
+            );
         }
+    }
+    // wait for all collision resolution tasks to complete
+    for (auto& future : m_resolveFutures) {
+        future.get();
     }
 }
 

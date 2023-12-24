@@ -3,6 +3,7 @@
 #include <typeinfo>
 #include <memory> // for std::weak_ptr
 #include <functional>
+#include <future>
 #include <physics/CollisionData.h>
 #include <physics/Collider.h>
 
@@ -16,6 +17,8 @@ namespace Physics {
     class CollisionManager {
     private:
         std::vector<CollisionData> m_collisions;
+        std::vector<std::future<void>> m_resolveFutures;
+        std::mutex m_collisionResolveMutex;
 
         float m_friction;
         float m_objectRestitution;

@@ -42,8 +42,11 @@ namespace Rendering {
 
 
     class ResourceManager {
+
 		std::array<std::unique_ptr<Mesh>, TO_INT(MeshID::NUM_MESHES)> m_meshes;
 		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> m_textureIDs;
+
+		std::unique_ptr<unsigned char[]> m_sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
 
 		GLuint m_bumpTexID, m_normalTexID;
 		GLuint m_skyboxTexID;
@@ -64,7 +67,8 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg"
 		};
-/*  For bump/normal texture */
+		
+		/*  For bump/normal texture */
 		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
 		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
@@ -80,11 +84,25 @@ namespace Rendering {
 		GLuint GetTexture(ImageID id);
 		void SetUpTextures();
     private:
+		/**
+		 * Initializes the cube map texture data for the spherical mirror.
+		 * This function allocates memory for each face of the cube map (unique_ptr),
+		 * based on the size specified for the skybox. It should be called
+		 * after the skybox texture is set up, ensuring that the skybox size
+		 * is correctly initialized before allocating memory for the spherical
+		 * mirror's cube map texture.
+		 *
+		 * Each face of the cube map is allocated memory equivalent to
+		 * the skybox face size, with each pixel occupying 4 bytes (presumably for RGBA).
+		 */
+		void InitSphericalMirrorTexture();
+
 		void SetUpObjTextures();
 		void SetUpBaseBumpNormalTextures();
-		void SetUpMirrorTexture();
+		void SetTextureParameters(GLenum textureType);
+		void SetUpPlanarMirrorTexture();
 		void SetUpSkyBoxTexture();
-		void SetUpSphereTexture(unsigned char* sphereCubeMapData[]);
+		void SetUpSphereTexture();
 
 		void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,
 			int size, int imgWidth,
