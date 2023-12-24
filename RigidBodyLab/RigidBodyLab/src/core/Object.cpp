@@ -5,7 +5,6 @@
 using namespace Rendering;
 
 // Getter methods (setters might not be necessary because we are passing by reference)
-
 Physics::Vector3 Core::Object::GetPosition() const {
 	if (IsDynamic()) {
 		return std::get<std::unique_ptr<RigidBody>>(m_physicsOrTransform)->GetPosition();
@@ -113,7 +112,6 @@ const Physics::RigidBody* Core::Object::GetRigidBody() const
 	}
 		}, m_physicsOrTransform);
 }
-
 
 void Core::Object::Integrate(float deltaTime) {
 	if (IsDynamic()) {

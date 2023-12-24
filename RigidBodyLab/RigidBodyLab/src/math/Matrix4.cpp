@@ -296,10 +296,7 @@ Matrix4 Math::Matrix4::Scale(const Vector3& scl) {
 Matrix4 Math::Matrix4::Translate(const Vector3& translate) {
     Matrix4 result{};
 
-    result.columns[0] = _mm_set_ps(0.0f, 0.0f, 0.0f, translate.x);
-    result.columns[1] = _mm_set_ps(0.0f, 0.0f, translate.y, 0.0f);
-    result.columns[2] = _mm_set_ps(0.0f, translate.z, 0.0f, 0.0f);
-    result.columns[3] = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
+    result.columns[3] = _mm_set_ps(1.0f, translate.z, translate.y, translate.x);
 
     return result;
 }
