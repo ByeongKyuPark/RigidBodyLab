@@ -23,12 +23,11 @@ Matrix4::Matrix4(float e00, float e01, float e02, float e03,
     float e10, float e11, float e12, float e13,
     float e20, float e21, float e22, float e23,
     float e30, float e31, float e32, float e33) {
-    columns[0] = _mm_set_ps(e30, e20, e10, e00);
-    columns[1] = _mm_set_ps(e31, e21, e11, e01);
-    columns[2] = _mm_set_ps(e32, e22, e12, e02);
-    columns[3] = _mm_set_ps(e33, e23, e13, e03);
+    columns[0] = _mm_set_ps(e03, e02, e01, e00);
+    columns[1] = _mm_set_ps(e13, e12, e11, e10);
+    columns[2] = _mm_set_ps(e23, e22, e21, e20);
+    columns[3] = _mm_set_ps(e33, e32, e31, e30);
 }
-
 Matrix4 Matrix4::Transpose() const {
     Matrix4 result;
 
@@ -136,13 +135,14 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
     for (int i{}; i < 4; ++i) { // columns (in the result)
         for (int j{}; j < 4; ++j) { // rows (in the result)
 
-            __m128 row = _mm_setr_ps(columns[i].m128_f32[0], columns[i].m128_f32[1], columns[i].m128_f32[2], columns[i].m128_f32[3]);
-            __m128 col = _mm_setr_ps(other.columns[0].m128_f32[j], other.columns[1].m128_f32[j], other.columns[2].m128_f32[j], other.columns[3].m128_f32[j]);
+            __m128 row = _mm_setr_ps(columns[0].m128_f32[i], columns[1].m128_f32[i], columns[2].m128_f32[i], columns[3].m128_f32[i]);
+            __m128 col = _mm_setr_ps(other.columns[j].m128_f32[0], other.columns[j].m128_f32[1], other.columns[j].m128_f32[2], other.columns[j].m128_f32[3]);
 
             __m128 mul = _mm_mul_ps(row, col);
             mul = _mm_hadd_ps(mul, mul);
             mul = _mm_hadd_ps(mul, mul);
-            result.columns[i].m128_f32[j] = _mm_cvtss_f32(mul);
+
+            result.columns[j].m128_f32[i] = _mm_cvtss_f32(mul);
         }
     }
 
@@ -159,11 +159,12 @@ Matrix4& Matrix4::operator*=(const Matrix4& other) {
     return *this;
 }
 
-Vector4 Matrix4::operator*(const Vector4& vec) const {
-    float x = columns[0].m128_f32[0] * vec.vec3.x + columns[0].m128_f32[1] * vec.vec3.y + columns[0].m128_f32[2] * vec.vec3.z + vec.w * columns[0].m128_f32[3];
-    float y = columns[1].m128_f32[0] * vec.vec3.x + columns[1].m128_f32[1] * vec.vec3.y + columns[1].m128_f32[2] * vec.vec3.z + vec.w * columns[1].m128_f32[3];
-    float z = columns[2].m128_f32[0] * vec.vec3.x + columns[2].m128_f32[1] * vec.vec3.y + columns[2].m128_f32[2] * vec.vec3.z + vec.w * columns[2].m128_f32[3];
-    float w = columns[3].m128_f32[0] * vec.vec3.x + columns[3].m128_f32[1] * vec.vec3.y + columns[3].m128_f32[2] * vec.vec3.z + vec.w * columns[3].m128_f32[3];
+
+Vector3 Matrix4::operator*(const Vector4& vec) const {
+    float x = columns[0].m128_f32[0] * vec.vec3.x + columns[1].m128_f32[0] * vec.vec3.y + columns[2].m128_f32[0] * vec.vec3.z + vec.w * columns[3].m128_f32[0];
+    float y = columns[0].m128_f32[1] * vec.vec3.x + columns[1].m128_f32[1] * vec.vec3.y + columns[2].m128_f32[1] * vec.vec3.z + vec.w * columns[3].m128_f32[1];
+    float z = columns[0].m128_f32[2] * vec.vec3.x + columns[1].m128_f32[2] * vec.vec3.y + columns[2].m128_f32[2] * vec.vec3.z + vec.w * columns[3].m128_f32[2];
+    //float w = columns[0].m128_f32[3] * vec.x + columns[1].m128_f32[3] * vec.y + columns[2].m128_f32[3] * vec.z + columns[3].m128_f32[3];
 
     //if (w != 1.f && w != 0.f) {
     //    x /= w;
@@ -268,7 +269,7 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
         _mm_storeu_ps(tmp, columns[col]);
 
         for (int row{}; row < 3; ++row) {
-            matrix3Data[row * 3 + col] = tmp[row];
+            matrix3Data[col * 3 + row] = tmp[row];
         }
     }
 
@@ -279,12 +280,11 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
 glm::mat4 Matrix4::ConvertToGLM() const noexcept {
     glm::mat4 result;
 
-    for (int col = 0; col < 4; ++col) {
-        for (int row = 0; row < 4; ++row) {
-            result[col][row] = columns[row].m128_f32[col];
+    for (int row = 0; row < 4; ++row) {
+        for (int col = 0; col < 4; ++col) {
+            result[row][col] = columns[row].m128_f32[col];
         }
     }
 
     return result;
 }
-

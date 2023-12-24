@@ -135,14 +135,17 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
     for (int i{}; i < 4; ++i) { // columns (in the result)
         for (int j{}; j < 4; ++j) { // rows (in the result)
 
-            __m128 row = _mm_setr_ps(columns[i].m128_f32[0], columns[i].m128_f32[1], columns[i].m128_f32[2], columns[i].m128_f32[3]);
-            __m128 col = _mm_setr_ps(other.columns[0].m128_f32[j], other.columns[1].m128_f32[j], other.columns[2].m128_f32[j], other.columns[3].m128_f32[j]);
+            // perform the dot product of the i-th row of 'this' with the j-th column of 'other'
+            __m128 row = _mm_setr_ps(columns[0].m128_f32[i], columns[1].m128_f32[i], columns[2].m128_f32[i], columns[3].m128_f32[i]);
+            __m128 col = _mm_setr_ps(other.columns[j].m128_f32[0], other.columns[j].m128_f32[1], other.columns[j].m128_f32[2], other.columns[j].m128_f32[3]);
 
             __m128 mul = _mm_mul_ps(row, col);
             mul = _mm_hadd_ps(mul, mul);
             mul = _mm_hadd_ps(mul, mul);
-            result.columns[i].m128_f32[j] = _mm_cvtss_f32(mul);
+
+            result.columns[j].m128_f32[i] = _mm_cvtss_f32(mul);
         }
+    }
     }
 
     return result;

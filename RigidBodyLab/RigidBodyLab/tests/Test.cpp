@@ -594,7 +594,7 @@ TEST(glm_comparison, mat4_vec3) {
     }
 }
 
-TEST(glm_comparison, mat4_mat4) {
+TEST(glm_comparison, mat4_mat4_ConvertToGLM) {
     Vector3 v1{ 1,3,5 };
     glm::vec3 v2{ 1,3,5 };
 
@@ -603,18 +603,40 @@ TEST(glm_comparison, mat4_mat4) {
 
     glm::mat4 m3{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     glm::mat4 m4{ 1,-3,5,7,9,-11,13,15,2,4,6,-8,-10,12,14,16 };
-    
-    Matrix4 mat1 = m1 * m2;
+    glm::mat4 mat1 = m1.ConvertToGLM() * m2.ConvertToGLM();
     glm::mat4 mat2 = m3 * m4;
 
-    Vector3 r1 = mat1 *  Vector4{ v1,1.f };
+    glm::vec3 r1 = mat1 * glm::vec4(v2, 1.f);
     glm::vec3 r2 = mat2 * glm::vec4(v2, 1.f);
 
     for (int i{}; i < 3; ++i) {
         EXPECT_FLOAT_EQ(r1[i], r2[i]);
     }
 }
-TEST(glm_comparison, transform) {
+
+
+TEST(glm_comparison, mat4_mat4_Multiplication) {
+    Vector3 v1{ 1,3,5 };
+    glm::vec3 v2{ 1,3,5 };
+
+    Matrix4 m1(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    Matrix4 m2(1, -3, 5, 7, 9, -11, 13, 15, 2, 4, 6, -8, -10, 12, 14, 16);
+
+    glm::mat4 m3{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    glm::mat4 m4{ 1,-3,5,7,9,-11,13,15,2,4,6,-8,-10,12,14,16 };
+    Matrix4 mat1 = m1 * m2;
+    glm::mat4 mat2 = m3 * m4;
+
+    Vector3 r1 = mat1 * Vector4(v1, 1.f);
+    glm::vec3 r2 = mat2 * glm::vec4(v2, 1.f);
+
+    for (int i{}; i < 3; ++i) {
+        EXPECT_FLOAT_EQ(r1[i], r2[i]);
+    }
+}
+
+
+TEST(glm_comparison, transform_GetAxis) {
     Core::Transform transform{ {1,2,3},Quaternion{30,{0,1,0}} };
     Vector3 axis[3];
     axis[0] = transform.GetAxis(0);
