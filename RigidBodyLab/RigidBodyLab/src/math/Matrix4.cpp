@@ -146,8 +146,6 @@ Matrix4 Matrix4::operator*(const Matrix4& other) const {
             result.columns[j].m128_f32[i] = _mm_cvtss_f32(mul);
         }
     }
-    }
-
     return result;
 }
 
