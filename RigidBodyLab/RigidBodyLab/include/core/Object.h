@@ -39,11 +39,6 @@ namespace Core {
 		Object(const std::string& name, const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, ObjectType _type)
 			:m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)), m_objType{_type} {}
 
-		Object(const Object& other) = default;
-		Object(Object&& other) noexcept = default;
-		Object& operator=(const Object& other) = default;
-		Object& operator=(Object&& other) noexcept = default;
-
 		void SetMesh(const Mesh* mesh) { m_mesh = mesh; }
 		void SetImageID(ImageID id) { m_imageID = id; }
 		

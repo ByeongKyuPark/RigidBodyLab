@@ -31,7 +31,6 @@ namespace Core {
         int m_specularPower;
 
         CollisionManager m_collisionManager;
-        
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
         const Core::Object* m_sphere;//spherical mirror (or refraction)
