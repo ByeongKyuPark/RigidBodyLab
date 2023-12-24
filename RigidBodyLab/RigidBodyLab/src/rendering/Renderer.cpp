@@ -164,7 +164,7 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
         return false;
     }
 
-    constexpr int UPDATE_INTERVAL = 50;
+    constexpr int UPDATE_INTERVAL = 30;
     m_sphereMirrorCubeMapFrameCounter++;
     if (m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
         m_sphereMirrorCubeMapFrameCounter = 0;
@@ -1319,7 +1319,7 @@ void Rendering::Renderer::RenderObjsBgSphereCam(int faceIdx, RenderPass renderPa
         Buffers to store the 6 faces of the cubemap texture.
 */
 /******************************************************************************/
-void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Core::Scene& scene)
+void Renderer::RenderToSphereCubeMapTexture(Core::Scene& scene)
 {
     /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
         rendering straight to the GPU cubemap texture object, similar to what we do for the
@@ -1328,12 +1328,12 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
         So we do the cubemap texture writing manually here: copy the framebuffer to CPU texture data,
         then copy that data to GPU texture object later (in SetUpSphereTexture function).
     */
+    ResourceManager& resourceManager = ResourceManager::GetInstance();
 
     GLuint sphereFrameBufferID;
     glGenFramebuffers(1, &sphereFrameBufferID);
     glBindFramebuffer(GL_FRAMEBUFFER, sphereFrameBufferID);
 
-    ResourceManager& resourceManager = ResourceManager::GetInstance();
     GLuint sphereFrameBufferTexID;
     glGenTextures(1, &sphereFrameBufferTexID);
     glBindTexture(GL_TEXTURE_2D, sphereFrameBufferTexID);
@@ -1346,11 +1346,13 @@ void Renderer::RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[
         RenderObjsBgSphereCam(i,RenderPass::SPHERETEX_GENERATION, scene);
 
         glReadBuffer(GL_COLOR_ATTACHMENT0);
-        glReadPixels(0, 0, ResourceManager::GetInstance().m_skyboxFaceSize, ResourceManager::GetInstance().m_skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapTexture[i]);
+        glReadPixels(0, 0, resourceManager.m_skyboxFaceSize, resourceManager.m_skyboxFaceSize, GL_RGBA, GL_UNSIGNED_BYTE, resourceManager.m_sphereCubeMapData[i].get());
     }
 
     glDeleteTextures(1, &sphereFrameBufferTexID);
     glDeleteFramebuffers(1, &sphereFrameBufferID);
+
+    resourceManager.SetUpSphereTexture();
 }
 
 
@@ -1408,11 +1410,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
         ((m_shouldUpdateCubeMapForSphere || ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared())==true)))
     {
         ComputeSphereCamMats(scene);
-        ResourceManager& resourceManager = ResourceManager::GetInstance();
-        unsigned char* sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
-        for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-            sphereCubeMapData[f] = (unsigned char*)malloc(resourceManager.m_skyboxFaceSize * resourceManager.m_skyboxFaceSize * 4 * sizeof(unsigned char));
-        }
 
         /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
             rendering straight to the GPU texture object, similar to what we do for the
@@ -1421,12 +1418,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
             So we do the cubemap texture generation manually here: copy the framebuffer to CPU texture data,
             then copy that data to the GPU texture object.
         */
-        RenderToSphereCubeMapTexture(sphereCubeMapData, scene);
-        resourceManager.SetUpSphereTexture(sphereCubeMapData);
-
-        for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-            free(sphereCubeMapData[f]);
-        }
+        RenderToSphereCubeMapTexture(scene);
 
         m_shouldUpdateCubeMapForSphere = false;
     }

@@ -42,6 +42,10 @@ namespace Rendering {
 	
 	class ResourceManager;
 
+	//OpenGL requires that the rendering context is made current on a particular thread before calling its functions.
+	// to parallelize the rendering across multiple threads
+	// (option1): each thread needs its own OpenGL context 
+	// (option2): need to share the context properly , which can be complex and is often not supported in ALL environments
 	class Renderer {
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
@@ -122,7 +126,7 @@ namespace Rendering {
 		void RenderObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
 		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
 		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
-		void RenderToSphereCubeMapTexture(unsigned char* sphereCubeMapTexture[], Scene& scene);
+		void RenderToSphereCubeMapTexture(Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
 		void RenderGui(Scene& scene, float fps);

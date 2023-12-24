@@ -11,19 +11,18 @@ using namespace Rendering;
 ResourceManager::ResourceManager()
 	:m_meshes{}, m_textureIDs{}
 {
+    stbi_set_flip_vertically_on_load(true);
+ 
     m_meshes[TO_INT(MeshID::CUBE)] = std::make_unique<Mesh>(Mesh::CreateCube(1, 1, 1));
     m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(Mesh::CreatePlane(1, 1));
     m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(Mesh::CreateSphere(16, 16));
     m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
     m_meshes[TO_INT(MeshID::TEAPOT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/teapot.obj"));
+    m_meshes[TO_INT(MeshID::TEAPOT)]->m_boundingBox.extents.x *= 2.f; 
     // adjust the teapot's bounding box. The original model has an elongated shape (oval), so we scale its x-dimension to achieve a more proportionate and visually pleasing appearance.
     m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
     m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
     m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
-
-    m_meshes[TO_INT(MeshID::TEAPOT)]->m_boundingBox.extents.x *= 2.f; 
-
-    stbi_set_flip_vertically_on_load(true);
 }
 
 ResourceManager& ResourceManager::GetInstance()
@@ -49,20 +48,19 @@ GLuint Rendering::ResourceManager::GetTexture(ImageID id) {
 }
 
 void Rendering::ResourceManager::SetUpTextures() {
-    ///*  Set up textures for objects in the scene */
+    /*  Set up textures for objects in the scene */
     SetUpObjTextures();
 
-    ///*  Set up bump map and normal map for the base object */
+    /*  Set up bump map and normal map for the base object */
     SetUpBaseBumpNormalTextures();
 
-    ///*  Set up skybox texture for background rendering */
+    /*  Set up skybox texture for background rendering */
     SetUpSkyBoxTexture();
 
-    ///*  Set up texture object for mirror reflection. This texture object hasn't stored any data yet.
-    //    We will render the reflected data for this texture on the fly.
-    //*/
-    SetUpMirrorTexture();
-
+    /*  Set up texture object for mirror reflection. This texture object hasn't stored any data yet.
+        We will render the reflected data for this texture on the fly.
+    */
+    SetUpPlanarMirrorTexture();
 }
 
 /******************************************************************************/
@@ -185,7 +183,7 @@ Set up texture and frame buffer objects for rendering mirror reflection.
 */
 /******************************************************************************/
 
-void Rendering::ResourceManager::SetUpMirrorTexture()
+void Rendering::ResourceManager::SetUpPlanarMirrorTexture()
 {
 	glGenTextures(1, &m_mirrorTexID);
 	glBindTexture(GL_TEXTURE_2D, m_mirrorTexID);
@@ -225,6 +223,14 @@ void Rendering::ResourceManager::SetUpMirrorTexture()
 
     //reset
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Rendering::ResourceManager::InitSphericalMirrorTexture() {
+    //SetUp the cube map for the spherical mirror
+    const int numFaces = TO_INT(CubeFaceID::NUM_FACES);
+    for (int i = 0; i < numFaces; ++i) {
+        m_sphereCubeMapData[i] = std::make_unique<unsigned char[]>(m_skyboxFaceSize * m_skyboxFaceSize * 4);
+    }
 }
 
 /******************************************************************************/
@@ -297,26 +303,29 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     free(cubeImgData);
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
         free(cubeFace[f]);
+    }
+
+    InitSphericalMirrorTexture();
 }
 
 /******************************************************************************/
 /*!
-\fn     void SetUpSphereTexture(unsigned char *sphereCubeMapData[])
+\fn     void SetUpSphereTexture()
 \brief
 Set up texture object for rendering sphere reflection/refraction.
 */
 /******************************************************************************/
 
-void Rendering::ResourceManager::SetUpSphereTexture(unsigned char* sphereCubeMapData[])
+void Rendering::ResourceManager::SetUpSphereTexture()
 {
     glGenTextures(1, &m_sphereTexID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_sphereTexID);
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, GL_RGBA8, m_skyboxFaceSize, m_skyboxFaceSize,
-            0, GL_RGBA, GL_UNSIGNED_BYTE, sphereCubeMapData[f]);
+            0, GL_RGBA, GL_UNSIGNED_BYTE, m_sphereCubeMapData[f].get());
 
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
