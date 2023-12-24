@@ -42,6 +42,7 @@ namespace Rendering {
 
 
     class ResourceManager {
+
 		std::array<std::unique_ptr<Mesh>, TO_INT(MeshID::NUM_MESHES)> m_meshes;
 		std::array<GLuint, TO_INT(ImageID::NUM_IMAGES)> m_textureIDs;
 
@@ -66,7 +67,8 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg"
 		};
-/*  For bump/normal texture */
+		
+		/*  For bump/normal texture */
 		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
 		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
@@ -97,6 +99,7 @@ namespace Rendering {
 
 		void SetUpObjTextures();
 		void SetUpBaseBumpNormalTextures();
+		void SetTextureParameters(GLenum textureType);
 		void SetUpPlanarMirrorTexture();
 		void SetUpSkyBoxTexture();
 		void SetUpSphereTexture();

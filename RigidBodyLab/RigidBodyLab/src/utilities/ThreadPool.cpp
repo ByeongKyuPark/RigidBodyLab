@@ -20,7 +20,6 @@ ThreadPool::ThreadPool(size_t threads) : m_stop(false) {
 
 // need a custom destructor to join them. 
 // since threads can't be trivially copied, needs custom copy and move operations (Rule of 5)
-
 ThreadPool::~ThreadPool() {
     {
         std::unique_lock<std::mutex> lock(m_queueMutex);

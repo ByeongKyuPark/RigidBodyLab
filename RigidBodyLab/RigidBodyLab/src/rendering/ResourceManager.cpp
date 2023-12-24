@@ -124,56 +124,46 @@ Set up the bump map and normal map for normal mapping and parallax mapping.
 */
 /******************************************************************************/
 
-void Rendering::ResourceManager::SetUpBaseBumpNormalTextures()
-{
-    unsigned char* bumpImgData, * normalImgData;
+void ResourceManager::SetUpBaseBumpNormalTextures() {
     int imgWidth, imgHeight, numComponents;
 
-    /*  Load bump image */
-    if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0)
-    {
+    unsigned char* bumpImgData;
+    if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
         std::cerr << "Reading " << bumpTexFile << " failed.\n";
         exit(1);
     }
-    /*  Create normal image */
-    normalImgData = (unsigned char*)malloc(imgWidth * imgHeight * 3 * sizeof(unsigned char));
 
-    Bump2Normal(bumpImgData, normalImgData, imgWidth, imgHeight);
+    // Create normal image
+    std::unique_ptr<unsigned char[]> normalImgData(new unsigned char[imgWidth * imgHeight * 3]);
+    Bump2Normal(bumpImgData, normalImgData.get(), imgWidth, imgHeight);
 
-    /*  Generate texture ID for bump image and copy it to GPU */
-    /*  Bump image will be used to compute the offset in parallax mapping */
+    // Generate texture ID for bump image and copy it to GPU
     glGenTextures(1, &m_bumpTexID);
     glBindTexture(GL_TEXTURE_2D, m_bumpTexID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, imgWidth, imgHeight, 0, GL_RED, GL_UNSIGNED_BYTE, bumpImgData);
 
     stbi_image_free(bumpImgData);
 
-    /*  Generate texture mipmaps. */
-    glGenerateMipmap(GL_TEXTURE_2D);
-    /*  Set up texture behaviors */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // Set up texture behaviors and generate mipmaps for bump texture
+    SetTextureParameters(GL_TEXTURE_2D);
 
-
-    /*  Generate texture ID for normal image and copy it to GPU */
+    // Generate texture ID for normal image and copy it to GPU
     glGenTextures(1, &m_normalTexID);
     glBindTexture(GL_TEXTURE_2D, m_normalTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0,
-        GL_RGB, GL_UNSIGNED_BYTE, normalImgData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, imgWidth, imgHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, normalImgData.get());
 
-    stbi_image_free(normalImgData);
-
-    /*  Generate texture mipmaps. */
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    /*  Set up texture behaviors */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // Set up texture behaviors and generate mipmaps for normal texture
+    SetTextureParameters(GL_TEXTURE_2D);
 }
+
+void ResourceManager::SetTextureParameters(GLenum textureType) {
+    glGenerateMipmap(textureType);
+    glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+}
+
 
 /******************************************************************************/
 /*!
@@ -255,9 +245,9 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
 
     int imgSizeBytes = sizeof(unsigned char) * m_skyboxFaceSize * m_skyboxFaceSize * numComponents;
 
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
+    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
         cubeFace[f] = (unsigned char*)malloc(imgSizeBytes);
-
+    }
 
     /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
     /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
