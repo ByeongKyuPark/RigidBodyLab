@@ -4,7 +4,6 @@
 #include <core/Projectile.h>
 #include <physics/CollisionData.h>
 #include <physics/CollisionManager.h>
-#include <utilities/ThreadPool.h>
 #include <vector>
 #include <variant>
 
@@ -32,7 +31,6 @@ namespace Core {
         int m_specularPower;
 
         CollisionManager m_collisionManager;
-        ThreadPool m_threadPool;
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
         const Core::Object* m_sphere;//spherical mirror (or refraction)

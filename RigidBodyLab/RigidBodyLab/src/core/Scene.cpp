@@ -3,6 +3,7 @@
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
 #include <core/Transform.h>
+#include <utilities/ThreadPool.h>
 #include <memory>//std::make_unique
 #include <string>
 #include <random>
@@ -24,11 +25,19 @@ m_specularPower{ 10 }, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_colli
 void Core::Scene::Update(float dt) {
     ApplyBroadPhase();
 
-    // Apply narrow phase collision detection and resolution
+    // narrow phase collision detection and resolution
     ApplyNarrowPhaseAndResolveCollisions(dt);
 
-    for (auto& obj : m_objects) {
-        obj->Integrate(dt);
+    // integrate (multi-threading)
+    ThreadPool& pool = ThreadPool::GetInstance();
+    for (const auto& obj : m_objects) {
+
+        Core::Object* rawObjPtr = obj.get();
+
+        // enqueue the task
+        pool.enqueue([rawObjPtr, dt]() {
+            rawObjPtr->Integrate(dt);
+            });
     }
 }
 
