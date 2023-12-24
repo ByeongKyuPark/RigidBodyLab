@@ -279,18 +279,6 @@ Matrix3 Matrix4::Extract3x3Matrix() const {
 }
 
 
-//glm::mat4 Matrix4::ConvertToGLM() const noexcept {
-//    glm::mat4 result;
-//
-//    for (int row = 0; row < 4; ++row) {
-//        for (int col = 0; col < 4; ++col) {
-//            result[row][col] = columns[row].m128_f32[col];
-//        }
-//    }
-//
-//    return result;
-//}
-
 Math::Matrix4::operator glm::mat4() const noexcept {
     glm::mat4 result;
     for (int row = 0; row < 4; ++row) {
@@ -298,5 +286,20 @@ Math::Matrix4::operator glm::mat4() const noexcept {
             result[row][col] = columns[row].m128_f32[col];
         }
     }
+    return result;
+}
+
+Matrix4 Math::Matrix4::Scale(const Vector3& scl) {
+    return { scl.x, scl.y, scl.z };
+}
+
+Matrix4 Math::Matrix4::Translate(const Vector3& translate) {
+    Matrix4 result{};
+
+    result.columns[0] = _mm_set_ps(0.0f, 0.0f, 0.0f, translate.x);
+    result.columns[1] = _mm_set_ps(0.0f, 0.0f, translate.y, 0.0f);
+    result.columns[2] = _mm_set_ps(0.0f, translate.z, 0.0f, 0.0f);
+    result.columns[3] = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
+
     return result;
 }

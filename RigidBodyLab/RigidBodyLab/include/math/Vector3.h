@@ -15,6 +15,7 @@ namespace Math {
 
         Vector3(float _x=0.f, float _y=0.f, float _z=0.f);
         Vector3(std::initializer_list<float> list);
+        Vector3(const glm::vec3& v) :x{ v.x }, y{ v.y }, z{ v.z } {}
 
         float Length() const;
         float LengthSquared() const;

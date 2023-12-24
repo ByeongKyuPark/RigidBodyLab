@@ -39,14 +39,14 @@ void Physics::CollisionManager::CalcContactPointsBoxBox(const BoxCollider& box1,
     {
         //Vec3 scl = std::get<Vec3>(box2.GetScale());
         Vector3 contactPoint = GetBoxContactVertexLocal(axes[3], axes[4], axes[5], newContact.collisionNormal, Less);
-        contactPoint = obj2->GetModelMatrix() * contactPoint;
+        contactPoint = obj2->GetUnitModelMatrix() * contactPoint;
         newContact.contactPoint = { { true, contactPoint + newContact.collisionNormal * newContact.penetrationDepth },
             { true, contactPoint } };
     }
     else if (minPenetrationAxisIdx >= 3 && minPenetrationAxisIdx < 6) {
         //Vec3 scl = std::get<Vec3>(box1.GetScale());
         Vector3 contactPoint = GetBoxContactVertexLocal(axes[0], axes[1], axes[2], newContact.collisionNormal, Greater);
-        contactPoint = obj1->GetModelMatrix() * contactPoint;
+        contactPoint = obj1->GetUnitModelMatrix() * contactPoint;
 
         newContact.contactPoint = { { true, contactPoint },
             { true, contactPoint - newContact.collisionNormal * newContact.penetrationDepth } };
@@ -123,8 +123,8 @@ void Physics::CollisionManager::CalcContactPointsBoxBox(const BoxCollider& box1,
         edge2 = (vertexTwo[testAxis2] < 0) ? axes[testAxis2] : axes[testAxis2] * -1.f;
 
         //local -> world
-        vertexOne = obj1->GetModelMatrix() * vertexOne;
-        vertexTwo = obj2->GetModelMatrix() * vertexTwo;
+        vertexOne = obj1->GetUnitModelMatrix() * vertexOne;
+        vertexTwo = obj2->GetUnitModelMatrix() * vertexTwo;
 
         //1. calculate the dot product between edge1 and edge2:
         float k = edge1.Dot(edge2);//cosine

@@ -218,7 +218,7 @@ void Renderer::ComputeMainCamObjMVMats(const Core::Scene& scene)
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
     {
-        Mat4 objMat = scene.m_objects[i]->GetModelMatrixGLM();
+        Mat4 objMat = scene.m_objects[i]->GetModelMatrix();
         m_mainCamMVMat[i] = m_mainCamViewMat * objMat;
         m_mainCamNormalMVMat[i] = Transpose(Inverse(m_mainCamMVMat[i]));
     }
@@ -229,7 +229,7 @@ void Renderer::ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene)
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
     {
-        Mat4 objMat = scene.m_objects[i]->GetModelMatrixGLM();
+        Mat4 objMat = scene.m_objects[i]->GetModelMatrix();
         m_mirrorCamMVMat[i] = m_mirrorCamViewMat * objMat;
         m_mirrorCamNormalMVMat[i] = Transpose(Inverse(m_mirrorCamMVMat[i]));
     }
@@ -240,7 +240,7 @@ void Renderer::ComputeSphericalMirrorCamObjMVMats(int faceIdx,const Core::Scene&
     const size_t objSize = scene.m_objects.size();
     for (int i = 0; i < objSize; ++i)
     {
-        Mat4 objMat = scene.m_objects[i]->GetModelMatrixGLM();
+        Mat4 objMat = scene.m_objects[i]->GetModelMatrix();
         m_sphereCamMVMat[i][faceIdx] = m_sphereCamViewMat[faceIdx] * objMat;
         m_sphereCamNormalMVMat[i][faceIdx] = Transpose(Inverse(m_sphereCamMVMat[i][faceIdx]));
     }
@@ -300,7 +300,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
     if (mainCam.moved||mirrorCam.moved)
     {
 
-        Mat4 mirrorMat=scene.m_mirror->GetModelMatrixGLM();
+        Mat4 mirrorMat=scene.m_mirror->GetModelMatrix();
         Vec3 mainCamMirrorFrame = Vec3(Inverse(mirrorMat) * Vec4(mainCam.pos, 1.0));
 
         /*  If user camera is behind mirror, then mirror is not visible and no need to compute anything */
@@ -1016,7 +1016,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
     // Compute and send the model-view matrix for the sphere
-    Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrixGLM();
+    Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrix();
     Mat4 sphereNMV = Transpose(Inverse(sphereMV));
     SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
 

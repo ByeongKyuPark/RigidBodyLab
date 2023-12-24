@@ -5,6 +5,7 @@
 #include <rendering/Mesh.h>
 
 using namespace Rendering;
+using Math::Matrix4;
 
 /*  Function prototype(s) */
 void BuildIndexBuffer(int stacks, int slices, Mesh& mesh);
@@ -14,8 +15,9 @@ void ComputeTangentsBitangents(VertexBuffer& vertices, const IndexBuffer& indice
 void ComputeNormals(Mesh& mesh);
 void ComputeUVs(Mesh& mesh);
 
-Mat4 Rendering::Mesh::GetBoundingBoxMat() const {
-    return Scale(m_boundingBox.extents) * Translate(-m_boundingBox.center);
+Math::Matrix4 Rendering::Mesh::GetBoundingBoxMat() const {
+    //return Scale(m_boundingBox.extents) * Translate(-m_boundingBox.center);
+    return Matrix4::Scale(m_boundingBox.extents);// *Matrix4::Translate(-m_boundingBox.center);
 }
 
 /******************************************************************************/
