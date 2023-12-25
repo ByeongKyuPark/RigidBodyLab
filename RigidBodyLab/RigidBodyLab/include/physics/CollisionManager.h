@@ -18,7 +18,7 @@ namespace Physics {
     private:
         std::vector<CollisionData> m_collisions;
         std::vector<std::future<void>> m_resolveFutures;
-        std::mutex m_collisionResolveMutex;
+        mutable std::mutex m_mutex;  
 
         float m_friction;
         float m_objectRestitution;
@@ -65,7 +65,7 @@ namespace Physics {
             newContact.penetrationDepth = radiusSum - sqrtf(distanceSquared);
             newContact.restitution = m_objectRestitution;
             newContact.friction = m_friction;
-            m_collisions.push_back(newContact);
+            AddCollision(newContact);
         }
 
         // Function to handle Box-Box collision
@@ -86,21 +86,20 @@ namespace Physics {
         //    return;
         //}
 
+        void ApplyFrictionImpulses(CollisionData& contact, const Vector3& r1, const Vector3& r2);
+        void ApplyImpulses(CollisionData& contact, float jacobianImpulse, const Vector3& r1, const Vector3& r2, const Vector3& direction);
+        void SequentialImpulse(CollisionData& contact, float deltaTime);
+        float ComputeTangentialImpulses(CollisionData& contact, const Vector3& r1, const Vector3& r2, const Vector3& tangent);
     public:
         CollisionManager()
             : m_friction(10.f), m_objectRestitution(0.7f), m_groundRestitution(0.6f),
             m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
-        void CheckCollision(Core::Object* obj1, Core::Object* obj2);
         void Reset() { m_collisions.clear(); }
+
+        void CheckCollision(Core::Object* obj1, Core::Object* obj2);
         void ResolveCollision(float dt);
-
-        float CollisionManager::ComputeTangentialImpulses(CollisionData& contact, const Vector3& r1, const Vector3& r2, const Vector3& tangent);
-
-        void CollisionManager::ApplyFrictionImpulses(CollisionData& contact, const Vector3& r1, const Vector3& r2);
-
-        void CollisionManager::ApplyImpulses(CollisionData& contact, float jacobianImpulse, const Vector3& r1, const Vector3& r2, const Vector3& direction);
-        void CollisionManager::SequentialImpulse(CollisionData& contact, float deltaTime);
-
+        void AddCollision(const CollisionData& data);
+        std::vector<CollisionData> GetCollisions() const;
     };
 }

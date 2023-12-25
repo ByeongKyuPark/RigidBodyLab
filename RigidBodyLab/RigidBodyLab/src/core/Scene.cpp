@@ -178,25 +178,16 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
     ThreadPool& pool = ThreadPool::GetInstance();
     const size_t objSize = m_objects.size();
 
-    m_collisionDetectionFutures.clear(); 
     
     // detect collisions in parallel
 	for (size_t i{}; i < objSize; ++i) {
 		for (size_t j{ i + 1 }; j < objSize; ++j) {
 			// enqueue collision checks
-			m_collisionDetectionFutures.push_back(
-				pool.enqueue([this, i, j]() {
-					std::lock_guard<std::mutex> lock(m_collisionDetectionMutex);
-			m_collisionManager.CheckCollision(m_objects[i].get(), m_objects[j].get());
-					})
-			);
+            pool.enqueue([this, i, j]() {
+                m_collisionManager.CheckCollision(m_objects[i].get(), m_objects[j].get());
+                });
 		}
 	}    
-
-    // wait for all collision checks to complete
-    for (auto& future : m_collisionDetectionFutures) {
-        future.get();
-    }
 
     // resolve stored collisions
     m_collisionManager.ResolveCollision(dt);
