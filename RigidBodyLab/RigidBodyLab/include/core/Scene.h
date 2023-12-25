@@ -36,9 +36,6 @@ namespace Core {
         const Core::Object* m_mirror;//planar mirror
         const Core::Object* m_sphere;//spherical mirror (or refraction)
 
-        std::mutex m_collisionDetectionMutex;
-        std::vector<std::future<void>> m_collisionDetectionFutures;
-
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 

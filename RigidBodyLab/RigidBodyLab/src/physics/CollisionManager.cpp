@@ -183,7 +183,7 @@ void Physics::CollisionManager::FindCollisionFeaturesSphereBox(const SphereColli
     collisionData.penetrationDepth = radius - std::sqrt(distanceSquared);
     collisionData.restitution = m_objectRestitution;
     collisionData.friction = m_friction;
-    m_collisions.push_back(collisionData);
+    AddCollision(collisionData);
 }
 
 void Physics::CollisionManager::FindCollisionFeaturesBoxBox(const BoxCollider* box1, const BoxCollider* box2, Object* obj1, Object* obj2) {
@@ -261,7 +261,7 @@ void Physics::CollisionManager::FindCollisionFeaturesBoxBox(const BoxCollider* b
 
     CalcContactPointsBoxBox(*box1, *box2, obj1, obj2, collisionData, minAxisIdx, axes);
 
-    m_collisions.push_back(collisionData);
+    AddCollision(collisionData);
 }
 
 void Physics::CollisionManager::CheckCollision(Core::Object* obj1, Core::Object* obj2) {
@@ -314,8 +314,6 @@ void Physics::CollisionManager::CheckCollision(Core::Object* obj1, Core::Object*
 void Physics::CollisionManager::ResolveCollision(float dt) {
     ThreadPool& pool = ThreadPool::GetInstance();
     m_resolveFutures.clear();
-
-    std::lock_guard<std::mutex> lock(m_collisionResolveMutex);
 
     for (int i = 0; i < m_iterationLimit; ++i) {
         for (auto& contact : m_collisions) {
@@ -527,3 +525,14 @@ void Physics::CollisionManager::SequentialImpulse(CollisionData& contact, float 
     // Compute and apply frictional impulses using the two tangents
     ApplyFrictionImpulses(contact, r1, r2);
 }
+
+void Physics::CollisionManager::AddCollision(const CollisionData& data) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_collisions.push_back(data);
+}
+
+std::vector<Physics::CollisionData> Physics::CollisionManager::GetCollisions() const{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_collisions;
+}
+
