@@ -18,18 +18,18 @@ namespace Rendering {
 	/*  SPHERETEX_GENERATION: Generating the scene texture for the sphere reflection/refraction */
 	/*  MIRRORTEX_GENERATION: Generating the scene texture for the mirror reflection */
 	/*  NORMAL              : Render the final scene as normal */
-	enum class RenderPass{
-		SPHERETEX_GENERATION=0, 
-		MIRRORTEX_GENERATION, 
-		NORMAL 
+	enum class RenderPass {
+		SPHERETEX_GENERATION = 0,
+		MIRRORTEX_GENERATION,
+		NORMAL
 	};
 
 	/*  For toggling the reflection/refraction of the sphere */
-	enum class RefType{
-		REFLECTION_ONLY = 0, 
-		REFRACTION_ONLY, 
-		REFLECTION_REFRACTION, 
-		NUM_REFTYPES 
+	enum class RefType {
+		REFLECTION_ONLY = 0,
+		REFRACTION_ONLY,
+		REFLECTION_REFRACTION,
+		NUM_REFTYPES
 	};
 	/*  For activating the texture ID. We need these 3 separate IDs because
 		they are used at the same time for the base
@@ -39,17 +39,15 @@ namespace Rendering {
 		NORMAL,
 		BUMP
 	};
-	
+
 	class ResourceManager;
 
-	//OpenGL requires that the rendering context is made current on a particular thread before calling its functions.
-	// to parallelize the rendering across multiple threads
-	// (option1): each thread needs its own OpenGL context 
-	// (option2): need to share the context properly , which can be complex and is often not supported in ALL environments
+
+	//in OpenGL, a rendering context can only be active on one thread at a time, making multi - threading complex and potentially inefficient.The sequential nature of OpenGL's state machine also means that the order of operations is crucial, and multi-threading can disrupt this order, leading to unintended consequences in rendering outcomes.	
 	class Renderer {
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
-									//custom deleter
+		//custom deleter
 		std::unique_ptr<GLFWwindow, void(*)(GLFWwindow*)> m_window;// Pointer to the window
 		std::vector<int> m_guiToObjectIndexMap;
 
@@ -141,7 +139,7 @@ namespace Rendering {
 		void SendLightProperties(const Scene& scene);
 		void SetUpSkyBoxUniformLocations(GLuint prog);
 		void SetUpMainUniformLocations(GLuint prog);
-		void SetUpSphereUniformLocations(GLuint prog); 
+		void SetUpSphereUniformLocations(GLuint prog);
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
 
