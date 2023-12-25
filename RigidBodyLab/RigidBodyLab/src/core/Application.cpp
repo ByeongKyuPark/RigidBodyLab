@@ -1,5 +1,6 @@
 #include <core/Application.h>
 #include <rendering/Renderer.h>
+#include <utilities/Logger.h>
 #include <memory>
 
 using Rendering::Renderer;
@@ -8,10 +9,14 @@ using namespace std::chrono;
 Application::Application()
     :m_scene{}, m_prevTime{},m_currTime {  }, m_frameCount{}, m_secCount{}, m_deltaTime{}, m_fps{}, m_inputHandler{ std::make_unique<InputHandler>(m_scene) }
 {
+    Logger::Log("Application initialized");
     Renderer::GetInstance().AttachScene(m_scene);
+    Logger::Log("Scene setup completed");
 }
 
 void Application::Run() {
+    Logger::Log("Starting Application Run Loop. Initializing Renderer and setting up GLFW window user pointer.");
+
     Renderer& renderer = Renderer::GetInstance();
 
     // sets a custom pointer to the GLFW window. This allows us to associate custom data 
@@ -35,7 +40,9 @@ void Application::Run() {
 
         renderer.Render(m_scene, GetFPS());
     }
+    Logger::Log("Application Run Loop ended. Renderer and GLFW window finalized.");
 }
+
 float Application::GetDeltaTime() const {
     return m_deltaTime;
 }
