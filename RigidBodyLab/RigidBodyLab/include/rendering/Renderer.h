@@ -115,7 +115,7 @@ namespace Rendering {
 		void InitImGui();
 		void InitRendering();
 
-		void UpdateLightPosViewFrame(Scene& scene, bool guiUpdate=false);
+		void UpdateLightPosViewFrame(Scene& scene);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 

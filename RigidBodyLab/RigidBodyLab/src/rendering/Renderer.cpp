@@ -612,7 +612,8 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         Vec3 lightPos = scene.GetLightPosition(i);
         if (ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
             scene.SetLightPosition(lightPos, i);
-            UpdateLightPosViewFrame(scene, true);
+            UpdateLightPosViewFrame(scene);
+            mainCam.moved = true; //forcing to update textures
         }
 
         //Vec4 lightColor = scene.GetLightColor(i);
@@ -932,9 +933,9 @@ void Renderer::InitRendering() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene, bool guiUpdate)
+void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
 {
-    if (mainCam.moved || guiUpdate)
+    if (mainCam.moved)
     {
         const int NumLights = scene.GetNumLights();
         for (int i = 0; i < NumLights; ++i) {
