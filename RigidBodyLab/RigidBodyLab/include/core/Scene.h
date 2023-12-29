@@ -52,9 +52,8 @@ namespace Core {
         Scene();
 
         void Update(float dt);
-        
-        void AddLight();
-        void RemoveLight();
+        int AddLight();
+        int RemoveLight();
 
         void SetLightPosition(const Vector3& lightPos, int lightIdx=0);
         void SetLightColor(const Vec4& color, int lightIdx = 0);

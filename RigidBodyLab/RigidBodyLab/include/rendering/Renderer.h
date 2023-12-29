@@ -123,7 +123,7 @@ namespace Rendering {
 		void InitRendering();
 
 		void UpdateLightPosViewFrame(Scene& scene);
-
+		void UpdateNumLights(int numLights)const;
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 

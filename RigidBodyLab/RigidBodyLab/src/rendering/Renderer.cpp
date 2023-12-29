@@ -634,12 +634,12 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         int numLights = scene.GetNumLights();
 
         if (ImGui::Button("Add Light") && numLights < NUM_MAX_LIGHTS) {
-            scene.AddLight(); 
+            UpdateNumLights(scene.AddLight());
         }
         ImGui::SameLine();
 
         if (ImGui::Button("Remove Light") && numLights > 0) {
-            scene.RemoveLight();
+            UpdateNumLights(scene.RemoveLight());
         }
 
         for (int i = 0; i < scene.GetNumLights(); ++i) {
@@ -960,12 +960,11 @@ void Renderer::InitRendering() {
     glfwGetFramebufferSize(m_window.get(), &width, &height);
     glViewport(0, 0, width, height);
 
-    // Enable OpenGL features
-    glEnable(GL_DEPTH_TEST); // Enable depth testing for 3D
-    glEnable(GL_CULL_FACE); // Enable face culling
-    glCullFace(GL_BACK); // Cull back faces
-    glFrontFace(GL_CCW); // Front faces are counter-clockwise
-    glEnable(GL_BLEND); // Enable blending (for transparency)
+    glEnable(GL_DEPTH_TEST); // depth testing for 3D
+    glEnable(GL_CULL_FACE); // face culling
+    glCullFace(GL_BACK);    // cull back faces
+    glFrontFace(GL_CCW);    // front faces are ccw
+    glEnable(GL_BLEND);     // enable blending (for transparency)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -979,6 +978,10 @@ void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
             glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
         }
     }
+}
+
+void Rendering::Renderer::UpdateNumLights(int numLights) const{
+    glUniform1i(m_numLightsLoc, numLights);
 }
 
 // Function to update the mapping when objects are added/removed

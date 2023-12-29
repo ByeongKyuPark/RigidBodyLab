@@ -52,15 +52,17 @@ void Core::Scene::Update(float dt) {
     }
 }
 
-void Core::Scene::AddLight() {
+int Core::Scene::AddLight() {
     if (m_numLights < Renderer::NUM_MAX_LIGHTS) {
         m_numLights++;
     }
+    return m_numLights;
 }
-void Core::Scene::RemoveLight() {
+int Core::Scene::RemoveLight() {
     if (m_numLights > 0) {
         m_numLights--;
     }
+    return m_numLights;
 }
 
 Core::Object& Core::Scene::GetObject(size_t index) {
