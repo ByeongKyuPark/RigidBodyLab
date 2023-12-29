@@ -41,7 +41,7 @@ namespace Core {
         //so as not to alter the whole rendering process. 
         //the key is to manage these projectile objects effectively within the existing structure just for the demo.
         void SetUpProjectiles();
-        void SetUpLight(float height);
+        void MoveLight(Vector3 lightPos);
         void SetUpScene();
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions(float dt);

@@ -163,7 +163,8 @@ void Core::Scene::SetUpScene() {
     constexpr float SPHERE_RAD = 3.5f;
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 
-    SetUpLight(baseSize.x);
+    //(5) light
+    MoveLight({ 10,5,0 });
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -249,7 +250,7 @@ void Core::Scene::SetUpProjectiles() {
     }
 }
 
-
-void Core::Scene::SetUpLight(float height){
-    m_lightPosWF[0] = Vec3(0, height, 0);
+void Core::Scene::MoveLight(Vector3 lightPos)
+{
+    m_lightPosWF[0] = lightPos;
 }
