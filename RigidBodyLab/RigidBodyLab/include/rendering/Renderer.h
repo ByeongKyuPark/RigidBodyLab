@@ -110,11 +110,12 @@ namespace Rendering {
 		GLint m_numLightsLoc, m_lightPosLoc;
 		GLint m_lightOnLoc;
 		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
+
 	private:
 		void InitImGui();
 		void InitRendering();
 
-		void UpdateLightPosViewFrame(Scene& scene);
+		void UpdateLightPosViewFrame(Scene& scene, bool guiUpdate=false);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 
@@ -182,6 +183,8 @@ namespace Rendering {
 		void SendMirrorTexID();
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
+
+		static constexpr int NUM_MAX_LIGHTS = 10;
 	};
 
 }

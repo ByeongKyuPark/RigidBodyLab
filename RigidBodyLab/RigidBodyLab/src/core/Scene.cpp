@@ -1,5 +1,6 @@
 #include <core/Scene.h>
 #include <rendering/Camera.h>
+#include <rendering/Renderer.h>
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
 #include <core/Transform.h>
@@ -14,9 +15,9 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
+    : m_I{ 0.5f, 0.5f, 0.5f, 1.0f }, m_ambientAlbedo{ 0.3f, 0.3f, 0.3f, 1.0f }, m_numLights{1},
 m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{nullptr}
+m_specularPower{ 10 }, m_lightPosVF{  Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{nullptr}
 {
     SetUpScene();
     SetUpProjectiles();
@@ -48,6 +49,14 @@ Core::Object& Core::Scene::GetObject(size_t index) {
 const Core::Object& Core::Scene::GetObject(size_t index) const{
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
+
+const Vec3& Core::Scene::GetLightPosition(int lightIdx) const {
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("GetLightPosition::light index out of rage");
+    }
+    return m_lightPosWF[lightIdx];
+}
+
 
 /**
  * Creates and returns a pointer to a new Object with the specified parameters.
@@ -164,7 +173,8 @@ void Core::Scene::SetUpScene() {
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 
     //(5) light
-    MoveLight({ 10,5,0 });
+    SetLightPosition({ -10,10,0 });
+    //SetLightPosition({ 5,10,30 },1);
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -250,7 +260,10 @@ void Core::Scene::SetUpProjectiles() {
     }
 }
 
-void Core::Scene::MoveLight(Vector3 lightPos)
+void Core::Scene::SetLightPosition(Vector3 lightPos, int lightIdx)
 {
-    m_lightPosWF[0] = lightPos;
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("SetLightPosition::light index out of rage");
+    }
+    m_lightPosWF[lightIdx] = lightPos;
 }

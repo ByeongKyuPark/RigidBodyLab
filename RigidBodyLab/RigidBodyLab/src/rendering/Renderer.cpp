@@ -182,7 +182,7 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
 /******************************************************************************/
 void Renderer::SendLightProperties(const Core::Scene& scene)
 {
-    glUniform1i(m_numLightsLoc, scene.NUM_LIGHTS);
+    glUniform1i(m_numLightsLoc, scene.GetNumLights());
 
     /*  ambient, diffuse, specular are now reflected components on the object
         surface and can be used directly as intensities in the lighting equation.
@@ -605,6 +605,21 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         }
         UpdateGuiToObjectIndexMap(scene);
     }
+
+    //lights
+    ImGui::Text("Light Settings");
+    for (int i = 0; i < scene.GetNumLights(); ++i) {
+        Vec3 lightPos = scene.GetLightPosition(i);
+        if (ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
+            scene.SetLightPosition(lightPos, i);
+            UpdateLightPosViewFrame(scene, true);
+        }
+
+        //Vec4 lightColor = scene.GetLightColor(i);
+        //if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
+        //    scene.SetLightColor(lightColor, i);
+        //}
+    }
 }
 
 /******************************************************************************/
@@ -917,15 +932,17 @@ void Renderer::InitRendering() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
+void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene, bool guiUpdate)
 {
-    if (mainCam.moved)
+    if (mainCam.moved || guiUpdate)
     {
-        for (int i = 0; i < scene.NUM_LIGHTS; ++i) {
+        const int NumLights = scene.GetNumLights();
+        for (int i = 0; i < NumLights; ++i) {
             scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+            //glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
         }
 
-        glUniform3fv(m_lightPosLoc, scene.NUM_LIGHTS, ValuePtr(scene.m_lightPosVF[0]));
+        glUniform3fv(m_lightPosLoc,1, ValuePtr(scene.m_lightPosVF[0]));
     }
 }
 
