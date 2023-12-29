@@ -45,6 +45,9 @@ namespace Rendering {
 
 	//in OpenGL, a rendering context can only be active on one thread at a time, making multi - threading complex and potentially inefficient.The sequential nature of OpenGL's state machine also means that the order of operations is crucial, and multi-threading can disrupt this order, leading to unintended consequences in rendering outcomes.	
 	class Renderer {
+	public:
+		static constexpr int NUM_MAX_LIGHTS = 10;
+	private:
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
 		//custom deleter
@@ -107,15 +110,20 @@ namespace Rendering {
 		GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
 
 		/*  Location of light data */
-		GLint m_numLightsLoc, m_lightPosLoc;
+		GLint m_numLightsLoc;
 		GLint m_lightOnLoc;
-		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
+		GLint m_ambientLoc;
+		GLint m_specularPowerLoc;
+		GLint m_lightPosLoc[NUM_MAX_LIGHTS];
+		GLint m_diffuseLoc[NUM_MAX_LIGHTS];
+		GLint m_specularLoc[NUM_MAX_LIGHTS];
 
 	private:
 		void InitImGui();
 		void InitRendering();
 
 		void UpdateLightPosViewFrame(Scene& scene);
+
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 
@@ -136,7 +144,7 @@ namespace Rendering {
 		void ComputeMainCamMats(const Scene& scene);
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
-
+		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendLightProperties(const Scene& scene);
 		void SetUpSkyBoxUniformLocations(GLuint prog);
 		void SetUpMainUniformLocations(GLuint prog);
@@ -183,8 +191,6 @@ namespace Rendering {
 		void SendMirrorTexID();
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }
-
-		static constexpr int NUM_MAX_LIGHTS = 10;
 	};
 
 }

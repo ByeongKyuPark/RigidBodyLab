@@ -63,18 +63,24 @@ void Renderer::SetUpMainUniformLocations(GLuint prog)
     m_textureLoc = glGetUniformLocation(prog, "colorTex");
 
     m_numLightsLoc = glGetUniformLocation(prog, "numLights");
-    m_lightPosLoc = glGetUniformLocation(prog, "lightPosVF");
     m_lightOnLoc = glGetUniformLocation(prog, "lightOn");
 
     m_ambientLoc = glGetUniformLocation(prog, "ambient");
-    m_diffuseLoc = glGetUniformLocation(prog, "diffuse");
-    m_specularLoc = glGetUniformLocation(prog, "specular");
     m_specularPowerLoc = glGetUniformLocation(prog, "specularPower");
 
     m_bumpTexLoc = glGetUniformLocation(prog, "bumpTex");
     m_normalTexLoc = glGetUniformLocation(prog, "normalTex");
     m_normalMappingOnLoc = glGetUniformLocation(prog, "normalMappingOn");
     m_parallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
+
+    for (int i = 0; i < NUM_MAX_LIGHTS; ++i) {
+        std::string index = std::to_string(i);
+
+        m_lightPosLoc[i] = glGetUniformLocation(prog, ("lightPosVF[" + index + "]").c_str());
+        m_diffuseLoc[i] = glGetUniformLocation(prog, ("diffuse[" + index + "]").c_str());
+        m_specularLoc[i] = glGetUniformLocation(prog, ("specular[" + index + "]").c_str());
+    }
+
 }
 
 
@@ -182,19 +188,22 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
 /******************************************************************************/
 void Renderer::SendLightProperties(const Core::Scene& scene)
 {
-    glUniform1i(m_numLightsLoc, scene.GetNumLights());
+    const int numLights = scene.GetNumLights();
+    glUniform1i(m_numLightsLoc, numLights);
 
     /*  ambient, diffuse, specular are now reflected components on the object
         surface and can be used directly as intensities in the lighting equation.
     */
-    Vec4 ambient, diffuse, specular;
-    ambient = scene.m_I * scene.m_ambientAlbedo;
-    diffuse = scene.m_I * scene.m_diffuseAlbedo;
-    specular = scene.m_I * scene.m_specularAlbedo;
+    Vec4 globalAmbient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
+    glUniform4fv(m_ambientLoc, 1, ValuePtr(globalAmbient));
 
-    glUniform4fv(m_ambientLoc, 1, ValuePtr(ambient));
-    glUniform4fv(m_diffuseLoc, 1, ValuePtr(diffuse));
-    glUniform4fv(m_specularLoc, 1, ValuePtr(specular));
+    for (int i = 0; i < numLights; ++i) {
+        Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
+        Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
+
+        glUniform4fv(m_diffuseLoc[i], 1, ValuePtr(diffuse));
+        glUniform4fv(m_specularLoc[i], 1, ValuePtr(specular));
+    }
 
     glUniform1i(m_specularPowerLoc, scene.m_specularPower);
 }
@@ -473,9 +482,23 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
+void Rendering::Renderer::SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx)
+{
+    if (lightIdx >= scene.GetNumLights()) {
+        throw std::runtime_error("SendDiffuseSpecularLightProperty::light index out of range");
+    }
+
+	Vec4 diffuse = scene.m_I[lightIdx] * scene.m_diffuseAlbedo;
+	Vec4 specular = scene.m_I[lightIdx] * scene.m_specularAlbedo;
+
+	glUniform4fv(m_diffuseLoc[lightIdx], 1, ValuePtr(diffuse));
+	glUniform4fv(m_specularLoc[lightIdx], 1, ValuePtr(specular));
+}
+
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
+
     ImGui::SetNextWindowPos(ImVec2(Camera::DISPLAY_SIZE, 0));
-    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 3.f));
+    ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH, Camera::GUI_WIDTH * 5.f));
 
     // displaying FPS
     ImGui::Text("Frame Rate: %.1f", fps);
@@ -607,19 +630,32 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     }
 
     //lights
-    ImGui::Text("Light Settings");
-    for (int i = 0; i < scene.GetNumLights(); ++i) {
-        Vec3 lightPos = scene.GetLightPosition(i);
-        if (ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
-            scene.SetLightPosition(lightPos, i);
-            UpdateLightPosViewFrame(scene);
-            mainCam.moved = true; //forcing to update textures
+    if (ImGui::CollapsingHeader("Light Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        int numLights = scene.GetNumLights();
+
+        if (ImGui::Button("Add Light") && numLights < NUM_MAX_LIGHTS) {
+            scene.AddLight(); 
+        }
+        ImGui::SameLine();
+
+        if (ImGui::Button("Remove Light") && numLights > 0) {
+            scene.RemoveLight();
         }
 
-        //Vec4 lightColor = scene.GetLightColor(i);
-        //if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
-        //    scene.SetLightColor(lightColor, i);
-        //}
+        for (int i = 0; i < scene.GetNumLights(); ++i) {
+            Vec3 lightPos = scene.GetLightPosition(i);
+            if (ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
+                scene.SetLightPosition(lightPos, i);
+                UpdateLightPosViewFrame(scene);
+                mainCam.moved = true; //forcing to update textures
+            }
+
+            Vec4 lightColor = scene.GetLightColor(i);
+            if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
+                scene.SetLightColor(lightColor, i);
+                SendDiffuseSpecularLightProperty(scene,i);
+            }
+        }
     }
 }
 
@@ -940,10 +976,8 @@ void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
         const int NumLights = scene.GetNumLights();
         for (int i = 0; i < NumLights; ++i) {
             scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
-            //glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+            glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
         }
-
-        glUniform3fv(m_lightPosLoc,1, ValuePtr(scene.m_lightPosVF[0]));
     }
 }
 
@@ -1033,16 +1067,19 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     /*  We need view mat to know our camera orientation */
     SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
-    // Compute and send the model-view matrix for the sphere
+    // compute and send the model-view matrix for the sphere
     Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrix();
     Mat4 sphereNMV = Transpose(Inverse(sphereMV));
     SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
 
-    // Send the projection matrix
+    // send the projection matrix
     SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
 
-    // Finally, render the sphere
+    // render the sphere
     RenderObj(*scene.m_sphere);
+
+    // reset
+    m_shaders[TO_INT(ProgType::MAIN_PROG)].Use();
 }
 
 
@@ -1418,6 +1455,10 @@ void Renderer::Render(Core::Scene& scene, float fps)
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -1448,21 +1489,17 @@ void Renderer::Render(Core::Scene& scene, float fps)
         RenderToMirrorTexture(scene);
     }
 
+
     /*  Render the scene, except the sphere to the screen */
     RenderToScreen(scene);
 
     /*  This is done separately, as it uses a different shader program for reflection/refraction */
     RenderSphere(scene);
 
-
     /*  Reset */
     mainCam.moved = false;
     mainCam.resized = false;
     mirrorCam.moved = true;
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     RenderGui(scene,fps);
 

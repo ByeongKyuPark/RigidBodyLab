@@ -23,8 +23,9 @@ namespace Core {
         */
         std::vector<Vec3> m_lightPosWF;
         std::vector<Vec3> m_lightPosVF;
+        std::vector<Vec4> m_I;
 
-        Vec4 m_I;
+        Vec4 m_ambientLightIntensity;
         Vec4 m_ambientAlbedo;
         Vec4 m_diffuseAlbedo;
         Vec4 m_specularAlbedo;
@@ -52,12 +53,16 @@ namespace Core {
 
         void Update(float dt);
         
-        void SetLightPosition(Vector3 lightPos, int lightIdx=0);
+        void AddLight();
+        void RemoveLight();
+
+        void SetLightPosition(const Vector3& lightPos, int lightIdx=0);
+        void SetLightColor(const Vec4& color, int lightIdx = 0);
 
         Core::Object& GetObject(size_t index);
         const Core::Object& GetObject(size_t index) const;
         const std::vector<Vec3>& GetLightPositionsWF() const { return m_lightPosWF; }
-        const Vec4& GetIntensity() const { return m_I; }
+        const Vec4& GetLightColor(int idx) const;
         const Vec3& GetLightPosition(int lightIdx) const;
         int GetNumLights()const { return m_numLights; }
         /**

@@ -10,15 +10,17 @@ uniform sampler2D bumpTex;      /*  Bump texture for bump mapping */
 
 in vec2 uvCoord;
 
+const int NumMaxLights = 10;
+
 uniform bool lightOn;
 uniform int numLights;
 uniform vec4 ambient;
-uniform vec4 diffuse;
-uniform vec4 specular;
+uniform vec4 diffuse[NumMaxLights];
+uniform vec4 specular[NumMaxLights];
 uniform int specularPower;
 
 /*  These could be in view space or tangent space */
-in vec3 lightDir[10];
+in vec3 lightDir[NumMaxLights];
 in vec3 viewDir;
 in vec3 normal;
 
@@ -68,8 +70,8 @@ void main(void)
     for (int i = 0; i < numLights; ++i){                                                                                      
         vec3 L = normalize(lightDir[i]);                                                     
         vec3 H = normalize(L+V);     
-        vec4 diffuseTerm = diffuse * max(dot(L, N), 0.f);
-        vec4 specularTerm = specular * pow(max(dot(N, H), 0.f), specularPower); 
+        vec4 diffuseTerm = diffuse[i] * max(dot(L, N), 0.f);
+        vec4 specularTerm = specular[i] * pow(max(dot(N, H), 0.f), specularPower); 
         intensity += (diffuseTerm + specularTerm);                                
     }
 

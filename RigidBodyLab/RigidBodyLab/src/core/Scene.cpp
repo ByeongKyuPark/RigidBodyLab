@@ -15,12 +15,22 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_I{ 0.5f, 0.5f, 0.5f, 1.0f }, m_ambientAlbedo{ 0.3f, 0.3f, 0.3f, 1.0f }, m_numLights{1},
-m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_lightPosVF{  Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{nullptr}
+    : m_ambientLightIntensity{0.6,0.6,0.6,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 0.5f, 0.5f, 0.5f, 1.f }}, 
+    m_ambientAlbedo{ 0.3f, 0.3f, 0.3f, 1.0f }, m_numLights{ 1 },
+	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
+	m_specularPower{ 10 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
+	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
     SetUpProjectiles();
+}
+
+void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
+{
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("SetLightColor::light index out of rage");
+    }
+    m_I[lightIdx] = lightColor;
 }
 
 void Core::Scene::Update(float dt) {
@@ -42,6 +52,17 @@ void Core::Scene::Update(float dt) {
     }
 }
 
+void Core::Scene::AddLight() {
+    if (m_numLights < Renderer::NUM_MAX_LIGHTS) {
+        m_numLights++;
+    }
+}
+void Core::Scene::RemoveLight() {
+    if (m_numLights > 0) {
+        m_numLights--;
+    }
+}
+
 Core::Object& Core::Scene::GetObject(size_t index) {
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
@@ -56,6 +77,14 @@ const Vec3& Core::Scene::GetLightPosition(int lightIdx) const {
     }
     return m_lightPosWF[lightIdx];
 }
+
+const Vec4& Core::Scene::GetLightColor(int idx) const {
+    if (idx >= m_numLights) {
+        throw std::runtime_error("GetLightColor:: light index out of range");
+    }
+    return m_I[idx];
+}
+
 
 
 /**
@@ -260,7 +289,7 @@ void Core::Scene::SetUpProjectiles() {
     }
 }
 
-void Core::Scene::SetLightPosition(Vector3 lightPos, int lightIdx)
+void Core::Scene::SetLightPosition(const Vector3& lightPos, int lightIdx)
 {
     if (lightIdx >= m_numLights) {
         throw std::runtime_error("SetLightPosition::light index out of rage");
