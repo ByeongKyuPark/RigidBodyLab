@@ -188,6 +188,24 @@ used for lighting computation in light pass.
 /******************************************************************************/
 void Rendering::Renderer::SetUpGTextures()
 {
+    glGenFramebuffers(1, &m_gFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+
+    // Create and attach color texture
+    glActiveTexture(GL_TEXTURE0);//+TO_INT(ActiveTexID::G_ALBEDO));
+    glGenTextures(1, &m_gColorTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gColorTexID, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Framebuffer not complete!" << std::endl;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    return;
     /*  Set up 16-bit floating-point, 4-component texture for color output */
      // Albedo (Color)
     glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_ALBEDO));
@@ -914,12 +932,12 @@ void Renderer::AttachScene(const Core::Scene& scene)
     //3. obj textures
     resourceManager.SetUpTextures();
 
-	//4. (deferred shading) Set up textures to be written to in geometry pass and read from in light pass
+    SendLightProperties(scene);
+
+    //4. (deferred shading) Set up textures to be written to in geometry pass and read from in light pass
 	SetUpGTextures();
 	//5. (deferred shading) Set up full-screen quad for rendering deferred light pass and 4 small quads for debugging
 	SetUpLightPassQuads();
-
-    SendLightProperties(scene);
 
     /*  Drawing using filled mode */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1004,8 +1022,8 @@ Rendering::Renderer::Renderer()
 		exit(EXIT_FAILURE);
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // Specify the GLFW version
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -1038,6 +1056,9 @@ Rendering::Renderer::Renderer()
     m_shaderFileMap[ProgType::MAIN_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
     m_shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
     m_shaderFileMap[ProgType::SPHERE_PROG] = { "../RigidBodyLab/shaders/sphere.vs", "../RigidBodyLab/shaders/sphere.fs" };
+    m_shaderFileMap[ProgType::DEFERRED_FORWARD] = { "../RigidBodyLab/shaders/deferred_forward.vs", "../RigidBodyLab/shaders/deferred_forward.fs" };
+    m_shaderFileMap[ProgType::DEFERRED_GEOMPASS] = { "../RigidBodyLab/shaders/deferred_geom.vs", "../RigidBodyLab/shaders/deferred_geom.fs" };
+    m_shaderFileMap[ProgType::DEFERRED_LIGHTPASS] = { "../RigidBodyLab/shaders/deferred_light.vs", "../RigidBodyLab/shaders/deferred_light.fs" };
 }
 
 Renderer& Rendering::Renderer::GetInstance() {
@@ -1088,7 +1109,7 @@ void Renderer::InitImGui() {
 void Renderer::InitRendering() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD\n";
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     // Set up viewport
@@ -1598,8 +1619,74 @@ void Renderer::Render(Core::Scene& scene, float fps)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
+    //(1) Geometry Pass
+    {
+
+
+        m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+
+        // Bind G-buffer framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, drawBuffers);
+
+        /*  Clear corresponding output color/depth buffers */
+        //GLfloat bgColor[4] = { 0.f, 0.f, 1.f, 1.0f }; 
+        //glClearBufferfv(GL_COLOR, 0, bgColor);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+
+     // Unbind the G-buffer framebuffer to revert to the default framebuffer
+    glClearColor(1.f, 1.f, 1.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    //render objects...
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // (2) light pass
+    {
+        m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
+        /*  Bind framebuffer to 0 to render to the screen */
+        /*  Disable depth test since we only render flat textures */
+        /*  Disable writing to depth buffer */
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+
+        //render
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+        //m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].setInt("gColor", 0);
+
+        glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        /*  Enable depth test again for rendering objects in the next frame */
+        glEnable(GL_DEPTH_TEST);
+
+        /*  Enable writing to depth buffer */
+        glDepthMask(GL_TRUE);
+    }
+
+    //------------------------------------------------------------
+    RenderGui(scene, fps);
+
+    // Rendering    
+    ImGui::Render();
+    int display_W, display_H;
+    glfwGetFramebufferSize(m_window.get(), &display_W, &display_H);
+    glViewport(0, 0, display_W, display_H);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(m_window.get());
+    mainCam.moved = false;
+    mainCam.resized = false;
+    mirrorCam.moved = true;
+    return; 
 
     /*  The texture used for sphere reflection/refraction is view-independent,
         so it only needs to be rendered once in the beginning
