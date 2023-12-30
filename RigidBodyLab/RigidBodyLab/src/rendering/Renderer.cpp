@@ -170,7 +170,7 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
         return false;
     }
 
-    constexpr int UPDATE_INTERVAL = 30;
+    constexpr int UPDATE_INTERVAL = 20;
     m_sphereMirrorCubeMapFrameCounter++;
     if (m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
         m_sphereMirrorCubeMapFrameCounter = 0;
@@ -635,11 +635,13 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
         if (ImGui::Button("Add Light") && numLights < NUM_MAX_LIGHTS) {
             UpdateNumLights(scene.AddLight());
+            m_shouldUpdateCubeMapForSphere = true;
         }
         ImGui::SameLine();
 
         if (ImGui::Button("Remove Light") && numLights > 0) {
             UpdateNumLights(scene.RemoveLight());
+            m_shouldUpdateCubeMapForSphere = true;
         }
 
         for (int i = 0; i < scene.GetNumLights(); ++i) {
@@ -648,12 +650,15 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
                 scene.SetLightPosition(lightPos, i);
                 UpdateLightPosViewFrame(scene);
                 mainCam.moved = true; //forcing to update textures
+                m_shouldUpdateCubeMapForSphere = true;
             }
 
             Vec4 lightColor = scene.GetLightColor(i);
             if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
                 scene.SetLightColor(lightColor, i);
                 SendDiffuseSpecularLightProperty(scene,i);
+                mainCam.moved = true; //forcing to update textures
+                m_shouldUpdateCubeMapForSphere = true;
             }
         }
     }

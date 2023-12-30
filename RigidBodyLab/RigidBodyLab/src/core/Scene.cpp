@@ -15,9 +15,9 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.6,0.6,0.6,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 0.5f, 0.5f, 0.5f, 1.f }}, 
+    : m_ambientLightIntensity{0.6,0.6,0.6,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 0.8f, 0.8f, 0.8f, 1.f }}, 
     m_ambientAlbedo{ 0.3f, 0.3f, 0.3f, 1.0f }, m_numLights{ 1 },
-	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
+	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
 	m_specularPower{ 10 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
@@ -204,8 +204,8 @@ void Core::Scene::SetUpScene() {
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 
     //(5) light
-    SetLightPosition({ -10,10,0 });
-    //SetLightPosition({ 5,10,30 },1);
+    SetLightPosition({ 10,10,5 });
+    SetLightColor({ 0.7f,0.15f,0.7f,1.f });
 }
 
 void Core::Scene::ApplyBroadPhase()
