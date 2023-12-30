@@ -224,6 +224,7 @@ namespace Rendering {
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
 		void SetUpGTextures();
+		void SetUpLightPassQuads();
 
 		bool ShouldUpdateSphereCubemap(float speedSqrd);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 

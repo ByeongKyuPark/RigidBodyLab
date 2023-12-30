@@ -21,9 +21,9 @@ namespace Rendering
         SKYBOX_PROG,
         SPHERE_PROG,
         //deferred
-        //DEFERRED_FORWARD,
-        //DEFERRED_GEOMPASS, 
-        //DEFERRED_LIGHTPASS,
+        DEFERRED_FORWARD,
+        DEFERRED_GEOMPASS, 
+        DEFERRED_LIGHTPASS,
         NUM_PROGTYPES
     };
     enum class ShaderType {

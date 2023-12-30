@@ -165,6 +165,16 @@ void Rendering::Renderer::SetUpShaders() {
     // For MAIN_PROG
     m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
     SetUpMainUniformLocations();
+
+    //Deferred
+	//m_shaders[static_cast<int>(ProgType::DEFERRED_FORWARD)].Use();
+	//SetUpDeferredForwardUniformLocations();
+
+	//m_shaders[static_cast<int>(ProgType::DEFERRED_GEOMPASS)].Use();
+	//SetUpDeferredGeometryUniformLocations();
+
+	//m_shaders[static_cast<int>(ProgType::DEFERRED_LIGHTPASS)].Use();
+	//SetUpDeferredLightUniformLocations();
 }
 
 
@@ -237,6 +247,42 @@ void Rendering::Renderer::SetUpGTextures()
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_gPosTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, m_gNrmTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_gDepthTexID, 0);
+}
+
+/******************************************************************************/
+/*!
+\fn     void SetUpLightPassQuads()
+\brief
+Create VAO (graphics state) and VBO (vertex data state) for the quads
+in deferred light pass. These quads will be used for full-screen render
+and minimaps render.
+*/
+/******************************************************************************/
+void Rendering::Renderer::SetUpLightPassQuads()
+{
+    for (int i = 0; i < TO_INT(DebugType::NUM_DEBUGTYPES); ++i)
+    {
+        glGenVertexArrays(1, &(quadVAO[i]));
+        glBindVertexArray(quadVAO[i]);
+
+        /*  Create vertex buffer ID to store the state of the quad vertices */
+        glGenBuffers(1, &(quadVBO[i]));
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO[i]);
+
+        /*  Allocate buffer for the quad vertex coordinates */
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadBuff[i]), quadBuff[i], GL_STATIC_DRAW);
+
+        /*  Feed the quad vertex buffer into shaders */
+        glEnableVertexAttribArray(m_lightPassQuadLoc);
+        glVertexAttribPointer(
+            m_lightPassQuadLoc,   // location of quadCoord variable in shader
+            2,                  // dimension of vertex coord
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized or not
+            0,                  // stride
+            (void*)0            // array buffer offset
+        );
+    }
 }
 
 bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
@@ -868,9 +914,10 @@ void Renderer::AttachScene(const Core::Scene& scene)
     //3. obj textures
     resourceManager.SetUpTextures();
 
-    //4. Set up textures to be written to in geometry pass and read from in light pass
-    SetUpGTextures();
-
+	//4. (deferred shading) Set up textures to be written to in geometry pass and read from in light pass
+	SetUpGTextures();
+	//5. (deferred shading) Set up full-screen quad for rendering deferred light pass and 4 small quads for debugging
+	SetUpLightPassQuads();
 
     SendLightProperties(scene);
 
