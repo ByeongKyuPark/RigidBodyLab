@@ -146,7 +146,7 @@ void Renderer::SetUpVertexData(Mesh& mesh)
     }
 }
 
-void Renderer::SetUpShaders() {
+void Rendering::Renderer::SetUpShaders() {
     for (const auto& pair : m_shaderFileMap) {
         auto& shader = m_shaders[TO_INT(pair.first)];
         shader.LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
@@ -162,6 +162,78 @@ void Renderer::SetUpShaders() {
     // For MAIN_PROG
     m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
     SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
+}
+
+
+/******************************************************************************/
+/*!
+\fn     void SetUpGTextures()
+\brief
+Set up the buffers for the outputs of geometry pass, which will then be
+used for lighting computation in light pass.
+*/
+/******************************************************************************/
+void Rendering::Renderer::SetUpGTextures()
+{
+    /*  Set up 16-bit floating-point, 4-component texture for color output */
+     // Albedo (Color)
+    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_ALBEDO));
+    glGenTextures(1, &m_gColorTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+    /*  Set up 32-bit floating-point, 3-component texture for position output.
+    Using 32 bits instead of 16 bits coz position may vary more widely and require
+    higher accuracy.
+    */
+    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_POSITION));
+    glGenTextures(1, &m_gPosTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+    /*  Set up 16-bit floating-point, 3-component texture for normal output */
+    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_NORMAL));
+    glGenTextures(1, &m_gNrmTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+    /*  Set up 32-bit floating-point texture for depth component output */
+    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_DEPTH));
+    glGenTextures(1, &m_gDepthTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    /*  Generate offscreen framebuffer ID and store it in gFrameBufferID.
+    For deferred shading, this framebuffer is bounded to store
+    the outputs.
+    */
+    glGenFramebuffers(1, &m_gFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+
+    /*  Indicating the attachments to be used for the output buffers.
+    Note that the ID of the attachment (e.g. COLOR_ATTACHMENT0) should match
+    the layout location of the output in fragment shader.
+    */
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_gColorTexID, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_gPosTexID, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, m_gNrmTexID, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_gDepthTexID, 0);
 }
 
 bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
@@ -787,11 +859,15 @@ void Renderer::AttachScene(const Core::Scene& scene)
         SetUpVertexData(*resourceManager.GetMesh(static_cast<MeshID>(i)));
     }
     
-    //2. texture
+    //2. shader
+    SetUpShaders();
+
+    //3. obj textures
     resourceManager.SetUpTextures();
 
-    //3. shader
-    SetUpShaders();
+    //4. Set up textures to be written to in geometry pass and read from in light pass
+    SetUpGTextures();
+
 
     SendLightProperties(scene);
 
@@ -863,9 +939,14 @@ Rendering::Renderer::Renderer()
     , m_mirrorCamProjMat{}
     , m_mirrorCamMVMat{}
     , m_mirrorCamNormalMVMat{}
-    
-    , m_sphereCamProjMat {}
+
+    , m_sphereCamProjMat{}
     , m_sphereCamViewMat(TO_INT(CubeFaceID::NUM_FACES))
+    , m_gColorTexID {}
+    , m_gPosTexID {}
+    , m_gNrmTexID {}
+    , m_gDepthTexID {}
+    , m_gFrameBufferID {}
 {
 	// Initialize GLFW
 	if (!glfwInit()) {

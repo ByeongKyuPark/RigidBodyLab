@@ -37,7 +37,12 @@ namespace Rendering {
 	enum class ActiveTexID {
 		COLOR = 0,
 		NORMAL,
-		BUMP
+		BUMP,
+		//G-buffer textures
+		G_ALBEDO,    // G-buffer Albedo (or diffuse) texture
+		G_POSITION,  // G-buffer Position texture
+		G_NORMAL,    // G-buffer Normal texture
+		G_DEPTH      // G-buffer Depth texture
 	};
 
 	class ResourceManager;
@@ -109,6 +114,14 @@ namespace Rendering {
 		/*  For indicating whether object has normal map, and parallax mapping status */
 		GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
 
+		/* deferred shading */
+		GLuint m_gColorTexID;
+		GLuint m_gPosTexID;
+		GLuint m_gNrmTexID;
+		GLuint m_gDepthTexID;
+
+		GLuint m_gFrameBufferID;
+
 		/*  Location of light data */
 		GLint m_numLightsLoc;
 		GLint m_lightOnLoc;
@@ -151,6 +164,7 @@ namespace Rendering {
 		void SetUpSphereUniformLocations(GLuint prog);
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
+		void SetUpGTextures();
 
 		bool ShouldUpdateSphereCubemap(float speedSqrd);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
