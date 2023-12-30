@@ -39,8 +39,9 @@ using Core::Scene;
         The given skybox shader program ID.
 */
 /******************************************************************************/
-void Renderer::SetUpSkyBoxUniformLocations(GLuint prog)
+void Renderer::SetUpSkyBoxUniformLocations()
 {
+    GLuint prog = m_shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID();
     m_skyboxViewMatLoc = glGetUniformLocation(prog, "viewMat");
     m_skyboxTexCubeLoc = glGetUniformLocation(prog, "texCube");
 }
@@ -54,8 +55,9 @@ void Renderer::SetUpSkyBoxUniformLocations(GLuint prog)
         The given shader program ID.
 */
 /******************************************************************************/
-void Renderer::SetUpMainUniformLocations(GLuint prog)
+void Renderer::SetUpMainUniformLocations()
 {
+    GLuint prog = m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID();
     m_mainMVMatLoc = glGetUniformLocation(prog, "mvMat");
     m_mainNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
     m_mainProjMatLoc = glGetUniformLocation(prog, "projMat");
@@ -93,8 +95,9 @@ void Renderer::SetUpMainUniformLocations(GLuint prog)
         The given sphere shader program ID.
 */
 /******************************************************************************/
-void Renderer::SetUpSphereUniformLocations(GLuint prog)
+void Renderer::SetUpSphereUniformLocations()
 {
+    GLuint prog = m_shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID();
     m_sphereMVMatLoc = glGetUniformLocation(prog, "mvMat");
     m_sphereNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
     m_sphereProjMatLoc = glGetUniformLocation(prog, "projMat");
@@ -153,15 +156,15 @@ void Rendering::Renderer::SetUpShaders() {
     }
     // For SKYBOX_PROG
     m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
-    SetUpSkyBoxUniformLocations(m_shaders[TO_INT(ProgType::SKYBOX_PROG)].GetProgramID());
+    SetUpSkyBoxUniformLocations();
 
     // For SPHERE_PROG
     m_shaders[static_cast<int>(ProgType::SPHERE_PROG)].Use();
-    SetUpSphereUniformLocations(m_shaders[TO_INT(ProgType::SPHERE_PROG)].GetProgramID());
+    SetUpSphereUniformLocations();
 
     // For MAIN_PROG
     m_shaders[static_cast<int>(ProgType::MAIN_PROG)].Use();
-    SetUpMainUniformLocations(m_shaders[TO_INT(ProgType::MAIN_PROG)].GetProgramID());
+    SetUpMainUniformLocations();
 }
 
 

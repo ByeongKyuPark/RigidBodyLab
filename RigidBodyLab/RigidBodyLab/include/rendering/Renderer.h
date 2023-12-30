@@ -45,6 +45,16 @@ namespace Rendering {
 		G_DEPTH      // G-buffer Depth texture
 	};
 
+	enum class DebugType
+	{
+		MAIN,
+		COLOR,
+		POSITION,
+		NORMAL,
+		DEPTH,
+		NUM_DEBUGTYPES
+	};
+
 	class ResourceManager;
 
 
@@ -122,6 +132,55 @@ namespace Rendering {
 
 		GLuint m_gFrameBufferID;
 
+		GLuint quadVAO[TO_INT(DebugType::NUM_DEBUGTYPES)];
+		GLuint quadVBO[TO_INT(DebugType::NUM_DEBUGTYPES)];
+
+		GLfloat quadBuff[TO_INT(DebugType::NUM_DEBUGTYPES)][8] =
+		{
+			/*  Full-screen quad, used for full-screen rendering */
+			{
+				-1.0f, -1.0f,
+				1.0f, -1.0f,
+				-1.0f, 1.0f,
+				1.0f, 1.0f
+			},
+			/*  First bottom minimap */
+			{
+				-1.0f, -1.0f,
+				-0.5f, -1.0f,
+				-1.0f, -0.5f,
+				-0.5f, -0.5f
+			},
+			/*  Second bottom minimap */
+			{
+				-0.5f, -1.0f,
+				0.0f, -1.0f,
+				-0.5f, -0.5f,
+				0.0f, -0.5f
+			},
+			/*  Third bottom minimap */
+			{
+				0.0f, -1.0f,
+				0.5f, -1.0f,
+				0.0f, -0.5f,
+				0.5f, -0.5f
+			},
+			/*  Forth bottom minimap */
+			{
+				0.5f, -1.0f,
+				1.0f, -1.0f,
+				0.5f, -0.5f,
+				1.0f, -0.5f
+			}
+		};
+
+		GLint m_lightPassQuadLoc;
+
+		GLint m_gMVPMatLoc;
+		GLint m_gMVMMatLoc;
+		GLint m_gNMVMatLoc;
+		GLint m_gTexCoordsLoc;
+
 		/*  Location of light data */
 		GLint m_numLightsLoc;
 		GLint m_lightOnLoc;
@@ -159,9 +218,9 @@ namespace Rendering {
 		void ComputeSphereCamMats(const Scene& scene);
 		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendLightProperties(const Scene& scene);
-		void SetUpSkyBoxUniformLocations(GLuint prog);
-		void SetUpMainUniformLocations(GLuint prog);
-		void SetUpSphereUniformLocations(GLuint prog);
+		void SetUpSkyBoxUniformLocations();
+		void SetUpMainUniformLocations();
+		void SetUpSphereUniformLocations();
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
 		void SetUpGTextures();

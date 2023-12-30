@@ -20,6 +20,10 @@ namespace Rendering
         MAIN_PROG = 0,
         SKYBOX_PROG,
         SPHERE_PROG,
+        //deferred
+        //DEFERRED_FORWARD,
+        //DEFERRED_GEOMPASS, 
+        //DEFERRED_LIGHTPASS,
         NUM_PROGTYPES
     };
     enum class ShaderType {
