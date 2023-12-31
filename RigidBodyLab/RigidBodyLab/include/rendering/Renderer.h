@@ -190,6 +190,24 @@ namespace Rendering {
 		GLint m_diffuseLoc[NUM_MAX_LIGHTS];
 		GLint m_specularLoc[NUM_MAX_LIGHTS];
 
+
+		static constexpr GLint lightPassQuadLoc = 0;
+		/*  For telling shader whether it should compute lighting or just draw
+			separate buffers
+		*/
+		static constexpr GLint lightPassDebugLoc = 1;
+		/*  For input color/position/normal/depth buffers rendered from geometry pass */
+		static constexpr GLint colorTexLoc = 2;
+		static constexpr GLint posTexLoc = 3;
+		static constexpr GLint nrmTexLoc = 4;
+		static constexpr GLint depthTexLoc = 5;
+		static constexpr GLint numLightsLoc = 8;
+		static constexpr GLint ambientLoc = 20;
+		static constexpr GLint diffuseLoc = 21;
+		static constexpr GLint specularLoc = 22;
+		static constexpr GLint specularPowerLoc = 23;
+
+
 	private:
 		void InitImGui();
 		void InitRendering();
@@ -218,6 +236,7 @@ namespace Rendering {
 		void ComputeSphereCamMats(const Scene& scene);
 		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendLightProperties(const Scene& scene);
+		void SendDeferredLightProperties(const Scene& scene);
 		void SetUpSkyBoxUniformLocations();
 		void SetUpMainUniformLocations();
 		void SetUpSphereUniformLocations();

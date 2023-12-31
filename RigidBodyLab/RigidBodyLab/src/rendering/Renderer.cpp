@@ -191,28 +191,29 @@ void Rendering::Renderer::SetUpGTextures()
     glGenFramebuffers(1, &m_gFrameBufferID);
     glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
 
-    // Create and attach color texture
-    glActiveTexture(GL_TEXTURE0);//+TO_INT(ActiveTexID::G_ALBEDO));
-    glGenTextures(1, &m_gColorTexID);
-    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gColorTexID, 0);
+    //// Create and attach color texture
+    //glActiveTexture(GL_TEXTURE0+TO_INT(ActiveTexID::G_ALBEDO));
+    //glGenTextures(1, &m_gColorTexID);
+    //glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gColorTexID, 0);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "Framebuffer not complete!" << std::endl;
-    }
+    //if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    //    std::cerr << "Framebuffer not complete!" << std::endl;
+    //}
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    return;
+    //return;
+
     /*  Set up 16-bit floating-point, 4-component texture for color output */
      // Albedo (Color)
     glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_ALBEDO));
     glGenTextures(1, &m_gColorTexID);
     glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
-    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -225,8 +226,8 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_POSITION));
     glGenTextures(1, &m_gPosTexID);
     glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
-    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -236,8 +237,8 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_NORMAL));
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
 
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -247,8 +248,8 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_DEPTH));
     glGenTextures(1, &m_gDepthTexID);
     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
     /*  Generate offscreen framebuffer ID and store it in gFrameBufferID.
     For deferred shading, this framebuffer is bounded to store
@@ -345,6 +346,28 @@ void Renderer::SendLightProperties(const Core::Scene& scene)
     }
 
     glUniform1i(m_specularPowerLoc, scene.m_specularPower);
+}
+
+void Rendering::Renderer::SendDeferredLightProperties(const Scene& scene)
+{
+
+    glUniform1i(numLightsLoc, scene.m_numLights);
+
+    /*  ambient, diffuse, specular are now reflected components on the object
+        surface and can be used directly as intensities in the lighting equation.
+    */
+    Vec4 ambient, diffuse, specular;
+    //just 1 light for now
+    ambient = scene.m_I[0] * scene.m_ambientAlbedo;
+    diffuse = scene.m_I[0] * scene.m_diffuseAlbedo;
+    specular = scene.m_I[0] * scene.m_specularAlbedo;
+
+    /*  Send ambient, diffuse, specular, specularPower, and blinnPhongLighting(boolean) to shader. */
+    glUniform4fv(ambientLoc, 1, &ambient[0]);
+    glUniform4fv(diffuseLoc, 1, &diffuse[0]);
+    glUniform4fv(specularLoc, 1, &specular[0]);
+    glUniform1i(specularPowerLoc, scene.m_specularPower);
+    //glUniform1i(blinnPhongLightingLoc, blinnPhongLighting);//ADDED, false by default
 }
 
 
@@ -932,12 +955,18 @@ void Renderer::AttachScene(const Core::Scene& scene)
     //3. obj textures
     resourceManager.SetUpTextures();
 
-    SendLightProperties(scene);
 
     //4. (deferred shading) Set up textures to be written to in geometry pass and read from in light pass
 	SetUpGTextures();
 	//5. (deferred shading) Set up full-screen quad for rendering deferred light pass and 4 small quads for debugging
 	SetUpLightPassQuads();
+
+    m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
+    SendDeferredLightProperties(scene);
+
+    m_shaders[TO_INT(ProgType::MAIN_PROG)].Use();
+    SendLightProperties(scene);
+
 
     /*  Drawing using filled mode */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1596,7 +1625,7 @@ void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::RenderToScreen(Core::Scene& scene)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     RenderObjsBgMainCam(RenderPass::NORMAL,scene);
 }
 
@@ -1622,48 +1651,118 @@ void Renderer::Render(Core::Scene& scene, float fps)
     //(1) Geometry Pass
     {
 
-
         m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
 
         // Bind G-buffer framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         glDrawBuffers(3, drawBuffers);
 
         /*  Clear corresponding output color/depth buffers */
-        //GLfloat bgColor[4] = { 0.f, 0.f, 1.f, 1.0f }; 
         //glClearBufferfv(GL_COLOR, 0, bgColor);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        /*  Clear corresponding output color/depth buffers */
+        GLfloat bgColor[4] = { 0.f, 0.2f, 0.f, 1.0f }; 
+        glClearBufferfv(GL_COLOR, 0, bgColor);
+        glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
+        glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
+        glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
     }
 
+	//-------------------
+    //(2) forward rendering 
+    /*  Send object texture/transform data and render them */
+    RenderToScreen(scene);
+	//-------------------
 
-     // Unbind the G-buffer framebuffer to revert to the default framebuffer
-    glClearColor(1.f, 1.f, 1.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    //render objects...
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // (2) light pass
+    // (3) light pass
     {
         m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
+
         /*  Bind framebuffer to 0 to render to the screen */
         /*  Disable depth test since we only render flat textures */
         /*  Disable writing to depth buffer */
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        
+        glClearColor(0.f, 0.2f, 0.5f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
+
+        {//UpdateLightPosViewFrame(scene);
+            if (mainCam.moved)
+            {
+                const int NumLights = scene.GetNumLights();
+                for (int i = 0; i < NumLights; ++i) {
+                    scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+                    glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+                }
+            }
+        }
 
         //render
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+        glUniform1i(colorTexLoc, 0);
+
+        // Bind the position texture to texture unit 1
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
+        glUniform1i(posTexLoc, 1);
+
+        // Bind the normal texture to texture unit 2
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+        glUniform1i(nrmTexLoc, 2);
+
+        // Bind the depth texture to texture unit 3
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+        glUniform1i(depthTexLoc, 3);
+
         //m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].setInt("gColor", 0);
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
+        glUniform1i(lightPassDebugLoc, TO_INT(DebugType::MAIN));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        if (true)//gBuffersDisplay)
+        {
+            for (int i = TO_INT(DebugType::COLOR); i < TO_INT(DebugType::NUM_DEBUGTYPES); ++i)
+            {
+                glUniform1i(lightPassDebugLoc, i);
+                /*  Send corresponding quads to shader for rendering
+                    debugging minimaps.
+                    Appropriate flag (COLOR/POSITION/NORMAL/DEPTH) should
+                    also be sent to shader to tell it which buffer to
+                    display
+                */
+                switch (i)
+                {
+                case TO_INT(DebugType::COLOR):
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+                    break;
+                case TO_INT(DebugType::POSITION):
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
+                    break;
+                case TO_INT(DebugType::NORMAL):
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+                    break;
+                case TO_INT(DebugType::DEPTH):
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+                    break;
+                }
+                glBindVertexArray(quadVAO[i]);
+                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            }
+        }
 
         /*  Enable depth test again for rendering objects in the next frame */
         glEnable(GL_DEPTH_TEST);
