@@ -33,15 +33,7 @@ in vec2 uvCoord;
 out vec4 outColor;
 
 void main(void)
-{    
-    //vec3 position = texture(posTex, uvCoord).xyz;
-    //outColor = vec4(position, 1.0);
-    //vec3 nrm = texture(nrmTex, uvCoord).xyz;
-    //outColor = vec4(nrm, 1.0);
-    //vec3 col = texture(colorTex, uvCoord).xyz;
-    //outColor = vec4(pos, 1.0);
-    //return;
-
+{
     /*  Check lightPassDebug to see if it's 0 (MAIN), 1 (COLOR), 
         2 (POSITION), 3 (NORMAL) or 4 (DEPTH) and proceed accordingly.
         If it's MAIN then compute lighting using Phong equation.

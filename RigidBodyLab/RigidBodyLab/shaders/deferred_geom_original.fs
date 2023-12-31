@@ -25,8 +25,6 @@ void main(void)
     /*  Obtain this fragment's color, pos, depth and NORMALIZED normal */
     fragColor = texture(tex, uvCoord);
     fragPos = posVF;
-    //fragPos = vec3(1.f, 0.f, 0.f); 
     fragNrm = normalize(nrmVF);
-    //fragNrm = vec3(0.f, 1.f, 0.f); 
     fragDepth = gl_FragCoord.z;
 }
