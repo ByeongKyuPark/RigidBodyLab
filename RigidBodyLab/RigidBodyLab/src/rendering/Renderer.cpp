@@ -209,8 +209,8 @@ void Rendering::Renderer::SetUpGTextures()
 
     /*  Set up 16-bit floating-point, 4-component texture for color output */
      // Albedo (Color)
-    const int offset = 20;
-    glActiveTexture(GL_TEXTURE0+offset);
+    constexpr int OFFSET = 20;
+    glActiveTexture(GL_TEXTURE0+OFFSET);
     glGenTextures(1, &m_gColorTexID);
     glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
@@ -222,7 +222,7 @@ void Rendering::Renderer::SetUpGTextures()
     Using 32 bits instead of 16 bits coz position may vary more widely and require
     higher accuracy.
     */
-    glActiveTexture(GL_TEXTURE1 + offset);
+    glActiveTexture(GL_TEXTURE1 + OFFSET);
     glGenTextures(1, &m_gPosTexID);
     glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
@@ -231,7 +231,7 @@ void Rendering::Renderer::SetUpGTextures()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
     /*  Set up 16-bit floating-point, 3-component texture for normal output */
-    glActiveTexture(GL_TEXTURE2 + offset);
+    glActiveTexture(GL_TEXTURE2 + OFFSET);
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
@@ -240,7 +240,7 @@ void Rendering::Renderer::SetUpGTextures()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
     /*  Set up 32-bit floating-point texture for depth component output */
-    glActiveTexture(GL_TEXTURE3 + offset);
+    glActiveTexture(GL_TEXTURE3 + OFFSET);
     glGenTextures(1, &m_gDepthTexID);
     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
@@ -1010,6 +1010,15 @@ void Renderer::CleanUp()
     glDeleteTextures(1, &resourceManager.m_mirrorTexID);
     glDeleteTextures(1, &resourceManager.m_sphereTexID);
 
+    glDeleteVertexArrays(TO_INT(DebugType::NUM_DEBUGTYPES), quadVAO);
+    glDeleteBuffers(TO_INT(DebugType::NUM_DEBUGTYPES), quadVBO);
+
+    glDeleteTextures(1, &m_gColorTexID);
+    glDeleteTextures(1, &m_gPosTexID);
+    glDeleteTextures(1, &m_gNrmTexID);
+    glDeleteTextures(1, &m_gDepthTexID);
+
+    glDeleteFramebuffers(1, &m_gFrameBufferID);
     glDeleteFramebuffers(1, &resourceManager.m_mirrorFrameBufferID);
 
 }
@@ -1740,15 +1749,15 @@ void Renderer::Render(Core::Scene& scene, float fps)
                     glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
                     break;
                 case TO_INT(DebugType::POSITION):
-                    glActiveTexture(GL_TEXTURE0);
+                    glActiveTexture(GL_TEXTURE1);
                     glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
                     break;
                 case TO_INT(DebugType::NORMAL):
-                    glActiveTexture(GL_TEXTURE0);
+                    glActiveTexture(GL_TEXTURE2);
                     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
                     break;
                 case TO_INT(DebugType::DEPTH):
-                    glActiveTexture(GL_TEXTURE0);
+                    glActiveTexture(GL_TEXTURE3);
                     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
                     break;
                 }
