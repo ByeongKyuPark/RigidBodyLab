@@ -209,12 +209,11 @@ void Rendering::Renderer::SetUpGTextures()
 
     /*  Set up 16-bit floating-point, 4-component texture for color output */
      // Albedo (Color)
-    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_ALBEDO));
+    const int offset = 20;
+    glActiveTexture(GL_TEXTURE0+offset);
     glGenTextures(1, &m_gColorTexID);
     glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
-
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -223,33 +222,28 @@ void Rendering::Renderer::SetUpGTextures()
     Using 32 bits instead of 16 bits coz position may vary more widely and require
     higher accuracy.
     */
-    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_POSITION));
+    glActiveTexture(GL_TEXTURE1 + offset);
     glGenTextures(1, &m_gPosTexID);
     glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
-
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
     /*  Set up 16-bit floating-point, 3-component texture for normal output */
-    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_NORMAL));
+    glActiveTexture(GL_TEXTURE2 + offset);
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_RGBA, GL_FLOAT, nullptr);
-
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
     /*  Set up 32-bit floating-point texture for depth component output */
-    glActiveTexture(GL_TEXTURE0 + TO_INT(ActiveTexID::G_DEPTH));
+    glActiveTexture(GL_TEXTURE3 + offset);
     glGenTextures(1, &m_gDepthTexID);
     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
     /*  Generate offscreen framebuffer ID and store it in gFrameBufferID.
     For deferred shading, this framebuffer is bounded to store
@@ -1146,12 +1140,12 @@ void Renderer::InitRendering() {
     glfwGetFramebufferSize(m_window.get(), &width, &height);
     glViewport(0, 0, width, height);
 
-    glEnable(GL_DEPTH_TEST); // depth testing for 3D
-    glEnable(GL_CULL_FACE); // face culling
-    glCullFace(GL_BACK);    // cull back faces
-    glFrontFace(GL_CCW);    // front faces are ccw
-    glEnable(GL_BLEND);     // enable blending (for transparency)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_DEPTH_TEST); // depth testing for 3D
+    //glEnable(GL_CULL_FACE); // face culling
+    //glCullFace(GL_BACK);    // cull back faces
+    //glFrontFace(GL_CCW);    // front faces are ccw
+    //glEnable(GL_BLEND);     // enable blending (for transparency)
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void Rendering::Renderer::UpdateLightPosViewFrame(Core::Scene& scene)
@@ -1655,7 +1649,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
         // Bind G-buffer framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
 
         GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
@@ -1664,7 +1658,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         /*  Clear corresponding output color/depth buffers */
         //glClearBufferfv(GL_COLOR, 0, bgColor);
         /*  Clear corresponding output color/depth buffers */
-        GLfloat bgColor[4] = { 0.f, 0.2f, 0.f, 1.0f }; 
+        GLfloat bgColor[4] = { 0.f, 0.f, 0.f, 1.0f }; 
         glClearBufferfv(GL_COLOR, 0, bgColor);
         glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
         glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
@@ -1686,7 +1680,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         /*  Disable writing to depth buffer */
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
-        glClearColor(0.f, 0.2f, 0.5f, 1.f);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_DEPTH_TEST);
@@ -1702,24 +1696,23 @@ void Renderer::Render(Core::Scene& scene, float fps)
                 }
             }
         }
-
-        //render
+        // Bind the color texture to texture unit 0
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+        glBindTexture(GL_TEXTURE_2D, m_gColorTexID);        
         glUniform1i(colorTexLoc, 0);
 
         // Bind the position texture to texture unit 1
-        glActiveTexture(GL_TEXTURE0 + 1);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
         glUniform1i(posTexLoc, 1);
 
         // Bind the normal texture to texture unit 2
-        glActiveTexture(GL_TEXTURE0 + 2);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
         glUniform1i(nrmTexLoc, 2);
 
         // Bind the depth texture to texture unit 3
-        glActiveTexture(GL_TEXTURE0 + 3);
+        glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
         glUniform1i(depthTexLoc, 3);
 

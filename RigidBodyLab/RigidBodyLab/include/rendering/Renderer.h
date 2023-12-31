@@ -190,7 +190,6 @@ namespace Rendering {
 		GLint m_diffuseLoc[NUM_MAX_LIGHTS];
 		GLint m_specularLoc[NUM_MAX_LIGHTS];
 
-
 		static constexpr GLint lightPassQuadLoc = 0;
 		/*  For telling shader whether it should compute lighting or just draw
 			separate buffers
