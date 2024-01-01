@@ -8,7 +8,7 @@ const int NumMaxLights = 10;
 /*  Define inputs of fragment shader: pos, nrm and uv */
 in vec2 uvCoord;
 
-in vec3 lightDir[NumMaxLights]; //cam space
+//in vec3 lightDir[NumMaxLights]; //cam space
 in vec3 viewDir;      //cam space
 in vec3 normal;       //cam space (nrmVF)
 in vec3 position;        //cam space coord
@@ -33,11 +33,9 @@ layout (location = 3) out float fragDepth;
 void main(void)
 {
     /*  Obtain this fragment's color, pos, depth and NORMALIZED normal */
-    //fragColor = texture(colorTex, uvCoord);
     fragPos = position;
-    //fragNrm = normal;
     fragDepth = gl_FragCoord.z;
-    //-------------------
+
     if (!lightOn)
     {
         fragColor = vec4(texture(colorTex, uvCoord).rgb, 1.0);

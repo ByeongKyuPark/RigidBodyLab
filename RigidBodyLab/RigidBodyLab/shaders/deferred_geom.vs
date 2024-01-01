@@ -72,11 +72,4 @@ void main(void)
           }                                             
         }
     }
-//------------------------------------------------------------------------
-    /*	Compute gl_Position, uv, and nrm, pos in appropriate frames  */
-    //uvCoord = uv;
-    //vec4 posMV = modelViewMat * vec4(pos, 1.0);
-    //gl_Position = projMat * posMV;
-    //nrmVF = mat3(nrmMat) * nrm;
-    //posVF = posMV.xyz;
 }

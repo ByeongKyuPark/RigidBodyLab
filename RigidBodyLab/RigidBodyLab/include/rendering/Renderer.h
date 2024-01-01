@@ -255,7 +255,7 @@ namespace Rendering {
 		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendForwardProperties(const Scene& scene);
 		void SendDeferredLightProperties(const Scene& scene);
-		void SendDeferredGeomProperties(const Scene& scene);
+		//void SendDeferredGeomProperties(const Scene& scene);
 
 		
 		void SetUpSkyBoxUniformLocations();

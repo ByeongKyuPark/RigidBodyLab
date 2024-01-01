@@ -283,6 +283,9 @@ void Rendering::Renderer::SetUpLightPassQuads()
 }
 
 bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
+    if (m_shouldUpdateCubeMapForSphere) {
+        return true;
+    }
     constexpr float MIN_SPEED_SQRD = 0.001f;
     if (speedSqrd <= MIN_SPEED_SQRD) {
         return false;
@@ -326,18 +329,14 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
 //    glUniform1i(m_specularPowerLoc, scene.m_specularPower);
 //}
 
-void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
-    const int numLights = scene.GetNumLights();
-    glUniform1i(m_gNumLightsLoc, numLights);
-
-    for (int i = 0; i < numLights; ++i) {
-        //Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-        //Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
-
-        //glUniform4fv(m_diffuseLoc[i], 1, ValuePtr(diffuse));
-        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-    }
-}
+//void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
+//    const int numLights = scene.GetNumLights();
+//    glUniform1i(m_gNumLightsLoc, numLights);
+//
+//    for (int i = 0; i < numLights; ++i) {
+//        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+//    }
+//}
 
 void Rendering::Renderer::SendDeferredLightProperties(const Scene& scene)
 {
@@ -349,22 +348,17 @@ void Rendering::Renderer::SendDeferredLightProperties(const Scene& scene)
         surface and can be used directly as intensities in the lighting equation.
     */
     Vec4 ambient, diffuse, specular;
-    //just 1 light for now
-    ambient = scene.m_I[0] * scene.m_ambientAlbedo;
-    diffuse = scene.m_I[0] * scene.m_diffuseAlbedo;
-    specular = scene.m_I[0] * scene.m_specularAlbedo;
+    
+    ambient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
 
     /*  Send ambient, diffuse, specular, specularPower, and blinnPhongLighting(boolean) to shader. */
     glUniform4fv(m_lAmbientLoc, 1, &ambient[0]);
-    //glUniform4fv(m_diffuseLoc[0], 1, &diffuse[0]);
-    //glUniform4fv(m_specularLoc[0], 1, &specular[0]);
     glUniform1i(m_lSpecularPowerLoc, scene.m_specularPower);
 
     for (int i = 0; i < numLights; ++i) {
-        //Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-        //Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
+        diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
+        specular = scene.m_I[i] * scene.m_specularAlbedo;
 
-        //glUniform4fv(m_diffuseLoc[i], 1, ValuePtr(diffuse));
 		glUniform4fv(m_lDiffuseLoc[i], 1, &diffuse[i]);
 		glUniform4fv(m_lSpecularLoc[i], 1, &specular[i]);
         glUniform4fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
@@ -968,8 +962,8 @@ void Renderer::AttachScene(const Core::Scene& scene)
     m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
     SendDeferredLightProperties(scene);
 
-    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
-    SendDeferredGeomProperties(scene);
+    //m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+    //SendDeferredGeomProperties(scene);
 
     /*  Drawing using filled mode */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1765,7 +1759,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
     //(2) rendering objects 
     /*  Send object texture/transform data and render them */
     if (scene.m_sphere &&
-        ((m_shouldUpdateCubeMapForSphere || ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared()) == true)))
+        (ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared()) == true))
     {
         ComputeSphereCamMats(scene);
 
@@ -1808,30 +1802,30 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);
-
+        
         {//UpdateLightPosViewFrame(scene);
 				/*  ambient, diffuse, specular are now reflected components on the object
 					surface and can be used directly as intensities in the lighting equation.
 				*/
-            if (mainCam.moved)
-            {
-                const int NumLights = scene.GetNumLights();
-                glUniform1i(m_lNumLightsLoc, NumLights);
-                for (int i = 0; i < NumLights; ++i) {
-                    //light pos already updated in RenderToScreen()
-                    //scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
-                    glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-                    Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-                    Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
-                    glUniform4fv(m_lDiffuseLoc[i], 1, ValuePtr(diffuse));
-                    glUniform4fv(m_lSpecularLoc[i], 1, ValuePtr(specular));
-                }
+            //if (mainCam.moved)
+            //{
+            //    const int NumLights = scene.GetNumLights();
+            //    glUniform1i(m_lNumLightsLoc, NumLights);
+            //    for (int i = 0; i < NumLights; ++i) {
+            //        //light pos already updated in RenderToScreen()
+            //        //scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+            //        glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+            //        Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
+            //        Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
+            //        glUniform4fv(m_lDiffuseLoc[i], 1, ValuePtr(diffuse));
+            //        glUniform4fv(m_lSpecularLoc[i], 1, ValuePtr(specular));
+            //    }
 
-                Vec4 globalAmbient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
-                glUniform4fv(m_lAmbientLoc, 1, ValuePtr(globalAmbient));
+            //    Vec4 globalAmbient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
+            //    glUniform4fv(m_lAmbientLoc, 1, ValuePtr(globalAmbient));
 
-                glUniform1i(m_lSpecularPowerLoc, scene.m_specularPower);
-            }
+            //    glUniform1i(m_lSpecularPowerLoc, scene.m_specularPower);
+            //}
         }
         // Bind the color texture to texture unit 0
         glActiveTexture(GL_TEXTURE0);
