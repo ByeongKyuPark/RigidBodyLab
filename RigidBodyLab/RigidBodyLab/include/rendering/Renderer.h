@@ -81,8 +81,6 @@ namespace Rendering {
 		bool m_shouldUpdateCubeMapForSphere;
 
 		//deferred light
-		int m_lightPassDebug=0;
-		bool m_blinnPhongLighting = false;
 		//deferred geom
 
 		/******************************************************************************/
@@ -96,17 +94,7 @@ namespace Rendering {
 		std::unordered_map<int, Mat4> m_mainCamMVMat;
 		std::unordered_map<int, Mat4> m_mainCamNormalMVMat;
 
-		/*  Mirror camera */
-		Mat4 m_mirrorCamViewMat;
-		Mat4 m_mirrorCamProjMat;
-		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
-		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
 
-		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
-		Mat4 m_sphereCamProjMat;
-		std::unordered_map<int, Mat4> m_sphereCamViewMat;
-		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamMVMat;
-		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamNormalMVMat;
 
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
@@ -114,24 +102,15 @@ namespace Rendering {
 		/*  Locations of the variables in the shader. */
 		/*  Locations of transform matrices */
 		//GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
-		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
-		//GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
 
 		/*  Location of color textures */
 		//GLint m_textureLoc;                       /*  Normal object texture */
-		//GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
-		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
-		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
-		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
 
 		/*  Location of bump/normal textures */
-		//GLint m_normalTexLoc, m_bumpTexLoc;
-
 		/*  For indicating whether object has normal map, and parallax mapping status */
-		//GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
 
-		/* deferred shading */
+		/* (0) deferred shading */
 		GLuint m_gColorTexID;
 		GLuint m_gPosTexID;
 		GLuint m_gNrmTexID;
@@ -181,15 +160,14 @@ namespace Rendering {
 			}
 		};
 
-
-		/* (1) common Locs */
-		GLint m_numLightsLoc;
-		GLint m_lightOnLoc;
-		GLint m_ambientLoc;
-		GLint m_specularPowerLoc;
-		GLint m_lightPosLoc[NUM_MAX_LIGHTS];
-		GLint m_diffuseLoc[NUM_MAX_LIGHTS];
-		GLint m_specularLoc[NUM_MAX_LIGHTS];
+		/* (1) forward Locs */
+		//GLint m_numLightsLoc;
+		//GLint m_lightOnLoc;
+		//GLint m_ambientLoc;
+		//GLint m_specularPowerLoc;
+		//GLint m_lightPosLoc[NUM_MAX_LIGHTS];
+		//GLint m_diffuseLoc[NUM_MAX_LIGHTS];
+		//GLint m_specularLoc[NUM_MAX_LIGHTS];
 
 		/* (2) deferred geometry Locs */
 		GLuint m_gLightOnLoc;
@@ -203,6 +181,8 @@ namespace Rendering {
 		GLuint m_gColorTexLoc;
 		GLuint m_gNormalTexLoc;
 		GLuint m_gBumpTexLoc;
+		int m_gLightPassDebug = 0;
+		bool m_gBlinnPhongLighting = false;
 
 		/* (3) deferred light Locs */
 		GLuint m_lLightPassQuadLoc;
@@ -219,12 +199,38 @@ namespace Rendering {
 		GLuint m_lDiffuseLoc[NUM_MAX_LIGHTS];
 		GLuint m_lSpecularLoc[NUM_MAX_LIGHTS];
 
+		//(4) sphere mirror
+		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
+		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
+		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
+		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
+
+		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
+		Mat4 m_sphereCamProjMat;
+		std::unordered_map<int, Mat4> m_sphereCamViewMat;
+		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamMVMat;
+		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamNormalMVMat;
+
+		//(5) planar mirror
+		/*  Mirror camera */
+		Mat4 m_mirrorCamViewMat;
+		Mat4 m_mirrorCamProjMat;
+		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
+		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
+
+		//(6) skybox
+		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
+		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
+
 	private:
 		void InitImGui();
 		void InitRendering();
 
-		void UpdateLightPosViewFrame(Scene& scene);
-		void UpdateNumLights(int numLights)const;
+		void UpdateDeferredGeomLightPosViewFrame(Scene& scene);
+		//void UpdateSphericalMirrorLightPosViewFrame(Core::Scene& scene);
+		//void UpdatePlanarMirrorLightPosViewFrame(Core::Scene& scene);
+
+		void UpdateNumLights(int numLights);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
 
@@ -232,10 +238,10 @@ namespace Rendering {
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
 		void RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
-		//void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
-		//void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
-		//void RenderToSphereCubeMapTexture(Scene& scene);
-		//void RenderToMirrorTexture(Scene& scene);
+		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
+		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
+		void RenderToSphereCubeMapTexture(Scene& scene);
+		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
 		void RenderGui(Scene& scene, float fps);
 
@@ -254,7 +260,7 @@ namespace Rendering {
 		
 		void SetUpSkyBoxUniformLocations();
 		void SetUpForwardUniformLocations();
-		//void SetUpSphereUniformLocations();
+		void SetUpSphereUniformLocations();
 		void SetUpDeferredGeomUniformLocations();
 		void SetUpDeferredLightUniformLocations();
 

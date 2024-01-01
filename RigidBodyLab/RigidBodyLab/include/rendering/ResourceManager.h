@@ -102,7 +102,7 @@ namespace Rendering {
 		void SetTextureParameters(GLenum textureType);
 		void SetUpPlanarMirrorTexture();
 		void SetUpSkyBoxTexture();
-		void SetUpSphereTexture();
+		void SetUpSphereCubeMapTexture();
 
 		void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,
 			int size, int imgWidth,

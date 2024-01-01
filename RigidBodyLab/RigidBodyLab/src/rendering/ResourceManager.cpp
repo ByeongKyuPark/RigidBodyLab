@@ -311,7 +311,7 @@ Set up texture object for rendering sphere reflection/refraction.
 */
 /******************************************************************************/
 
-void Rendering::ResourceManager::SetUpSphereTexture()
+void Rendering::ResourceManager::SetUpSphereCubeMapTexture()
 {
     glGenTextures(1, &m_sphereTexID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_sphereTexID);
