@@ -22,7 +22,8 @@ namespace Rendering {
 		SPHERETEX_GENERATION = 0,
 		MIRRORTEX_GENERATION,
 		//FORWARD
-		DEFERRED_GEOM
+		NORMAL,
+		NUM_RENDERPASS
 		//DEFERRED_LIGHT
 	};
 
@@ -238,9 +239,9 @@ namespace Rendering {
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
 		
-		void RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
+		void RenderObjects(RenderPass renderPass, Core::Scene& scene, int faceIdx=-1);
+		//void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
+		//void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
 		
 		void RenderToSphereCubeMapTexture(Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
