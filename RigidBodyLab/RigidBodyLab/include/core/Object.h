@@ -30,14 +30,15 @@ namespace Core {
 		//'Rigidbody' for dynamic objects, 'Transform' for static objects
 		std::variant<std::unique_ptr<RigidBody>, Transform> m_physicsOrTransform; //owner
 		std::string m_name;
+		bool m_shouldRender;
 	public:
 		// Constructor for static objects (only Mat4 needed)
-		Object(const std::string& name,const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform, ObjectType _type)
-			: m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform), m_objType{_type} {}
+		Object(const std::string& name,const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, const Transform& transform, ObjectType _type, bool isVisible=true)
+			: m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(transform), m_objType{ _type }, m_shouldRender{isVisible} {}
 
 		// Constructor for dynamic objects
-		Object(const std::string& name, const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, ObjectType _type)
-			:m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)), m_objType{_type} {}
+		Object(const std::string& name, const Mesh* mesh, ImageID imageID, std::unique_ptr<Collider> collider, std::unique_ptr<RigidBody> rigidBody, ObjectType _type, bool isVisible=true)
+			:m_name{ name }, m_mesh(mesh), m_imageID(imageID), m_collider(std::move(collider)), m_physicsOrTransform(std::move(rigidBody)), m_objType{ _type }, m_shouldRender{isVisible} {}
 
 		void SetMesh(const Mesh* mesh) { m_mesh = mesh; }
 		void SetImageID(ImageID id) { m_imageID = id; }
@@ -56,6 +57,8 @@ namespace Core {
 		std::string GetName() const { return m_name; }
 		ImageID GetImageID() const { return m_imageID; }
 		ObjectType GetObjType() const { return m_objType; }
+		void SetVisibility(bool isVisible) { m_shouldRender = isVisible; }
+		bool IsVisible()const { return m_shouldRender; }
 
 		bool IsDynamic() const;
 		void Integrate(float deltaTime);

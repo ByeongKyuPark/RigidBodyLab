@@ -1391,8 +1391,9 @@ void Renderer::RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scen
     glViewport(0, 0, mainCam.width, mainCam.height);
 
     RenderSkybox(m_mainCamViewMat);
+
     m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
-    UpdateDeferredGeomLightPosViewFrame(scene);
+    //UpdateDeferredGeomLightPosViewFrame(scene);
     SendProjMat(m_mainCamProjMat, m_gProjMatLoc);
 
     ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -1401,6 +1402,9 @@ void Renderer::RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scen
     const size_t numObjs = scene.m_objects.size();
     for (int i{}; i < numObjs; ++i) {
         const auto& obj = *scene.m_objects[i];
+        if (obj.IsVisible() == false) {
+            continue;
+        }
         //if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
         //    continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         //}
@@ -1478,7 +1482,7 @@ void Rendering::Renderer::RenderObjsBgMirrorCam(RenderPass renderPass, Core::Sce
     //m_shaders[TO_INT(ProgType::FORWARD_PROG)].Use();
     m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
 
-    UpdateDeferredGeomLightPosViewFrame(scene);
+    //UpdateDeferredGeomLightPosViewFrame(scene);
     SendProjMat(m_mirrorCamProjMat, m_gProjMatLoc);
 
     ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -1487,7 +1491,7 @@ void Rendering::Renderer::RenderObjsBgMirrorCam(RenderPass renderPass, Core::Sce
     const size_t numObjs = scene.m_objects.size();
     for (int i{}; i < numObjs; ++i) {
         const auto& obj = *scene.m_objects[i];
-        if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
+        if (obj.IsVisible() == false || obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
         else
@@ -1506,7 +1510,7 @@ void Rendering::Renderer::RenderObjsBgMirrorCam(RenderPass renderPass, Core::Sce
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        //glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
@@ -1571,7 +1575,7 @@ void Rendering::Renderer::RenderObjsBgSphereCam(int faceIdx, RenderPass renderPa
     const size_t numObjs = scene.m_objects.size();
     for (int i{}; i < numObjs; ++i) {
         const auto& obj = *scene.m_objects[i];
-        if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
+        if (obj.IsVisible() == false || obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
         else
@@ -1590,7 +1594,7 @@ void Rendering::Renderer::RenderObjsBgSphereCam(int faceIdx, RenderPass renderPa
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        //glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {

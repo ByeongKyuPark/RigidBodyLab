@@ -15,8 +15,8 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.8,0.8,0.8,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 1.f, 1.f, 1.f, 1.f }}, 
-    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 2 },
+    : m_ambientLightIntensity{0.8,0.8,0.8,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 0.8f, 0.8f, 0.8f, 1.f }}, 
+    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 1 },
 	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
 	m_specularPower{ 10 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
@@ -112,7 +112,7 @@ const Vec4& Core::Scene::GetLightColor(int idx) const {
  *   For a box collider - ColliderConfig colliderConfig = Vec3{1.f, 1.f, 1.f};
  *   For a sphere collider - ColliderConfig colliderConfig = 1.0f;
  */
-Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation, ObjectType objType, bool isCollisionEnabled )
+Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation, ObjectType objType, bool isCollisionEnabled , bool isVisible)
 {
     // Fetch the mesh and texture
     auto mesh = ResourceManager::GetInstance().GetMesh(meshID);
@@ -134,7 +134,8 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             textureID,
             std::move(collider),
             std::make_unique<RigidBody>(Transform{ position, orientation }, mass, colliderType), 
-            objType
+            objType, 
+            isVisible
             ));
     }
     else {
@@ -144,7 +145,8 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             textureID,
             std::move(collider),
             Transform{ position, orientation }, 
-            objType
+            objType,
+            isVisible
         ));
     }
     
@@ -176,7 +178,7 @@ void Core::Scene::SetUpScene() {
     using Core::Transform;
 
     constexpr float BASE_POS_Y = 0.f;
-    constexpr float BASE_SCL_Y = 2.f;//7.5
+    constexpr float BASE_SCL_Y = 5.f;//7.5
     constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
@@ -289,7 +291,8 @@ void Core::Scene::SetUpProjectiles() {
             0.5f, // mass
             Quaternion{},
             Core::ObjectType::REGULAR,
-            false // turn off collision
+            false, // turn off collision
+            false // not visible by default
         );
         m_projectiles.emplace_back(projectile);
     }

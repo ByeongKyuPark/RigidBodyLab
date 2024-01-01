@@ -237,9 +237,11 @@ namespace Rendering {
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
+		
 		void RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
 		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
 		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
+		
 		void RenderToSphereCubeMapTexture(Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
