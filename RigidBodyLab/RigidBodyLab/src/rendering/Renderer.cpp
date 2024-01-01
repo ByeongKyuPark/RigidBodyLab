@@ -1405,6 +1405,8 @@ void Renderer::RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scen
     /*  Send object texture and render them */
     const size_t numObjs = scene.m_objects.size();
     for (int i{}; i < numObjs; ++i) {
+        if (i == 2)
+            int l{};
         const auto& obj = *scene.m_objects[i];
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
@@ -1425,7 +1427,7 @@ void Renderer::RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scen
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        //glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
@@ -1755,7 +1757,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         /*  Clear corresponding output color/depth buffers */
         //glClearBufferfv(GL_COLOR, 0, bgColor);
         /*  Clear corresponding output color/depth buffers */
-        GLfloat bgColor[4] = { 0.f, 0.2f, 0.2f, 1.0f }; 
+        GLfloat bgColor[4] = { 1.f, 1.2f, 1.f, 1.0f }; 
         glClearBufferfv(GL_COLOR, 0, bgColor);//color
         glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
         glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
