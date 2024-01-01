@@ -17,11 +17,10 @@ namespace Rendering
     /*  SKYBOX_PROG : Render the background */
     /*  SPHERE_PROG : Render the relective/refractive sphere */
     enum class ProgType {
-        MAIN_PROG = 0,
+        //FORWARD_PROG = 0,
         SKYBOX_PROG,
         SPHERE_PROG,
         //deferred
-        DEFERRED_FORWARD,
         DEFERRED_GEOMPASS, 
         DEFERRED_LIGHTPASS,
         NUM_PROGTYPES

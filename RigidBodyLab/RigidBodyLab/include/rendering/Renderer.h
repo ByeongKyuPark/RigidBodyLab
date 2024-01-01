@@ -21,7 +21,9 @@ namespace Rendering {
 	enum class RenderPass {
 		SPHERETEX_GENERATION = 0,
 		MIRRORTEX_GENERATION,
-		NORMAL
+		FORWARD,
+		DEFERRED_GEOM,
+		DEFERRED_LIGHT
 	};
 
 	/*  For toggling the reflection/refraction of the sphere */
@@ -77,6 +79,11 @@ namespace Rendering {
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
 		bool m_shouldUpdateCubeMapForSphere;
+
+		//deferred light
+		int m_lightPassDebug=0;
+		bool m_blinnPhongLighting = false;
+		//deferred geom
 
 		/******************************************************************************/
 		/*  Graphics-related variables                                                */
@@ -174,14 +181,8 @@ namespace Rendering {
 			}
 		};
 
-		GLint m_lightPassQuadLoc;
 
-		GLint m_gMVPMatLoc;
-		GLint m_gMVMMatLoc;
-		GLint m_gNMVMatLoc;
-		GLint m_gTexCoordsLoc;
-
-		/*  Location of light data */
+		/* (1) common Locs */
 		GLint m_numLightsLoc;
 		GLint m_lightOnLoc;
 		GLint m_ambientLoc;
@@ -190,22 +191,30 @@ namespace Rendering {
 		GLint m_diffuseLoc[NUM_MAX_LIGHTS];
 		GLint m_specularLoc[NUM_MAX_LIGHTS];
 
-		static constexpr GLint lightPassQuadLoc = 0;
-		/*  For telling shader whether it should compute lighting or just draw
-			separate buffers
-		*/
-		static constexpr GLint lightPassDebugLoc = 1;
-		/*  For input color/position/normal/depth buffers rendered from geometry pass */
-		static constexpr GLint colorTexLoc = 2;
-		static constexpr GLint posTexLoc = 3;
-		static constexpr GLint nrmTexLoc = 4;
-		static constexpr GLint depthTexLoc = 5;
-		static constexpr GLint numLightsLoc = 8;
-		static constexpr GLint ambientLoc = 20;
-		static constexpr GLint diffuseLoc = 21;
-		static constexpr GLint specularLoc = 22;
-		static constexpr GLint specularPowerLoc = 23;
+		/* (2) deferred geometry Locs */
+		GLuint m_gLightOnLoc;
+		GLuint m_gMVMatLoc;
+		GLuint m_gNMVMatLoc;
+		GLuint m_gProjMatLoc;
+		GLuint m_gNumLightsLoc;
+		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
+		GLuint m_gNormalMappingOnLoc;
+		GLuint m_gTextureLoc;
 
+		/* (3) deferred light Locs */
+		GLuint m_lLightPassQuadLoc;
+		GLuint m_lLightPassDebugLoc;
+		GLuint m_lColorTexLoc;
+		GLuint m_lPosTexLoc;
+		GLuint m_lNrmTexLoc;
+		GLuint m_lDepthTexLoc;
+		GLuint m_lNumLightsLoc;
+		GLuint m_lAmbientLoc;
+		GLuint m_lSpecularPowerLoc;
+		GLuint m_lBlinnPhongLightingLoc;  // 1 for active, 0 for inactive
+		GLuint m_lLightPosVFLoc[NUM_MAX_LIGHTS];
+		GLuint m_lDiffuseLoc[NUM_MAX_LIGHTS];
+		GLuint m_lSpecularLoc[NUM_MAX_LIGHTS];
 
 	private:
 		void InitImGui();
@@ -233,12 +242,19 @@ namespace Rendering {
 		void ComputeMainCamMats(const Scene& scene);
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
+		
 		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
-		void SendLightProperties(const Scene& scene);
+		void SendForwardProperties(const Scene& scene);
 		void SendDeferredLightProperties(const Scene& scene);
+		void SendDeferredGeomProperties(const Scene& scene);
+
+		
 		void SetUpSkyBoxUniformLocations();
-		void SetUpMainUniformLocations();
+		void SetUpForwardUniformLocations();
 		void SetUpSphereUniformLocations();
+		void SetUpDeferredGeomUniformLocations();
+		void SetUpDeferredLightUniformLocations();
+
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
 		void SetUpGTextures();

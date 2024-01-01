@@ -33,10 +33,10 @@ void Application::Run() {
 
         accumulator += m_deltaTime;
 
-        while (accumulator >= FIXED_DT) {
-            m_scene.Update(FIXED_DT);
-            accumulator -= FIXED_DT;
-        }
+        //while (accumulator >= FIXED_DT) {
+        //    m_scene.Update(FIXED_DT);
+        //    accumulator -= FIXED_DT;
+        //}
 
         renderer.Render(m_scene, GetFPS());
     }

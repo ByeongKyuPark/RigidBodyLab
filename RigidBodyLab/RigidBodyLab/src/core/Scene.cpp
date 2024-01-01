@@ -22,7 +22,7 @@ Core::Scene::Scene()
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
-    SetUpProjectiles();
+    //SetUpProjectiles();
 }
 
 void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
@@ -183,25 +183,29 @@ void Core::Scene::SetUpScene() {
     ResourceManager& resourceManager = ResourceManager::GetInstance();
 
     //default objects for the demo scene
-    
-    //(1) PLANE
+
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
-    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::MAPPABLE_PLANE);
+    Vec3 baseSize = Vec3(5.f, 5.f, 5.f);
+    CreateObject("plane", MeshID::SPHERE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{}, ObjectType::REGULAR);
 
-    //(2) VASE
-    constexpr float VASE_SCL = 3.f;
-    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
+    ////(1) PLANE
+    //Vec3 basePos{ 0, BASE_POS_Y, 0 };
+    //Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
+    //CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::MAPPABLE_PLANE);
 
-    //(3) MIRROR
-    Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
-    Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
-    std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
-    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
+    ////(2) VASE
+    //constexpr float VASE_SCL = 3.f;
+    //CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
 
-    //(4) SPHERE
-    constexpr float SPHERE_RAD = 3.5f;
-    m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
+    ////(3) MIRROR
+    //Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
+    //Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
+    //std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
+    //m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
+
+    ////(4) SPHERE
+    //constexpr float SPHERE_RAD = 3.5f;
+    //m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 
     //(5) light
     SetLightPosition({ 10,10,5 });

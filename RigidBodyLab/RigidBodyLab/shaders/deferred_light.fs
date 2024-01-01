@@ -6,27 +6,27 @@
 /*  This is for the shader to know whether to compute lighting, or just display
     color/position/normal/depth texture.
 */
-layout (location = 1) uniform int lightPassDebug;   
+uniform int lightPassDebug;   
 
 /*  The color/pos/nrm/depth textures to be sampled for lighting computation */
-layout (location = 2) uniform sampler2D colorTex;
-layout (location = 3) uniform sampler2D posTex;
-layout (location = 4) uniform sampler2D nrmTex;
-layout (location = 5) uniform sampler2D depthTex;
+uniform sampler2D colorTex;
+uniform sampler2D posTex;
+uniform sampler2D nrmTex;
+uniform sampler2D depthTex;
 
 /*  numLights and lightPosVF */
 
 #define MAX_LIGHTS 10
 // Uniforms for number of lights and their positions in the view frame
-layout (location = 8) uniform int numLights;
-layout (location = 9) uniform vec3 lightPosVF[MAX_LIGHTS];
+uniform int numLights;
+uniform vec3 lightPosVF[MAX_LIGHTS];
 
 /*  Light intensities and properties */
-layout (location = 20) uniform vec4 ambient;
-layout (location = 21) uniform vec4 diffuse;
-layout (location = 22) uniform vec4 specular;
-layout (location = 23) uniform int specularPower;
-layout (location = 24) uniform int blinnPhongLighting;  // 1 for active, 0 for inactive
+uniform vec4 ambient;
+uniform vec4 diffuse[MAX_LIGHTS];
+uniform vec4 specular[MAX_LIGHTS];
+uniform int specularPower;
+uniform int blinnPhongLighting;  // 1 for active, 0 for inactive
 
 in vec2 uvCoord;
 
@@ -68,15 +68,15 @@ void main(void)
             vec3 L = normalize(lightPosVF[i] - fragPos);
 
             // diffuse            
-            intensity += diffuse * max(dot(Nrm, L), 0.0);
+            intensity += diffuse[0] * max(dot(Nrm, L), 0.0); //temp
             // specular
             if(blinnPhongLighting==1){//active
                 vec3 H = normalize(L + View);  
-                intensity += specular * pow(max(dot(Nrm, H), 0.0), specularPower);
+                intensity += specular[0] * pow(max(dot(Nrm, H), 0.0), specularPower);//temp
             }
             else{
                 vec3 Ref = reflect(-L, Nrm);
-                intensity += specular * pow(max(dot(Ref, View), 0.0), specularPower);
+                intensity += specular[0] * pow(max(dot(Ref, View), 0.0), specularPower);//temp
             }
         }
         outColor *= intensity;
