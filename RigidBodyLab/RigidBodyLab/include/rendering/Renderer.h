@@ -113,23 +113,23 @@ namespace Rendering {
 
 		/*  Locations of the variables in the shader. */
 		/*  Locations of transform matrices */
-		GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
+		//GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
 		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
-		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
+		//GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
 
 		/*  Location of color textures */
-		GLint m_textureLoc;                       /*  Normal object texture */
-		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
+		//GLint m_textureLoc;                       /*  Normal object texture */
+		//GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
 		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
 		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
 		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
 
 		/*  Location of bump/normal textures */
-		GLint m_normalTexLoc, m_bumpTexLoc;
+		//GLint m_normalTexLoc, m_bumpTexLoc;
 
 		/*  For indicating whether object has normal map, and parallax mapping status */
-		GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
+		//GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
 
 		/* deferred shading */
 		GLuint m_gColorTexID;
@@ -199,7 +199,10 @@ namespace Rendering {
 		GLuint m_gNumLightsLoc;
 		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
 		GLuint m_gNormalMappingOnLoc;
-		GLuint m_gTextureLoc;
+		GLuint m_gParallaxMappingOnLoc;
+		GLuint m_gColorTexLoc;
+		GLuint m_gNormalTexLoc;
+		GLuint m_gBumpTexLoc;
 
 		/* (3) deferred light Locs */
 		GLuint m_lLightPassQuadLoc;
@@ -228,11 +231,11 @@ namespace Rendering {
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
-		void RenderObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
-		void RenderToSphereCubeMapTexture(Scene& scene);
-		void RenderToMirrorTexture(Scene& scene);
+		void RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
+		//void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
+		//void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
+		//void RenderToSphereCubeMapTexture(Scene& scene);
+		//void RenderToMirrorTexture(Scene& scene);
 		void RenderToScreen(Scene& scene);
 		void RenderGui(Scene& scene, float fps);
 
@@ -251,7 +254,7 @@ namespace Rendering {
 		
 		void SetUpSkyBoxUniformLocations();
 		void SetUpForwardUniformLocations();
-		void SetUpSphereUniformLocations();
+		//void SetUpSphereUniformLocations();
 		void SetUpDeferredGeomUniformLocations();
 		void SetUpDeferredLightUniformLocations();
 

@@ -52,7 +52,6 @@ void main(void)
     if (lightPassDebug == 0)//MAIN
     {
         outColor = texture(colorTex, uvCoord);
-
         if (fragDepth >= 0.999f) { //background
             return;
         }
