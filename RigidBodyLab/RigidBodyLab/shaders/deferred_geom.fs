@@ -33,9 +33,9 @@ layout (location = 3) out float fragDepth;
 void main(void)
 {
     /*  Obtain this fragment's color, pos, depth and NORMALIZED normal */
-    fragColor = texture(colorTex, uvCoord);
+    //fragColor = texture(colorTex, uvCoord);
     fragPos = position;
-    fragNrm = normal;
+    //fragNrm = normal;
     fragDepth = gl_FragCoord.z;
     //-------------------
     if (!lightOn)

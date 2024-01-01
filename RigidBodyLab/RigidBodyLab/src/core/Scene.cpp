@@ -15,9 +15,9 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.6,0.6,0.6,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 0.8f, 0.8f, 0.8f, 1.f }}, 
-    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 1 },
-	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
+    : m_ambientLightIntensity{0.8,0.8,0.8,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 1.f, 1.f, 1.f, 1.f }}, 
+    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 2 },
+	m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
 	m_specularPower{ 10 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {

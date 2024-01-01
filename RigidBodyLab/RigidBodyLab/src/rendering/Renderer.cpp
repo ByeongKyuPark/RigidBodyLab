@@ -288,7 +288,7 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
         return false;
     }
 
-    constexpr int UPDATE_INTERVAL = 20;
+    constexpr int UPDATE_INTERVAL = 5;
     m_sphereMirrorCubeMapFrameCounter++;
     if (m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
         m_sphereMirrorCubeMapFrameCounter = 0;
@@ -1205,6 +1205,7 @@ void Renderer::InitRendering() {
     //glCullFace(GL_BACK);    // cull back faces
     //glFrontFace(GL_CCW);    // front faces are ccw
     //glEnable(GL_BLEND);     // enable blending (for transparency)
+    //glDisable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 //void Rendering::Renderer::UpdatePlanarMirrorLightPosViewFrame(Core::Scene& scene)
@@ -1405,13 +1406,11 @@ void Renderer::RenderDeferredGeomObjsBgMainCam(RenderPass renderPass, Core::Scen
     /*  Send object texture and render them */
     const size_t numObjs = scene.m_objects.size();
     for (int i{}; i < numObjs; ++i) {
-        if (i == 2)
-            int l{};
         const auto& obj = *scene.m_objects[i];
-        if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
-            continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
-        }
-        else
+        //if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED) {//spherical mirror
+        //    continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
+        //}
+        //else
         {
             if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
             {
@@ -1748,8 +1747,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
         GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
         glDrawBuffers(3, drawBuffers);
 
@@ -1793,7 +1790,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
     /*  Render the scene, except the sphere to the screen */
     RenderToScreen(scene);
-
     /*  This is done separately, as it uses a different shader program for reflection/refraction */
     RenderSphere(scene);
     //-------------------
@@ -1807,8 +1803,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
         /*  Disable writing to depth buffer */
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
-        //glClearColor(0.f, 0.f, 0.f, 1.f);
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.f, 0.f, 0.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glDisable(GL_DEPTH_TEST);
         glDepthMask(GL_FALSE);

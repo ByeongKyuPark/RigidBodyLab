@@ -1,7 +1,7 @@
 #version 330 core
 
 /*  This is required for GLSL below 4.3 to explicitly define uniform variable locations */
-#extension GL_ARB_explicit_uniform_location : require
+//#extension GL_ARB_explicit_uniform_location : require
 
 /*  This is for the shader to know whether to compute lighting, or just display
     color/position/normal/depth texture.
@@ -67,15 +67,15 @@ void main(void)
             vec3 L = normalize(lightPosVF[i] - fragPos);
 
             // diffuse            
-            intensity += diffuse[0] * max(dot(Nrm, L), 0.0); //temp
+            intensity += diffuse[i] * max(dot(Nrm, L), 0.0); //temp
             // specular
             if(blinnPhongLighting==1){//active
                 vec3 H = normalize(L + View);  
-                intensity += specular[0] * pow(max(dot(Nrm, H), 0.0), specularPower);//temp
+                intensity += specular[i] * pow(max(dot(Nrm, H), 0.0), specularPower);//temp
             }
             else{
                 vec3 Ref = reflect(-L, Nrm);
-                intensity += specular[0] * pow(max(dot(Ref, View), 0.0), specularPower);//temp
+                intensity += specular[i] * pow(max(dot(Ref, View), 0.0), specularPower);//temp
             }
         }
         outColor *= intensity;
@@ -95,7 +95,6 @@ void main(void)
     }
     else if (lightPassDebug == 4) //DEPTH
     {
-        float normalizedDepth = fragDepth;
-        outColor = vec4(normalizedDepth, normalizedDepth, normalizedDepth, 1.0);
+        outColor = vec4(fragDepth, fragDepth, fragDepth, 1.0);
     }
 }
