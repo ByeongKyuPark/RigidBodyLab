@@ -54,7 +54,7 @@ void main(void)
     }                                                              
     else{
       if (parallaxMappingOn){ //both normal & parallax mapping are on
-        float bumpHeight = texture(bumpTex, uvCoord).r * 0.21f - 0.005f;
+        float bumpHeight = texture(bumpTex, uvCoord).r * 0.15f - 0.005f;
         vec2 uvCoordAdjusted = uvCoord + bumpHeight * (V.xy/V.z);
         fragColor = vec4(texture(colorTex, uvCoordAdjusted).rgb, 1.f);                                                                                        
         fragNrm = normalize(texture(normalTex, uvCoordAdjusted).xyz * 2.f - 1.f);

@@ -22,7 +22,7 @@ Core::Scene::Scene()
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
-    //SetUpProjectiles();
+    SetUpProjectiles();
 }
 
 void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
