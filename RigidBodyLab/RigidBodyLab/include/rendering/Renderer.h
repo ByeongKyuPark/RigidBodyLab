@@ -21,9 +21,9 @@ namespace Rendering {
 	enum class RenderPass {
 		SPHERETEX_GENERATION = 0,
 		MIRRORTEX_GENERATION,
-		FORWARD,
-		DEFERRED_GEOM,
-		DEFERRED_LIGHT
+		//FORWARD
+		DEFERRED_GEOM
+		//DEFERRED_LIGHT
 	};
 
 	/*  For toggling the reflection/refraction of the sphere */

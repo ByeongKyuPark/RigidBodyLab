@@ -1583,7 +1583,7 @@ void Rendering::Renderer::RenderObjsBgSphereCam(int faceIdx, RenderPass renderPa
         {
             if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
             {
-                continue;           /*  Not drawing objects behind mirror & mirror itself */
+                //continue;           /*  Not drawing objects behind mirror & mirror itself */
             }
             else
             {
@@ -1785,9 +1785,9 @@ void Renderer::Render(Core::Scene& scene, float fps)
     /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
         whenever the mirror is visible and camera is moving
     */
-    //if (m_mirrorVisible && (mainCam.moved || mirrorCam.moved)) {
-    //    RenderToMirrorTexture(scene);
-    //}
+    if (m_mirrorVisible && (mainCam.moved || mirrorCam.moved)) {
+        RenderToMirrorTexture(scene);
+    }
 
     /*  Render the scene, except the sphere to the screen */
     RenderToScreen(scene);

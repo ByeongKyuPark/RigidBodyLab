@@ -33,14 +33,16 @@ layout (location = 3) out float fragDepth;
 void main(void)
 {
     /*  Obtain this fragment's color, pos, depth and NORMALIZED normal */
-    //fragColor = texture(tex, uvCoord);
+    fragColor = texture(colorTex, uvCoord);
     fragPos = position;
-    //fragNrm = normal;
+    fragNrm = normal;
     fragDepth = gl_FragCoord.z;
     //-------------------
     if (!lightOn)
     {
         fragColor = vec4(texture(colorTex, uvCoord).rgb, 1.0);
+        fragNrm = normal;
+        return;
     }
 
     vec3 V = normalize(viewDir); //view in TBN Space                                                                                                                          
@@ -50,7 +52,7 @@ void main(void)
     }                                                                
                                                                                          
     if (!normalMappingOn){ //normal mapping is off
-        fragNrm = normal; //interpolated normal from the VS shader                                
+        fragNrm = normal; //interpolated normal from the VS shader       
     }                                                              
     else{
       if (parallaxMappingOn){ //both normal & parallax mapping are on
