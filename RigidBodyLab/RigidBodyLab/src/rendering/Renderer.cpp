@@ -224,6 +224,15 @@ void Rendering::Renderer::SetUpGTextures()
     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
 
+    // Set up 16-bit floating-point, 3-component texture for tangent output
+    glActiveTexture(GL_TEXTURE4 + OFFSET);
+    glGenTextures(1, &m_gTanTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
     /*  Generate offscreen framebuffer ID and store it in gFrameBufferID.
     For deferred shading, this framebuffer is bounded to store
     the outputs.
@@ -239,6 +248,7 @@ void Rendering::Renderer::SetUpGTextures()
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_gColorTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_gPosTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, m_gNrmTexID, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, m_gTanTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_gDepthTexID, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "Framebuffer not complete!" << std::endl;
@@ -1158,7 +1168,8 @@ void Rendering::Renderer::SetUpDeferredLightUniformLocations() {
     m_lNumLightsLoc = glGetUniformLocation(prog, "numLights");
 	m_lPosTexLoc = glGetUniformLocation(prog, "posTex");
 	m_lNrmTexLoc = glGetUniformLocation(prog, "nrmTex");
-	m_lDepthTexLoc = glGetUniformLocation(prog, "depthTex");
+    m_lTanTexLoc = glGetUniformLocation(prog, "tanTex");
+    m_lDepthTexLoc = glGetUniformLocation(prog, "depthTex");
     m_lAmbientLoc = glGetUniformLocation(prog, "ambient");
     m_lSpecularPowerLoc= glGetUniformLocation(prog, "specularPower");
     m_lBlinnPhongLightingLoc = glGetUniformLocation(prog, "blinnPhongLighting");
@@ -1769,8 +1780,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        glDrawBuffers(3, drawBuffers);
+        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3};
+        glDrawBuffers(4, drawBuffers);
 
 
         /*  Clear corresponding output color/depth buffers */
@@ -1780,6 +1791,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glClearBufferfv(GL_COLOR, 0, bgColor);//color
         glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
         glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
+        glClearBufferfv(GL_COLOR, 3, glm::value_ptr(glm::vec4(0.0f)));//tangent
         glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
     }
 
@@ -1869,11 +1881,16 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
         glUniform1i(m_lNrmTexLoc, 2);
-
-         //Bind the depth texture to texture unit 3
+        
+        // Bind the normal texture to texture unit 3
         glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
+        glUniform1i(m_lTanTexLoc, 3);
+
+         //Bind the depth texture to texture unit 4
+        glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-        glUniform1i(m_lDepthTexLoc, 3);
+        glUniform1i(m_lDepthTexLoc, 4);
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));

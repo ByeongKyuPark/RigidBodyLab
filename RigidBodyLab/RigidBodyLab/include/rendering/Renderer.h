@@ -116,6 +116,7 @@ namespace Rendering {
 		GLuint m_gPosTexID;
 		GLuint m_gNrmTexID;
 		GLuint m_gDepthTexID;
+		GLuint m_gTanTexID;
 
 		GLuint m_gFrameBufferID;
 
@@ -191,6 +192,7 @@ namespace Rendering {
 		GLuint m_lColorTexLoc;
 		GLuint m_lPosTexLoc;
 		GLuint m_lNrmTexLoc;
+		GLuint m_lTanTexLoc;
 		GLuint m_lDepthTexLoc;
 		GLuint m_lNumLightsLoc;
 		GLuint m_lAmbientLoc;
