@@ -12,10 +12,15 @@ uniform sampler2D depthTex;
 // Light properties
 #define MAX_LIGHTS 10
 uniform vec3 lightPosVF[MAX_LIGHTS];
-uniform vec4 lightColor[MAX_LIGHTS];
+uniform vec4 ambient;
+uniform vec4 diffuse[MAX_LIGHTS];
+uniform vec4 specular[MAX_LIGHTS];
+uniform int numLights;
+uniform int specularPower;  
+uniform int blinnPhongLighting;  // 1 for active, 0 for inactive
 
 // Camera view position
-uniform vec3 viewPos;
+//uniform vec3 viewPos;
 
 in vec2 uvCoord;
 out vec4 fragColor;
@@ -42,38 +47,40 @@ void main(void) {
             // Add other debug modes if necessary
         }
     } else {
+
+        fragColor = texture(colorTex, uvCoord);
+
         if (fragDepth >= 0.999f) { //background
-            fragColor = texture(colorTex, uvCoord);
             return;
         }
 
-        vec3 fragPos = texture(posTex, uvCoord).xyz;
-        vec3 normal = normalize(texture(nrmTex, uvCoord).xyz);
-        vec3 tangent = normalize(texture(tanTex, uvCoord).xyz);
-        vec3 bitangent = cross(normal, tangent);
-        mat3 TBN = mat3(tangent, bitangent, normal);
+        vec3 fragPos = texture(posTex, uvCoord).xyz; //cam space
+        vec3 normal = normalize(texture(nrmTex, uvCoord).xyz); //cam space
+        vec3 tangent = normalize(texture(tanTex, uvCoord).xyz); //cam space
+        vec3 bitangent = cross(normal, tangent);            //cam space
+        //mat3 TBN = mat3(tangent, bitangent, normal);
 
-        vec3 viewDir = normalize(viewPos - fragPos);
-        vec3 viewDirTBN = TBN * viewDir;
-
-        vec3 lighting = vec3(0.0);
-        for (int i = 0; i < MAX_LIGHTS; ++i) {
+        vec3 viewDir = normalize(-fragPos); //cam space
+        
+        vec4 intensity = ambient;
+        
+        //all computation in VIEW SPACE
+        for (int i = 0; i < numLights; ++i) {
             vec3 lightDir = normalize(lightPosVF[i] - fragPos);
-            vec3 lightDirTBN = TBN * lightDir;
 
-            // Phong or Blinn-Phong lighting model calculations
-            float diff = max(dot(normal, lightDirTBN), 0.0);
-            vec3 reflectDir = reflect(-lightDirTBN, normal);
-            float spec = pow(max(dot(viewDirTBN, reflectDir), 0.0), 16.0);
+            //diffuse
+            intensity += diffuse[i]* max(dot(normal, lightDir), 0.0);
 
-            vec3 ambient = 0.8 * lightColor[i].rgb;
-            vec3 diffuse = diff * lightColor[i].rgb;
-            vec3 specular = spec * vec3(1.0);
-
-            lighting += ambient + diffuse + specular;
+            //specular
+            if(blinnPhongLighting==1){//blinn phong
+                vec3 H = normalize(lightDir+viewDir);
+                intensity += specular[i]* pow(max(dot(H, normal), 0.0), specularPower);
+            }
+            else{//normal phong
+                vec3 reflectDir = reflect(-lightDir, normal);
+                intensity += specular[i]* pow(max(dot(viewDir, reflectDir), 0.0), specularPower);
+            }
+            fragColor *= intensity;
         }
-
-        vec3 albedo = texture(colorTex, uvCoord).rgb;
-        fragColor = vec4(albedo * lighting, 1.0);
     }
 }

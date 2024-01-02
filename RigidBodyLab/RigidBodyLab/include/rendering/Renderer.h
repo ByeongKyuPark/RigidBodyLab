@@ -201,6 +201,7 @@ namespace Rendering {
 		GLuint m_lLightPosVFLoc[NUM_MAX_LIGHTS];
 		GLuint m_lDiffuseLoc[NUM_MAX_LIGHTS];
 		GLuint m_lSpecularLoc[NUM_MAX_LIGHTS];
+		GLuint m_lLightcolorLoc[NUM_MAX_LIGHTS];
 
 		//(4) sphere mirror
 		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
