@@ -24,6 +24,17 @@ uniform int normalMappingObjType; // Object type for normal mapping
 in vec2 uvCoord;
 out vec4 fragColor;
 
+//When objects are rendered using a perspective projection, objects farther from the camera are scaled down more dramatically than objects close to the camera. 
+//however, this perspective transformation results in a non-linear distribution of depth values. The depth values are more densely packed near the camera (near plane)
+//this means that for two objects that are equally spaced in the 3D world, the difference in their depth values will be smaller if they are far from the camera compared to if they are close.
+//since most of the depth values are concentrated near the near plane, most fragments will have depth values very close to 1.0.
+//therefore, this function maps the depth values such that they are more evenly distributed between the near and far planes.
+float linearizeDepth(float depth) {
+    float near = 0.02f; // Near plane distance
+    float far = 1.f; // Far plane distance
+    return near * far / (far - depth * (far - near));
+}
+
 void main(void) {
     float fragDepth = texture(depthTex, uvCoord).r;
     if (lightPassDebug != 0) {
@@ -36,12 +47,13 @@ void main(void) {
                 fragColor = texture(posTex, uvCoord);
                 break;
             case 3: // NORMAL
-                {
                 fragColor = vec4(normalize(texture(nrmTex, uvCoord).xyz), 1.0);
                 break;                    
-                }
             case 4: // DEPTH
-                fragColor = vec4(fragDepth, fragDepth, fragDepth, 1.0);
+                // Linearize the depth value for better visualization
+                float linearDepth = linearizeDepth(fragDepth);
+                fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
+                break;
             //case 4: // TANGENT
                 //fragColor = vec4(normalize(texture(tanTex, uvCoord).xyz), 1.0);
                 break;
