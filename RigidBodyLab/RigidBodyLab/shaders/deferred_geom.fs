@@ -20,6 +20,7 @@ uniform sampler2D colorTex;
 uniform sampler2D normalTex;  
 uniform sampler2D bumpTex;
 
+uniform bool lightOn;           /*  whether lighting should be applied */
 uniform bool normalMappingOn;
 uniform bool parallaxMappingOn;
 
@@ -29,10 +30,10 @@ layout (location = 2) out vec4 fragNrm;
 layout (location = 3) out float fragDepth;
 
 void main(void) {
-    fragColor = texture(colorTex, vUV);
     fragPos = vPos;
-    //fragNrmOut = vec4(vNormal,vFragObjType);//pack the object type ID into the alpha channel
     fragDepth = gl_FragCoord.z;
+
+    fragColor = texture(colorTex, vUV);        
 
     vec3 V = normalize(vViewDir); 
 
@@ -47,7 +48,7 @@ void main(void) {
       if (parallaxMappingOn){ //both normal & parallax mapping are on
         float bumpHeight = texture(bumpTex, vUV).r * 0.15f - 0.005f;
         vec2 uvCoordAdjusted = vUV + bumpHeight * (V.xy/V.z);
-        fragColor = vec4(texture(colorTex, uvCoordAdjusted).rgb, 1.f);                                                                                        
+        fragColor = texture(colorTex, uvCoordAdjusted);                                                                                        
         fragNrm = vec4(normalize(texture(normalTex, uvCoordAdjusted).xyz * 2.f - 1.f), vFragObjType);
       }
       else{                 //normal mapping is on, parallax mapping is off                                                                       

@@ -39,7 +39,7 @@ void main() {
     vViewDir = -viewPos.xyz;                       //'V' (in the cam space)
     vNormal = normalize(mat3(nmvMat) * nrm);    // 'N' (in the cam space)
 
-    if (normalMappingOn)
+    if (lightOn && normalMappingOn)
     {
         vec3 tVF = normalize(mat3(mvMat) * tan);          //tangent (in the cam space)                              
         vec3 btVF = normalize(mat3(mvMat) * bitan);       //bitangent (in the cam space)   

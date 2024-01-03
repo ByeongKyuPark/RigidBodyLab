@@ -55,7 +55,7 @@ namespace Rendering {
 		POSITION,
 		NORMAL,
 		DEPTH,
-		NORMAL_MAPPING_OFF,// Objects for which normal mapping is not applied
+		NORMAL_MAPPING_MASK,// Objects for which normal mapping is not applied
 		NUM_DEBUGTYPES
 	};
 
@@ -117,7 +117,6 @@ namespace Rendering {
 		GLuint m_gPosTexID;
 		GLuint m_gNrmTexID;
 		GLuint m_gDepthTexID;
-		GLuint m_gTanTexID;
 
 		GLuint m_gFrameBufferID;
 

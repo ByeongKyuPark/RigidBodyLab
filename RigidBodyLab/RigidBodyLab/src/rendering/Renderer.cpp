@@ -213,22 +213,13 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE2 + OFFSET);
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-
-    // Set up 16-bit floating-point, 3-component texture for tangent output
-    glActiveTexture(GL_TEXTURE3 + OFFSET);
-    glGenTextures(1, &m_gTanTexID);
-    glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
     /*  Set up 32-bit floating-point texture for depth component output */
-    glActiveTexture(GL_TEXTURE4 + OFFSET);
+    glActiveTexture(GL_TEXTURE3 + OFFSET);
     glGenTextures(1, &m_gDepthTexID);
     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
@@ -248,7 +239,6 @@ void Rendering::Renderer::SetUpGTextures()
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_gColorTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, m_gPosTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, m_gNrmTexID, 0);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, m_gTanTexID, 0);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_gDepthTexID, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "Framebuffer not complete!" << std::endl;
@@ -1461,12 +1451,12 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        //glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
                         SendObjTexID(resourceManager.GetTexture(obj.GetImageID()), TO_INT(ActiveTexID::COLOR), m_gColorTexLoc);
-                        //glUniform1i(m_gLightOnLoc, 1);     /*  enable lighting for other objects */
+                        glUniform1i(m_gLightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
                     if (renderPass == RenderPass::NORMAL) {
@@ -1474,7 +1464,6 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                     }
                     else if (renderPass == RenderPass::MIRRORTEX_GENERATION) {
                         SendMVMat(m_mirrorCamMVMat[i], m_mirrorCamNormalMVMat[i], m_gMVMatLoc, m_gNMVMatLoc);
-
                     }
                     else if (renderPass == RenderPass::SPHERETEX_GENERATION) {
                         SendMVMat(m_sphereCamMVMat[i][faceIdx], m_sphereCamNormalMVMat[i][faceIdx], m_gMVMatLoc, m_gNMVMatLoc);
@@ -1484,11 +1473,11 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                     {
                         SendObjTexID(resourceManager.m_normalTexID, TO_INT(ActiveTexID::NORMAL), m_gNormalTexLoc);
                         glUniform1i(m_gNormalMappingOnLoc, true);
-                        glUniform1i(m_gParallaxMappingOnLoc, Renderer::GetInstance().IsParallaxMappingOn());
+                        glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
 
-                        if (Renderer::GetInstance().IsParallaxMappingOn()) {
-                            SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_gBumpTexLoc);
-                        }
+                        SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_gBumpTexLoc);
+                        //if (m_parallaxMappingOn) {
+                        //}
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
                     {
@@ -1790,8 +1779,8 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3};
-        glDrawBuffers(4, drawBuffers);
+        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, drawBuffers);
 
 
         /*  Clear corresponding output color/depth buffers */
@@ -1801,7 +1790,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glClearBufferfv(GL_COLOR, 0, bgColor);//color
         glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
         glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
-        glClearBufferfv(GL_COLOR, 3, glm::value_ptr(glm::vec4(0.0f)));//tangent
         glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
     }
 
@@ -1897,11 +1885,6 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
         glUniform1i(m_lDepthTexLoc, 3);
 
-        // Bind the tangent texture to texture unit 4
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
-        glUniform1i(m_lTanTexLoc, 4);
-
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
@@ -1936,9 +1919,9 @@ void Renderer::Render(Core::Scene& scene, float fps)
                     glActiveTexture(GL_TEXTURE3);
                     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
                     break;
-                case TO_INT(DebugType::NORMAL_MAPPING_OFF):
-                    glActiveTexture(GL_TEXTURE4);
-                    glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
+                case TO_INT(DebugType::NORMAL_MAPPING_MASK):
+                    glActiveTexture(GL_TEXTURE2);
+                    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
                     break;
                 }
                 glBindVertexArray(quadVAO[i]);
