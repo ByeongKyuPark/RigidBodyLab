@@ -15,12 +15,11 @@ uniform vec3 lightPosVF[MAX_LIGHTS];
 uniform vec4 ambient;
 uniform vec4 diffuse[MAX_LIGHTS];
 uniform vec4 specular[MAX_LIGHTS];
+uniform bool parallaxMappingOn;
 uniform int numLights;
 uniform int specularPower;  
 uniform int blinnPhongLighting;  // 1 for active, 0 for inactive
-
-// Camera view position
-//uniform vec3 viewPos;
+uniform int normalMappingObjType; // Object type for normal mapping
 
 in vec2 uvCoord;
 out vec4 fragColor;
@@ -37,8 +36,10 @@ void main(void) {
                 fragColor = texture(posTex, uvCoord);
                 break;
             case 3: // NORMAL
+                {
                 fragColor = vec4(normalize(texture(nrmTex, uvCoord).xyz), 1.0);
-                break;
+                break;                    
+                }
             case 4: // DEPTH
                 fragColor = vec4(fragDepth, fragDepth, fragDepth, 1.0);
             //case 4: // TANGENT
@@ -56,18 +57,25 @@ void main(void) {
 
         vec3 fragPos = texture(posTex, uvCoord).xyz; //cam space
         vec3 normal = normalize(texture(nrmTex, uvCoord).xyz); //cam space
-        vec3 tangent = normalize(texture(tanTex, uvCoord).xyz); //cam space
-        vec3 bitangent = cross(normal, tangent);            //cam space
-        //mat3 TBN = mat3(tangent, bitangent, normal);
+        vec3 viewDir = normalize(normalize(-fragPos)); //cam space
+        vec4 tan = texture(tanTex, uvCoord);
+        float objectType = tan.w;
 
-        vec3 viewDir = normalize(-fragPos); //cam space
-        
+        mat3 TBN = mat3(1.0); // Identity matrix as default
+
+        //convert into TBN space
+        if (objectType < 0.5f) {// check if the object is a normal mapped plane
+            vec3 tangent = normalize(tan.xyz); // Tangent in camera space
+            vec3 bitangent = cross(normal, tangent); // Bitangent in camera space
+            TBN = mat3(tangent, bitangent, normal);
+            normal = normalize(TBN * normal); // Convert normal to tangent space
+            viewDir = normalize(TBN * viewDir); // Convert view direction to tangent space
+        }
+
         vec4 intensity = ambient;
         
-        //all computation in VIEW SPACE
         for (int i = 0; i < numLights; ++i) {
-            vec3 lightDir = normalize(lightPosVF[i] - fragPos);
-
+            vec3 lightDir = TBN*normalize(normalize(lightPosVF[i] - fragPos));
             //diffuse
             intensity += diffuse[i]* max(dot(normal, lightDir), 0.0);
 

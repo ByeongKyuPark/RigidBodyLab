@@ -218,20 +218,20 @@ void Rendering::Renderer::SetUpGTextures()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 
-    /*  Set up 32-bit floating-point texture for depth component output */
-    glActiveTexture(GL_TEXTURE3 + OFFSET);
-    glGenTextures(1, &m_gDepthTexID);
-    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-
     // Set up 16-bit floating-point, 3-component texture for tangent output
-    glActiveTexture(GL_TEXTURE4 + OFFSET);
+    glActiveTexture(GL_TEXTURE3 + OFFSET);
     glGenTextures(1, &m_gTanTexID);
     glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+
+    /*  Set up 32-bit floating-point texture for depth component output */
+    glActiveTexture(GL_TEXTURE4 + OFFSET);
+    glGenTextures(1, &m_gDepthTexID);
+    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
 
     /*  Generate offscreen framebuffer ID and store it in gFrameBufferID.
     For deferred shading, this framebuffer is bounded to store
@@ -348,12 +348,15 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
 //    }
 //}
 
-void Rendering::Renderer::SendDeferredLightProperties(const Scene& scene)
+void Rendering::Renderer::SendDeferredLightPassProperties(const Scene& scene)
 {
     const int numLights = scene.GetNumLights();
     glUniform1i(m_lNumLightsLoc, numLights);
     glUniform1i(m_lLightPassDebugLoc, m_gLightPassDebug);
+    glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
     glUniform1i(m_lBlinnPhongLightingLoc, m_gBlinnPhongLighting);
+    glUniform1i(m_lNormalMappingObjTypeLoc, TO_INT(Core::ObjectType::NORMAL_MAPPED_PLANE));
+
     /*  ambient, diffuse, specular are now reflected components on the object
         surface and can be used directly as intensities in the lighting equation.
     */
@@ -681,7 +684,10 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
     }
 
     // parallax Mapping Toggle
-    ImGui::Checkbox("Parallax Mapping", &Renderer::GetInstance().GetParallaxMapping());
+    bool& parallaxMappingOn = Renderer::GetInstance().GetParallaxMapping();
+    if(ImGui::Checkbox("Parallax Mapping", &parallaxMappingOn)) {
+        glUniform1i(m_lParallaxMappingOnLoc, parallaxMappingOn);
+    }
 
     // obj List GUI
     static int selectedObject = -1;
@@ -970,7 +976,7 @@ void Renderer::AttachScene(const Core::Scene& scene)
     //SendForwardProperties(scene);
 
     m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
-    SendDeferredLightProperties(scene);
+    SendDeferredLightPassProperties(scene);
 
     //m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
     //SendDeferredGeomProperties(scene);
@@ -1147,6 +1153,7 @@ void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
     m_gNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
     m_gProjMatLoc = glGetUniformLocation(prog, "projMat");
     m_gNumLightsLoc = glGetUniformLocation(prog, "numLights");
+    m_gObjectTypeLoc = glGetUniformLocation(prog, "objType");
     m_gNormalMappingOnLoc = glGetUniformLocation(prog, "normalMappingOn");
     m_gParallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
     m_gColorTexLoc = glGetUniformLocation(prog, "colorTex");
@@ -1173,6 +1180,8 @@ void Rendering::Renderer::SetUpDeferredLightUniformLocations() {
     m_lAmbientLoc = glGetUniformLocation(prog, "ambient");
     m_lSpecularPowerLoc= glGetUniformLocation(prog, "specularPower");
     m_lBlinnPhongLightingLoc = glGetUniformLocation(prog, "blinnPhongLighting");
+    m_lParallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
+    m_lNormalMappingObjTypeLoc = glGetUniformLocation(prog, "normalMappingObjType");
     for (int i = 0; i < NUM_MAX_LIGHTS; ++i) {
         std::string index = std::to_string(i);
         m_lDiffuseLoc[i] = glGetUniformLocation(prog, ("diffuse[" + index + "]").c_str());
@@ -1431,7 +1440,8 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
         const auto& obj = *scene.m_objects[i];
         if (obj.IsVisible() == false) {
             continue;
-        }
+        }        
+        glUniform1i(m_gObjectTypeLoc, TO_INT(obj.GetObjType()));
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED && renderPass == RenderPass::MIRRORTEX_GENERATION) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
@@ -1470,7 +1480,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                         SendMVMat(m_sphereCamMVMat[i][faceIdx], m_sphereCamNormalMVMat[i][faceIdx], m_gMVMatLoc, m_gNMVMatLoc);
                     }
 
-                    if (obj.GetObjType() == Core::ObjectType::MAPPABLE_PLANE)   /*  apply normal mapping / parallax mapping for the base */
+                    if (obj.GetObjType() == Core::ObjectType::NORMAL_MAPPED_PLANE)   /*  apply normal mapping / parallax mapping for the base */
                     {
                         SendObjTexID(resourceManager.m_normalTexID, TO_INT(ActiveTexID::NORMAL), m_gNormalTexLoc);
                         glUniform1i(m_gNormalMappingOnLoc, true);
@@ -1882,7 +1892,7 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
         glUniform1i(m_lNrmTexLoc, 2);
         
-        // Bind the normal texture to texture unit 3
+        // Bind the tangent texture to texture unit 3
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
         glUniform1i(m_lTanTexLoc, 3);

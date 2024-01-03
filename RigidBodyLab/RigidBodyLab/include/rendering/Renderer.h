@@ -177,6 +177,7 @@ namespace Rendering {
 		GLuint m_gNMVMatLoc;
 		GLuint m_gProjMatLoc;
 		GLuint m_gNumLightsLoc;
+		GLuint m_gObjectTypeLoc;
 		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
 		GLuint m_gNormalMappingOnLoc;
 		GLuint m_gParallaxMappingOnLoc;
@@ -190,6 +191,7 @@ namespace Rendering {
 		GLuint m_lLightPassQuadLoc;
 		GLuint m_lLightPassDebugLoc;
 		GLuint m_lColorTexLoc;
+		GLuint m_lNormalMappingObjTypeLoc;
 		GLuint m_lPosTexLoc;
 		GLuint m_lNrmTexLoc;
 		GLuint m_lTanTexLoc;
@@ -197,6 +199,7 @@ namespace Rendering {
 		GLuint m_lNumLightsLoc;
 		GLuint m_lAmbientLoc;
 		GLuint m_lSpecularPowerLoc;
+		GLuint m_lParallaxMappingOnLoc;
 		GLuint m_lBlinnPhongLightingLoc;  // 1 for active, 0 for inactive
 		GLuint m_lLightPosVFLoc[NUM_MAX_LIGHTS];
 		GLuint m_lDiffuseLoc[NUM_MAX_LIGHTS];
@@ -260,7 +263,7 @@ namespace Rendering {
 		
 		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendForwardProperties(const Scene& scene);
-		void SendDeferredLightProperties(const Scene& scene);
+		void SendDeferredLightPassProperties(const Scene& scene);
 		//void SendDeferredGeomProperties(const Scene& scene);
 
 		
