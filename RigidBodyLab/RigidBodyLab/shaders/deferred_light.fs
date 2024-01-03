@@ -54,10 +54,11 @@ void main(void) {
                 float linearDepth = linearizeDepth(fragDepth);
                 fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
                 break;
-            //case 4: // TANGENT
-                //fragColor = vec4(normalize(texture(tanTex, uvCoord).xyz), 1.0);
+            case 5: //  NORMAL_MAPPING_OFF (Objects for which normal mapping is not applied)            
+                float mask=texture(tanTex, uvCoord).w;
+                fragColor = vec4(mask,mask,mask, 1.0);
                 break;
-            // Add other debug modes if necessary
+
         }
     } else {
 

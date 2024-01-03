@@ -1892,15 +1892,16 @@ void Renderer::Render(Core::Scene& scene, float fps)
         glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
         glUniform1i(m_lNrmTexLoc, 2);
         
-        // Bind the tangent texture to texture unit 3
+         //Bind the depth texture to texture unit 3
         glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
-        glUniform1i(m_lTanTexLoc, 3);
-
-         //Bind the depth texture to texture unit 4
-        glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-        glUniform1i(m_lDepthTexLoc, 4);
+        glUniform1i(m_lDepthTexLoc, 3);
+
+        // Bind the tangent texture to texture unit 4
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
+        glUniform1i(m_lTanTexLoc, 4);
+
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
@@ -1934,6 +1935,10 @@ void Renderer::Render(Core::Scene& scene, float fps)
                 case TO_INT(DebugType::DEPTH):
                     glActiveTexture(GL_TEXTURE3);
                     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+                    break;
+                case TO_INT(DebugType::NORMAL_MAPPING_OFF):
+                    glActiveTexture(GL_TEXTURE4);
+                    glBindTexture(GL_TEXTURE_2D, m_gTanTexID);
                     break;
                 }
                 glBindVertexArray(quadVAO[i]);

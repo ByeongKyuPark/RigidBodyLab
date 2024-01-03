@@ -55,6 +55,7 @@ namespace Rendering {
 		POSITION,
 		NORMAL,
 		DEPTH,
+		NORMAL_MAPPING_OFF,// Objects for which normal mapping is not applied
 		NUM_DEBUGTYPES
 	};
 
@@ -135,29 +136,36 @@ namespace Rendering {
 			/*  First bottom minimap */
 			{
 				-1.0f, -1.0f,
-				-0.5f, -1.0f,
+				-0.6f, -1.0f,
 				-1.0f, -0.5f,
-				-0.5f, -0.5f
+				-0.6f, -0.5f
 			},
 			/*  Second bottom minimap */
 			{
-				-0.5f, -1.0f,
-				0.0f, -1.0f,
-				-0.5f, -0.5f,
-				0.0f, -0.5f
+				-0.6f, -1.0f,
+				-0.2f, -1.0f,
+				-0.6f, -0.5f,
+				-0.2f, -0.5f
 			},
 			/*  Third bottom minimap */
 			{
-				0.0f, -1.0f,
-				0.5f, -1.0f,
-				0.0f, -0.5f,
-				0.5f, -0.5f
+				-0.2f, -1.0f,
+				0.2f, -1.0f,
+				-0.2f, -0.5f,
+				0.2f, -0.5f
 			},
 			/*  Forth bottom minimap */
 			{
-				0.5f, -1.0f,
+				0.2f, -1.0f,
+				0.6f, -1.0f,
+				0.2f, -0.5f,
+				0.6f, -0.5f
+			},
+			/*  Fifth bottom minimap */
+			{
+				0.6f, -1.0f,
 				1.0f, -1.0f,
-				0.5f, -0.5f,
+				0.6f, -0.5f,
 				1.0f, -0.5f
 			}
 		};
