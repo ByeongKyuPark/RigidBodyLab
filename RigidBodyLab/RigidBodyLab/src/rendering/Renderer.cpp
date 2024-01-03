@@ -1461,12 +1461,12 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
+                        //glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
                         SendObjTexID(resourceManager.GetTexture(obj.GetImageID()), TO_INT(ActiveTexID::COLOR), m_gColorTexLoc);
-                        glUniform1i(m_gLightOnLoc, 1);     /*  enable lighting for other objects */
+                        //glUniform1i(m_gLightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
                     if (renderPass == RenderPass::NORMAL) {
