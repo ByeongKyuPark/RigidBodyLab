@@ -6,7 +6,7 @@
 #include <core/Scene.h>
 #include <unordered_map>
 #include <vector>
-#include <rendering/Shader.h>
+#include <cmath> // sin, cos
 #include <array>
 
 using Core::Scene;
@@ -65,7 +65,7 @@ namespace Rendering {
 	//in OpenGL, a rendering context can only be active on one thread at a time, making multi - threading complex and potentially inefficient.The sequential nature of OpenGL's state machine also means that the order of operations is crucial, and multi-threading can disrupt this order, leading to unintended consequences in rendering outcomes.	
 	class Renderer {
 	public:
-		static constexpr int NUM_MAX_LIGHTS = 10;
+		static constexpr int NUM_MAX_LIGHTS = 30;
 	private:
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
@@ -113,7 +113,6 @@ namespace Rendering {
 
 		GLuint quadVAO[TO_INT(DebugType::NUM_DEBUGTYPES)];
 		GLuint quadVBO[TO_INT(DebugType::NUM_DEBUGTYPES)];
-
 		GLfloat quadBuff[TO_INT(DebugType::NUM_DEBUGTYPES)][8] =
 		{
 			/*  Full-screen quad, used for full-screen rendering */
@@ -227,11 +226,13 @@ namespace Rendering {
 		void InitImGui();
 		void InitRendering();
 
-		void SendLightProperties(Scene& scene, int lightIdx=0);
 
 		void UpdateNumLights(int numLights);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
+
+		// Function to update light positions
+		void UpdateOrbitalLights(Core::Scene& scene, float dt);
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
@@ -251,13 +252,11 @@ namespace Rendering {
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
 		
-		void SendForwardProperties(const Scene& scene);
+		void SendLightColors(Scene& scene, int lightIdx=0);
 		void SendDeferredLightPassProperties(const Scene& scene);
 		void SendDeferredGeomProperties(const Scene& scene);
-
 		
 		void SetUpSkyBoxUniformLocations();
-		void SetUpForwardUniformLocations();
 		void SetUpSphereUniformLocations();
 		void SetUpDeferredGeomUniformLocations();
 		void SetUpDeferredLightUniformLocations();
@@ -291,7 +290,7 @@ namespace Rendering {
 
 		// Methods for the Renderer class
 		void AttachScene(const Scene& scene);
-		void Render(Scene& scene, float fps);
+		void Render(Scene& scene, float fps, float dt);
 
 		bool ShouldClose()const { return glfwWindowShouldClose(m_window.get()); }
 		void CleanUp();

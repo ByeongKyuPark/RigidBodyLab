@@ -15,14 +15,13 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.3f,0.3f,0.3f,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 1.f, 1.f, 1.f, 1.f }}, 
-    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 1 },
+    : m_ambientLightIntensity{0.9f,0.9f,0.9f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 3 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
 	m_diffuseAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
-	m_specularPower{ 12 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
-	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
+	m_specularPower{ 10 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
     SetUpProjectiles();
+    SetUpOrbitalLights();
 }
 
 void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
@@ -30,7 +29,7 @@ void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
     if (lightIdx >= m_numLights) {
         throw std::runtime_error("SetLightColor::light index out of rage");
     }
-    m_I[lightIdx] = lightColor;
+    m_orbitalLights[lightIdx].m_intensity = lightColor;
 }
 
 void Core::Scene::Update(float dt) {
@@ -77,14 +76,14 @@ const Vec3& Core::Scene::GetLightPosition(int lightIdx) const {
     if (lightIdx >= m_numLights) {
         throw std::runtime_error("GetLightPosition::light index out of rage");
     }
-    return m_lightPosWF[lightIdx];
+    return m_orbitalLights[lightIdx].m_lightPosWF;
 }
 
-const Vec4& Core::Scene::GetLightColor(int idx) const {
-    if (idx >= m_numLights) {
+const Vec4& Core::Scene::GetLightColor(int lightIdx) const {
+    if (lightIdx >= m_numLights) {
         throw std::runtime_error("GetLightColor:: light index out of range");
     }
-    return m_I[idx];
+    return m_orbitalLights[lightIdx].m_intensity;
 }
 
 
@@ -208,10 +207,6 @@ void Core::Scene::SetUpScene() {
     //(4) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
-
-    //(5) light
-    SetLightPosition({ 10,10,5 });
-    SetLightColor({ 0.9f,0.9f,0.9f,1.f });
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -239,6 +234,46 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 
     // resolve stored collisions
     m_collisionManager.ResolveCollision(dt);
+}
+
+void Core::Scene::SetUpOrbitalLights() {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    //rendom offset between -5 and 5
+    for (int i = 0; i < m_numLights; ++i) {
+        float offsetX = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.f - 5.f;
+        float offsetY = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.f - 5.f;
+        float offsetZ = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.f - 5.f;
+        m_orbitalLights[i].m_lightOrbitOffset = Vec3(offsetX, offsetY, offsetZ);
+
+        // random orbital radius between 0.5 and 10.0
+        float rad = 0.5f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 10.0f;
+        m_orbitalLights[i].m_orbitalRad = rad;
+
+        // random orbital speed between 0.1 and 2.1
+        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f;
+        m_orbitalLights[i].m_orbitalSpeed = speed;
+
+        m_orbitalLights[i].m_accumulatedTime = 0.f;
+
+        // random rotation axis and angle
+        Vec3 axis = Vec3(
+            static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX),
+            static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX),
+            static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)
+        );
+        axis = Normalize(axis); 
+        float angle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 360.f; // in degrees
+        m_orbitalLights[i].m_rotationAxis = axis;
+        m_orbitalLights[i].m_rotationAngle = angle;
+
+
+        // random light intensity for each color channel
+        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *0.55f;
+        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.55f;
+        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.55f;
+        m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
+    }
 }
 
 
@@ -303,5 +338,5 @@ void Core::Scene::SetLightPosition(const Vector3& lightPos, int lightIdx)
     if (lightIdx >= m_numLights) {
         throw std::runtime_error("SetLightPosition::light index out of rage");
     }
-    m_lightPosWF[lightIdx] = lightPos;
+    m_orbitalLights[lightIdx].m_lightPosWF = lightPos;
 }

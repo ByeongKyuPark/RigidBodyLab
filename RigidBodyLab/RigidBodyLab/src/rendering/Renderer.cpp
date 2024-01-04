@@ -8,6 +8,7 @@
 #endif
 
 #include <glad/glad.h>
+#include <utilities/Logger.h>
 #include <rendering/Renderer.h>
 #include <rendering/Mesh.h>
 #include <rendering/Camera.h>
@@ -287,47 +288,14 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
         return true;
     }
     constexpr float MIN_SPEED_SQRD = 0.001f;
-    if (speedSqrd <= MIN_SPEED_SQRD) {
-        return false;
-    }
-
     constexpr int UPDATE_INTERVAL = 5;
     m_sphereMirrorCubeMapFrameCounter++;
-    if (m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
+    if (speedSqrd >= MIN_SPEED_SQRD || m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
         m_sphereMirrorCubeMapFrameCounter = 0;
         return true;
     }
     return false;
 }
-
-/******************************************************************************/
-/*!
-\fn     void SendLightProperties()
-\brief
-        Send numLights and intensities to the rendering program.
-*/
-/******************************************************************************/
-//void Renderer::SendForwardProperties(const Core::Scene& scene)
-//{
-//    const int numLights = scene.GetNumLights();
-//    glUniform1i(m_numLightsLoc, numLights);
-//
-//    /*  ambient, diffuse, specular are now reflected components on the object
-//        surface and can be used directly as intensities in the lighting equation.
-//    */
-//    Vec4 globalAmbient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
-//    glUniform4fv(m_ambientLoc, 1, ValuePtr(globalAmbient));
-//
-//    for (int i = 0; i < numLights; ++i) {
-//        Vec4 diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-//        Vec4 specular = scene.m_I[i] * scene.m_specularAlbedo;
-//
-//        glUniform4fv(m_diffuseLoc[i], 1, ValuePtr(diffuse));
-//        glUniform4fv(m_specularLoc[i], 1, ValuePtr(specular));
-//    }
-//
-//    glUniform1i(m_specularPowerLoc, scene.m_specularPower);
-//}
 
 void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
     const int numLights = scene.GetNumLights();
@@ -336,7 +304,7 @@ void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
     glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
 
     for (int i = 0; i < numLights; ++i) {
-        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
     }
 
     Vec4 ambient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
@@ -347,12 +315,12 @@ void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
     glUniform1i(m_gSpecularPowerLoc, scene.m_specularPower);
 
     for (int i = 0; i < numLights; ++i) {
-        diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-        specular = scene.m_I[i] * scene.m_specularAlbedo;
+        diffuse = scene.m_orbitalLights[i].m_intensity * scene.m_diffuseAlbedo;
+        specular = scene.m_orbitalLights[i].m_intensity * scene.m_specularAlbedo;
 
-        glUniform4fv(m_gDiffuseLoc[i], 1, &diffuse[i]);
-        glUniform4fv(m_gSpecularLoc[i], 1, &specular[i]);
-        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+        glUniform4fv(m_gDiffuseLoc[i], 1, &diffuse[0]);
+        glUniform4fv(m_gSpecularLoc[i], 1, &specular[0]);
+        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
     }
 }
 
@@ -377,12 +345,12 @@ void Rendering::Renderer::SendDeferredLightPassProperties(const Scene& scene)
     glUniform1i(m_lSpecularPowerLoc, scene.m_specularPower);
 
     for (int i = 0; i < numLights; ++i) {
-        diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
-        specular = scene.m_I[i] * scene.m_specularAlbedo;
+        diffuse = scene.m_orbitalLights[i].m_intensity * scene.m_diffuseAlbedo;
+        specular = scene.m_orbitalLights[i].m_intensity * scene.m_specularAlbedo;
 
-		glUniform4fv(m_lDiffuseLoc[i], 1, &diffuse[i]);
-		glUniform4fv(m_lSpecularLoc[i], 1, &specular[i]);
-        glUniform4fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+		glUniform4fv(m_lDiffuseLoc[i], 1, &diffuse[0]);
+		glUniform4fv(m_lSpecularLoc[i], 1, &specular[0]);
+        glUniform4fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
     }
 }
 
@@ -816,18 +784,17 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         }
 
         for (int i = 0; i < scene.GetNumLights(); ++i) {
-            Vec3 lightPos = scene.GetLightPosition(i);
-            bool posUpdated{ false }, colorUpdated{ false };
-            if (posUpdated=ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
-                scene.SetLightPosition(lightPos, i);
-            }
+            //Vec3 lightPos = scene.GetLightPosition(i);
+            //bool posUpdated{ false }, colorUpdated{ false };
+            //if (posUpdated=ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
+            //    scene.SetLightPosition(lightPos, i);
+            //}
 
             Vec4 lightColor = scene.GetLightColor(i);
-            if (colorUpdated=ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
+            if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
                 scene.SetLightColor(lightColor, i);
-            }
-            if (posUpdated || colorUpdated) {
-                SendLightProperties(scene);
+                SendLightColors(scene, i);
+                m_shouldUpdateCubeMapForSphere = true;
             }
         }
     }
@@ -967,9 +934,6 @@ void Renderer::AttachScene(const Core::Scene& scene)
 	SetUpGTextures();
 	//5. (deferred shading) Set up full-screen quad for rendering deferred light pass and 4 small quads for debugging
 	SetUpLightPassQuads();
-
-    //m_shaders[TO_INT(ProgType::FORWARD_PROG)].Use();
-    //SendForwardProperties(scene);
 
     m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
     SendDeferredLightPassProperties(scene);
@@ -1215,29 +1179,31 @@ void Renderer::InitRendering() {
     glViewport(0, 0, width, height);
 }
 
-void Rendering::Renderer::SendLightProperties(Core::Scene& scene, int lightIdx)
+void Rendering::Renderer::SendLightColors(Core::Scene& scene, int lightIdx)
 {
+    //light pass shader
     if (lightIdx >= scene.GetNumLights()) {
-        throw std::runtime_error("SendLightProperties::light index out of range");
+        throw std::runtime_error("SendLightColors::light index out of range");
     }
 
-	const int NumLights = scene.GetNumLights();
-    for (int i = 0; i < NumLights; ++i) {
-        scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
-        glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-    }
+	//const int NumLights = scene.GetNumLights();
+ //   for (int i = 0; i < NumLights; ++i) {
+ //       scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+ //       glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+ //   }
 
-    Vec4 diffuse = scene.m_I[lightIdx] * scene.m_diffuseAlbedo;
-    Vec4 specular = scene.m_I[lightIdx] * scene.m_specularAlbedo;
+    Vec4 diffuse = scene.m_orbitalLights[lightIdx].m_intensity * scene.m_diffuseAlbedo;
+    Vec4 specular = scene.m_orbitalLights[lightIdx].m_intensity* scene.m_specularAlbedo;
 
     glUniform4fv(m_lDiffuseLoc[lightIdx], 1, ValuePtr(diffuse));
     glUniform4fv(m_lSpecularLoc[lightIdx], 1, ValuePtr(specular));
     
     //-----------------------------------------------------------
+    //geom pass shader
     m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
-	for (int i = 0; i < NumLights; ++i) {
-		glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-	}
+	//for (int i = 0; i < NumLights; ++i) {
+	//	glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+	//}
 
     glUniform4fv(m_gDiffuseLoc[lightIdx], 1, ValuePtr(diffuse));
     glUniform4fv(m_gSpecularLoc[lightIdx], 1, ValuePtr(specular));
@@ -1262,6 +1228,24 @@ void Rendering::Renderer::UpdateGuiToObjectIndexMap(const Core::Scene& scene) {
         }
     }
 }
+
+// Function to update light positions
+void Rendering::Renderer::UpdateOrbitalLights(Core::Scene& scene, float dt) {
+
+    const int numLights = scene.GetNumLights();
+    for (int i{}; i < numLights; ++i){
+        scene.m_orbitalLights[i].UpdatePosition(dt);
+
+        scene.m_orbitalLights[i].m_lightPosVF = Vec3(m_mainCamViewMat * Vec4(scene.m_orbitalLights[i].m_lightPosWF, 1.0f));
+        glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
+    }
+
+    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+    for (int i = 0; i < numLights; ++i) {
+        glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
+    }
+}
+
 
 // GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 // therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
@@ -1568,10 +1552,11 @@ void Renderer::RenderToScreen(Core::Scene& scene)
         deferred shading.
 */
 /******************************************************************************/
-void Renderer::Render(Core::Scene& scene, float fps)
+void Renderer::Render(Core::Scene& scene, float fps, float dt)
 {
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
+
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -1715,6 +1700,9 @@ void Renderer::Render(Core::Scene& scene, float fps)
 
     //------------------------------------------------------------
     RenderGui(scene, fps);
+
+    //obital lights
+    UpdateOrbitalLights(scene, dt);
 
     // Rendering    
     ImGui::Render();

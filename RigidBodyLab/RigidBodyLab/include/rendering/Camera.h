@@ -65,9 +65,9 @@ namespace Rendering
         static constexpr int CAM_MAX_RADIUS = 20;
         static constexpr int CAM_MIN_RADIUS = 3;
         static constexpr int CAM_RADIUS_STEP = 1;
-        static constexpr int   INIT_ALPHA = 5;
+        static constexpr int   INIT_ALPHA = 7;
         static constexpr int   INIT_BETA = 27;     /*  90 degrees */
-        static constexpr int   INIT_RADIUS = 9;
+        static constexpr int   INIT_RADIUS = 11;
     };
 
 

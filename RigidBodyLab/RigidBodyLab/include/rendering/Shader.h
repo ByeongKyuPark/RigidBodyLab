@@ -12,14 +12,9 @@ namespace Rendering
         string fragmentShaderPath;
     };
 
-    /*  We need 3 set of shaders programs */
-    /*  MAIN_PROG   : Render all the objects in the scene, used for the above 3 passes */
-    /*  SKYBOX_PROG : Render the background */
-    /*  SPHERE_PROG : Render the relective/refractive sphere */
     enum class ProgType {
-        //FORWARD_PROG = 0,
-        SKYBOX_PROG,
-        SPHERE_PROG,
+        SKYBOX_PROG=0,    /*  SKYBOX_PROG : Render the background */
+        SPHERE_PROG,      /*  SPHERE_PROG : Render the relective/refractive sphere */
         //deferred
         DEFERRED_GEOMPASS, 
         DEFERRED_LIGHTPASS,

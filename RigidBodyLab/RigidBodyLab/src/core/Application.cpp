@@ -38,7 +38,7 @@ void Application::Run() {
             accumulator -= FIXED_DT;
         }
 
-        renderer.Render(m_scene, GetFPS());
+        renderer.Render(m_scene, GetFPS(), FIXED_DT);
     }
     Logger::Log("Application Run Loop ended. Renderer and GLFW window finalized.");
 }

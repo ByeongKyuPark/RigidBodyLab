@@ -2,6 +2,7 @@
 
 #include <core/Object.h>
 #include <core/Projectile.h>
+#include <rendering/OrbitalLight.h>
 #include <physics/CollisionData.h>
 #include <physics/CollisionManager.h>
 #include <vector>
@@ -13,6 +14,7 @@ namespace Core {
     using Physics::CollisionManager;
 
     class Scene {
+    public:
         static constexpr int NUM_PROJECTILES = 50;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
@@ -21,9 +23,9 @@ namespace Core {
             lighting. In this frame, the vertex positions are not too large, hence the computation
             is normally more accurate.
         */
-        std::vector<Vec3> m_lightPosWF;
-        std::vector<Vec3> m_lightPosVF;
-        std::vector<Vec4> m_I;
+
+        //lights
+        std::vector<OrbitalLight> m_orbitalLights; 
 
         Vec4 m_ambientLightIntensity;
         Vec4 m_ambientAlbedo;
@@ -43,6 +45,7 @@ namespace Core {
         //the key is to manage these projectile objects effectively within the existing structure just for the demo.
         void SetUpProjectiles();
         void SetUpScene();
+        void SetUpOrbitalLights();
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
 
@@ -60,7 +63,7 @@ namespace Core {
 
         Core::Object& GetObject(size_t index);
         const Core::Object& GetObject(size_t index) const;
-        const std::vector<Vec3>& GetLightPositionsWF() const { return m_lightPosWF; }
+        //const std::vector<Vec3>& GetLightPositionsWF() const { return m_lightPosWF; }
         const Vec4& GetLightColor(int idx) const;
         const Vec3& GetLightPosition(int lightIdx) const;
         int GetNumLights()const { return m_numLights; }
