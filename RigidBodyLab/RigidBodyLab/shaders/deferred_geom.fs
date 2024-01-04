@@ -9,17 +9,12 @@ in vec3 vNormal;
 in vec2 vUV;     
 in vec3 vLightDir[MAX_LIGHTS]; //cam space
 in vec3 vViewDir;      //cam space
-flat in float vFragObjType;   
-
-out vec4 fColor;
-out vec3 fPos; 
-out vec4 fNormal; 
-out float fDepth;
 
 uniform sampler2D colorTex;
 uniform sampler2D normalTex;  
 uniform sampler2D bumpTex;
 
+uniform bool isPlane;
 uniform bool normalMappingOn;
 uniform bool parallaxMappingOn;
 uniform bool forwardRenderOn;
@@ -33,7 +28,7 @@ uniform vec4 specular[MAX_LIGHTS];
 
 layout (location = 0) out vec4 fragColor;
 layout (location = 1) out vec3 fragPos;
-layout (location = 2) out vec4 fragNrm;
+layout (location = 2) out vec3 fragNrm;
 layout (location = 3) out float fragDepth;
 
 void main(void) {
@@ -42,7 +37,7 @@ void main(void) {
 
     fragColor = texture(colorTex, vUV);        
 
-    vec3 N = vNormal;
+    fragNrm = vNormal;
     vec3 V = normalize(vViewDir); 
                                                                                          
     if (normalMappingOn){
@@ -65,14 +60,14 @@ void main(void) {
         vec2 uvCoordAdjusted = vUV + bumpHeight * (V.xy);///V.z);
         //fragColor = texture(colorTex, uvCoordAdjusted);                                                                                        
         fragColor = vec4(texture(colorTex, uvCoordAdjusted).rgb, 1.f);                                                                                        
-        N = normalize(texture(normalTex, uvCoordAdjusted).xyz * 2.f - 1.f);
+        fragNrm = normalize(texture(normalTex, uvCoordAdjusted).xyz * 2.f - 1.f);
       }
       else{                 //normal mapping is on, parallax mapping is off                                                                       
-        N = normalize(texture(normalTex, vUV).xyz * 2.f - 1.f);
+        fragNrm = normalize(texture(normalTex, vUV).xyz * 2.f - 1.f);
       }                        
     }           
 
-    if(forwardRenderOn){
+    if(isPlane){
         //fragColor = vec4(1.f,0.f,1.f,1.f);
         //return;
 
@@ -82,13 +77,11 @@ void main(void) {
 
         vec3 L = normalize(vLightDir[i]);                                                     
         vec3 H = normalize(L+V);     
-        vec4 diffuseTerm = diffuse[i] * max(dot(L, N), 0.f);
+        vec4 diffuseTerm = diffuse[i] * max(dot(L, fragNrm), 0.f);
         //does blinn phong
-        vec4 specularTerm = specular[i] * pow(max(dot(N, H), 0.f), specularPower); 
+        vec4 specularTerm = specular[i] * pow(max(dot(fragNrm, H), 0.f), specularPower); 
         intensity += (diffuseTerm + specularTerm);                                
       }
       fragColor *= intensity;
     }
-
-    fragNrm = vec4(N,vFragObjType);
 }

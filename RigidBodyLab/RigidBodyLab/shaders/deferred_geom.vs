@@ -9,7 +9,7 @@ uniform mat4 projMat; // Projection matrix
 uniform bool normalMappingOn;
 uniform int  numLights;
 uniform vec3 lightPosVF[MAX_LIGHTS];    /*  light pos already in view frame */
-uniform int objType;
+uniform bool isPlane;
 
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 nrm;
@@ -22,7 +22,7 @@ out vec3 vNormal;
 out vec2 vUV;
 out vec3 vLightDir[MAX_LIGHTS]; //cam space
 out vec3 vViewDir;      //cam space
-flat out float vFragObjType;
+//flat out float vFragObjType;
 
 void main() {
     vec4 viewPos = mvMat * vec4(pos, 1.0);
@@ -31,14 +31,14 @@ void main() {
 
     // convert the received objectType from `int` to `float` and then store it in the alpha channel of the tangent.
     // this way, all object types other than normal mapped plane(=0) will have this value clamped to 1.0f
-    vFragObjType = float(objType); // Convert int to float for passing to FS
+    //vFragObjType = float(objType); // Convert int to float for passing to FS
 
     gl_Position = projMat * viewPos;
 
     vViewDir = -viewPos.xyz;                       //'V' (in the cam space)
     vNormal = normalize(mat3(nmvMat) * nrm);    // 'N' (in the cam space)
 
-    if(vFragObjType>2.5) //plane
+    if(isPlane)
     {
         vec3 tVF = normalize(mat3(mvMat) * tan);          //tangent (in the cam space)                              
         vec3 btVF = normalize(mat3(mvMat) * bitan);       //bitangent (in the cam space)   

@@ -214,7 +214,7 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE2 + OFFSET);
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -1395,7 +1395,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
             continue;
         }        
         glUniform1i(m_gObjectTypeLoc, TO_INT(obj.GetObjType()));
-        glUniform1i(m_gForwardRenderOnLoc, false);// obj.GetObjType() != Core::ObjectType::DEFERRED_REGULAR);
+        glUniform1i(m_gForwardRenderOnLoc, obj.GetObjType() != Core::ObjectType::REFLECTIVE_FLAT);
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED && renderPass == RenderPass::MIRRORTEX_GENERATION) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }

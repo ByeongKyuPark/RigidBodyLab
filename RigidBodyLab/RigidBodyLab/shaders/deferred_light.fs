@@ -53,6 +53,7 @@ void main(void) {
                 float linearDepth = linearizeDepth(fragDepth);
                 fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
                 break;
+                /*
             case 5: //  NORMAL_MAPPING (Objects for which normal mapping is applied)            
                 if (fragDepth >= 0.999f) { //background
                     fragColor = vec4(0.f,0.f,0.f, 1.f);
@@ -63,7 +64,7 @@ void main(void) {
                     //mask = mask>0.5 ? 0.f: 1.f;                    
                     fragColor = vec4(mask,mask,0.f, 1.f);//yellow
                 }
-
+                */
                 break;
 
         }
