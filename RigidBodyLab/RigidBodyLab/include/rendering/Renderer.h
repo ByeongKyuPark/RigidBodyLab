@@ -96,23 +96,14 @@ namespace Rendering {
 		std::unordered_map<int, Mat4> m_mainCamMVMat;
 		std::unordered_map<int, Mat4> m_mainCamNormalMVMat;
 
-
-
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
 
-		/*  Locations of the variables in the shader. */
-		/*  Locations of transform matrices */
-		//GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
-
-		/*  Location of color textures */
-		//GLint m_textureLoc;                       /*  Normal object texture */
-
+		bool m_buffersDisplay = true;
 
 		/*  Location of bump/normal textures */
 		/*  For indicating whether object has normal map, and parallax mapping status */
 
-		/* (0) deferred shading */
 		GLuint m_gColorTexID;
 		GLuint m_gPosTexID;
 		GLuint m_gNrmTexID;
@@ -169,16 +160,7 @@ namespace Rendering {
 			}
 		};
 
-		/* (1) forward Locs */
-		//GLint m_numLightsLoc;
-		//GLint m_lightOnLoc;
-		//GLint m_ambientLoc;
-		//GLint m_specularPowerLoc;
-		//GLint m_lightPosLoc[NUM_MAX_LIGHTS];
-		//GLint m_diffuseLoc[NUM_MAX_LIGHTS];
-		//GLint m_specularLoc[NUM_MAX_LIGHTS];
-
-		/* (2) deferred geometry Locs */
+		/* (1) deferred geometry Locs */
 		GLuint m_gLightOnLoc;
 		GLuint m_gMVMatLoc;
 		GLuint m_gNMVMatLoc;
@@ -200,7 +182,7 @@ namespace Rendering {
 		int m_gLightPassDebug = 0;
 		bool m_gBlinnPhongLighting = true;
 
-		/* (3) deferred light Locs */
+		/* (2) deferred light Locs */
 		GLuint m_lLightPassQuadLoc;
 		GLuint m_lLightPassDebugLoc;
 		GLuint m_lColorTexLoc;
@@ -219,7 +201,7 @@ namespace Rendering {
 		GLuint m_lSpecularLoc[NUM_MAX_LIGHTS];
 		GLuint m_lLightcolorLoc[NUM_MAX_LIGHTS];
 
-		//(4) sphere mirror
+		//(3) sphere mirror
 		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
 		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
 		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
@@ -231,14 +213,14 @@ namespace Rendering {
 		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamMVMat;
 		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamNormalMVMat;
 
-		//(5) planar mirror
+		//(4) planar mirror
 		/*  Mirror camera */
 		Mat4 m_mirrorCamViewMat;
 		Mat4 m_mirrorCamProjMat;
 		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
 		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
 
-		//(6) skybox
+		//(5) skybox
 		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
 		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
