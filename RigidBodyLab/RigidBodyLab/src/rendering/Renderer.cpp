@@ -1145,7 +1145,6 @@ void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
 {
     GLuint prog = m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].GetProgramID();
     m_gForwardRenderOnLoc = glGetUniformLocation(prog,"forwardRenderOn");
-    m_gLightOnLoc = glGetUniformLocation(prog, "lightOn");
     m_gMVMatLoc = glGetUniformLocation(prog, "mvMat");
     m_gNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
     m_gProjMatLoc = glGetUniformLocation(prog, "projMat");
@@ -1418,11 +1417,11 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
         }
         else
         {
-            if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
-            {
-                continue;           /*  Not drawing objects behind mirror & mirror itself */
-            }
-            else
+            //if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
+            //{
+            //    continue;           /*  Not drawing objects behind mirror & mirror itself */
+            //}
+            //else
             {
                 //if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
                 //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
@@ -1432,12 +1431,10 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
                         SendMirrorTexID();
-                        glUniform1i(m_gLightOnLoc, 0);     /*  disable lighting on mirror surface */
                     }
                     else
                     {
                         SendObjTexID(resourceManager.GetTexture(obj.GetImageID()), TO_INT(ActiveTexID::COLOR), m_gColorTexLoc);
-                        glUniform1i(m_gLightOnLoc, 1);     /*  enable lighting for other objects */
                     }
 
                     if (renderPass == RenderPass::NORMAL) {

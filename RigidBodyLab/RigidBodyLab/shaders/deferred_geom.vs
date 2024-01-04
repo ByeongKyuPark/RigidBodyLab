@@ -6,7 +6,6 @@
 uniform mat4 mvMat;  // Model-view matrix
 uniform mat4 nmvMat; // Normal model-view matrix
 uniform mat4 projMat; // Projection matrix
-uniform bool lightOn;           /*  whether lighting should be applied */
 uniform bool normalMappingOn;
 uniform int  numLights;
 uniform vec3 lightPosVF[MAX_LIGHTS];    /*  light pos already in view frame */
@@ -23,7 +22,7 @@ out vec3 vNormal;
 out vec2 vUV;
 out vec3 vLightDir[MAX_LIGHTS]; //cam space
 out vec3 vViewDir;      //cam space
-out float vFragObjType;
+flat out float vFragObjType;
 
 void main() {
     vec4 viewPos = mvMat * vec4(pos, 1.0);
@@ -39,7 +38,7 @@ void main() {
     vViewDir = -viewPos.xyz;                       //'V' (in the cam space)
     vNormal = normalize(mat3(nmvMat) * nrm);    // 'N' (in the cam space)
 
-    if (true)//lightOn && normalMappingOn)
+    if(vFragObjType>0.5) //all object types other than deferred regular(=0)
     {
         vec3 tVF = normalize(mat3(mvMat) * tan);          //tangent (in the cam space)                              
         vec3 btVF = normalize(mat3(mvMat) * bitan);       //bitangent (in the cam space)   
@@ -52,5 +51,5 @@ void main() {
             vLightDir[i] = lightPosVF[i] - vPos; //'L' (in the cam space)
             vLightDir[i] = toTBN * vLightDir[i];              //'L' (in TBN space) 
         }
-    }
+    }    
 }

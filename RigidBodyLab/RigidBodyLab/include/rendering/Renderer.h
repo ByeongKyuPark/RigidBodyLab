@@ -161,7 +161,6 @@ namespace Rendering {
 		};
 
 		/* (1) deferred geometry Locs */
-		GLuint m_gLightOnLoc;
 		GLuint m_gMVMatLoc;
 		GLuint m_gNMVMatLoc;
 		GLuint m_gProjMatLoc;
@@ -229,8 +228,6 @@ namespace Rendering {
 		void InitRendering();
 
 		void SendLightProperties(Scene& scene, int lightIdx=0);
-		//void UpdateSphericalMirrorLightPosViewFrame(Core::Scene& scene);
-		//void UpdatePlanarMirrorLightPosViewFrame(Core::Scene& scene);
 
 		void UpdateNumLights(int numLights);
 		// Function to update the mapping when objects are added/removed
@@ -241,8 +238,6 @@ namespace Rendering {
 		void RenderSphere(const Scene& scene);
 		
 		void RenderObjects(RenderPass renderPass, Core::Scene& scene, int faceIdx=-1);
-		//void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
-		//void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
 		
 		void RenderToSphereCubeMapTexture(Scene& scene);
 		void RenderToMirrorTexture(Scene& scene);

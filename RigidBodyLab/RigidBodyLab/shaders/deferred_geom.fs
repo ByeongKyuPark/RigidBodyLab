@@ -9,7 +9,7 @@ in vec3 vNormal;
 in vec2 vUV;     
 in vec3 vLightDir[MAX_LIGHTS]; //cam space
 in vec3 vViewDir;      //cam space
-in float vFragObjType;   
+flat in float vFragObjType;   
 
 out vec4 fColor;
 out vec3 fPos; 
@@ -20,7 +20,6 @@ uniform sampler2D colorTex;
 uniform sampler2D normalTex;  
 uniform sampler2D bumpTex;
 
-uniform bool lightOn;           /*  whether lighting should be applied */
 uniform bool normalMappingOn;
 uniform bool parallaxMappingOn;
 uniform bool forwardRenderOn;
@@ -74,6 +73,9 @@ void main(void) {
     }           
 
     if(forwardRenderOn){
+        //fragColor = vec4(1.f,0.f,1.f,1.f);
+        //return;
+
       vec4 intensity = ambient;
       
       for (int i = 0; i < numLights; ++i){                                                                                      
@@ -85,8 +87,7 @@ void main(void) {
         vec4 specularTerm = specular[i] * pow(max(dot(N, H), 0.f), specularPower); 
         intensity += (diffuseTerm + specularTerm);                                
       }
-      fragColor *= intensity;// *0.5f;//dimmer
-
+      fragColor *= intensity;
     }
 
     fragNrm = vec4(N,vFragObjType);

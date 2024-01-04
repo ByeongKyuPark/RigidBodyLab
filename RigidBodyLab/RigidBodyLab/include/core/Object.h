@@ -14,7 +14,7 @@ namespace Core {
 
 	// in deferred_geom_pass.vs, convert the received objectType from `int` to `float` and then store it in the alpha channel of the tangent.
 	// this way, all object types other than deferred regular(=0) will have this value clamped to 1.0f
-	// then Check if the object is a normal mapped plane (objectType > 0.5f) in deferred_light_pass.fs
+	// then Check if the object is a deferred rendering type (objectType > 0.5f)
 	enum class ObjectType {
 		DEFERRED_REGULAR=0,  // Normal Objects will be deferred rendered
 		NORMAL_MAPPED_PLANE, // Plane with normal (and possibly parallax) mapping capabilities
