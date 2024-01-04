@@ -184,15 +184,21 @@ namespace Rendering {
 		GLuint m_gNMVMatLoc;
 		GLuint m_gProjMatLoc;
 		GLuint m_gNumLightsLoc;
+		GLuint m_gAmbientLoc;
 		GLuint m_gObjectTypeLoc;
-		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
 		GLuint m_gNormalMappingOnLoc;
+		GLuint m_gForwardRenderOnLoc;
 		GLuint m_gParallaxMappingOnLoc;
 		GLuint m_gColorTexLoc;
 		GLuint m_gNormalTexLoc;
 		GLuint m_gBumpTexLoc;
+		GLuint m_gSpecularPowerLoc;
+		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
+		GLuint m_gDiffuseLoc[NUM_MAX_LIGHTS];
+		GLuint m_gSpecularLoc[NUM_MAX_LIGHTS];
+		GLuint m_gLightcolorLoc[NUM_MAX_LIGHTS];
 		int m_gLightPassDebug = 0;
-		bool m_gBlinnPhongLighting = false;
+		bool m_gBlinnPhongLighting = true;
 
 		/* (3) deferred light Locs */
 		GLuint m_lLightPassQuadLoc;
@@ -240,7 +246,7 @@ namespace Rendering {
 		void InitImGui();
 		void InitRendering();
 
-		void UpdateDeferredGeomLightPosViewFrame(Scene& scene);
+		void SendLightProperties(Scene& scene, int lightIdx=0);
 		//void UpdateSphericalMirrorLightPosViewFrame(Core::Scene& scene);
 		//void UpdatePlanarMirrorLightPosViewFrame(Core::Scene& scene);
 
@@ -268,10 +274,9 @@ namespace Rendering {
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
 		
-		void SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx = 0);
 		void SendForwardProperties(const Scene& scene);
 		void SendDeferredLightPassProperties(const Scene& scene);
-		//void SendDeferredGeomProperties(const Scene& scene);
+		void SendDeferredGeomProperties(const Scene& scene);
 
 		
 		void SetUpSkyBoxUniformLocations();

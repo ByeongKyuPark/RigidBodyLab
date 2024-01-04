@@ -15,10 +15,10 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.3,0.3,0.3,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 1.f, 1.f, 1.f, 1.f }}, 
-    m_ambientAlbedo{ 0.5f, 0.5f, 0.5f, 1.0f }, m_numLights{ 1 },
+    : m_ambientLightIntensity{0.3f,0.3f,0.3f,1.f}, m_I {Renderer::NUM_MAX_LIGHTS, Vec4{ 1.f, 1.f, 1.f, 1.f }}, 
+    m_ambientAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_numLights{ 1 },
 	m_diffuseAlbedo{ 0.8f, 0.8f, 0.8f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
-	m_specularPower{ 12 },m_planeSpecularPower{static_cast<int>(m_specularPower*1.5f)}, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
+	m_specularPower{ 12 }, m_lightPosVF{ Renderer::NUM_MAX_LIGHTS,Vec3{} }, m_lightPosWF{ Renderer::NUM_MAX_LIGHTS,Vec3{} },
 	m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
@@ -188,7 +188,7 @@ void Core::Scene::SetUpScene() {
 
     //Vec3 basePos{ 0, BASE_POS_Y, 0 };
     //Vec3 baseSize = Vec3(5.f, 5.f, 5.f);
-    //CreateObject("plane", MeshID::SPHERE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{}, ObjectType::REGULAR);
+    //CreateObject("plane", MeshID::SPHERE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{}, ObjectType::DEFERRED_REGULAR);
 
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
@@ -211,7 +211,7 @@ void Core::Scene::SetUpScene() {
 
     //(5) light
     SetLightPosition({ 10,10,5 });
-    SetLightColor({ 0.7f,0.15f,0.7f,1.f });
+    SetLightColor({ 0.9f,0.9f,0.9f,1.f });
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -290,7 +290,7 @@ void Core::Scene::SetUpProjectiles() {
             { mainCam.GetPos().x, mainCam.GetPos().y, mainCam.GetPos().z },
             0.5f, // mass
             Quaternion{},
-            Core::ObjectType::REGULAR,
+            Core::ObjectType::DEFERRED_REGULAR,
             false, // turn off collision
             false // not visible by default
         );

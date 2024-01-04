@@ -60,7 +60,7 @@ void main(void) {
                 else{
                     float mask=texture(nrmTex, uvCoord).w;
                     //reverse black <-> white
-                    mask = mask>0.5 ? 0.f: 1.f;                    
+                    //mask = mask>0.5 ? 0.f: 1.f;                    
                     fragColor = vec4(mask,mask,0.f, 1.f);//yellow
                 }
 
@@ -81,7 +81,7 @@ void main(void) {
         vec3 viewDir = normalize(normalize(-fragPos));
         float objectType = nrmPack.w;
 
-        if (objectType < 0.5f) {// check if the object is a normal mapped plane
+        if (objectType > 0.5f) {// check if the object is forward rendered
             return; //light already computed
         }
 

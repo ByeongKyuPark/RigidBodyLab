@@ -13,13 +13,14 @@ namespace Core {
 	using namespace Physics;
 
 	// in deferred_geom_pass.vs, convert the received objectType from `int` to `float` and then store it in the alpha channel of the tangent.
-	// this way, all object types other than normal mapped plane(=0) will have this value clamped to 1.0f
-	// then Check if the object is a normal mapped plane (objectType < 0.5f) in deferred_light_pass.fs
+	// this way, all object types other than deferred regular(=0) will have this value clamped to 1.0f
+	// then Check if the object is a normal mapped plane (objectType > 0.5f) in deferred_light_pass.fs
 	enum class ObjectType {
-		NORMAL_MAPPED_PLANE=0, // Plane with normal (and possibly parallax) mapping capabilities
+		DEFERRED_REGULAR=0,  // Normal Objects will be deferred rendered
+		NORMAL_MAPPED_PLANE, // Plane with normal (and possibly parallax) mapping capabilities
 		REFLECTIVE_FLAT,    // Planar Mirror
 		REFLECTIVE_CURVED,  // Spherical Mirror
-		REGULAR            // Normal Objects
+		NUM_OBJ_TYPES
 	};
 
 	class Object {

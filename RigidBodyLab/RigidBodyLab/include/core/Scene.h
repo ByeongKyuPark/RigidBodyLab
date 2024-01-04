@@ -29,7 +29,7 @@ namespace Core {
         Vec4 m_ambientAlbedo;
         Vec4 m_diffuseAlbedo;
         Vec4 m_specularAlbedo;
-        int m_specularPower;
+        int m_specularPower;      //regular objects
         int m_numLights;
 
         CollisionManager m_collisionManager;
@@ -96,7 +96,7 @@ namespace Core {
             const Vector3& position = Vector3{ 0.f,0.f,0.f },
             float mass = 1.f,
             const Quaternion& orientation = Quaternion{},
-            ObjectType objType = ObjectType::REGULAR,
+            ObjectType objType = ObjectType::DEFERRED_REGULAR,
             bool isCollisionEnabled = true,
             bool isVisible = true
             );

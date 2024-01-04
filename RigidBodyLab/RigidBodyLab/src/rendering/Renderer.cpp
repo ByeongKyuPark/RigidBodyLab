@@ -329,21 +329,39 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
 //    glUniform1i(m_specularPowerLoc, scene.m_specularPower);
 //}
 
-//void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
-//    const int numLights = scene.GetNumLights();
-//    glUniform1i(m_gNumLightsLoc, numLights);
-//
-//    for (int i = 0; i < numLights; ++i) {
-//        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-//    }
-//}
+void Rendering::Renderer::SendDeferredGeomProperties(const Scene& scene) {
+    const int numLights = scene.GetNumLights();
+    glUniform1i(m_gNumLightsLoc, numLights);
+    glUniform1i(m_gNormalMappingOnLoc, m_parallaxMappingOn);
+    glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
+
+    for (int i = 0; i < numLights; ++i) {
+        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+    }
+
+    Vec4 ambient = scene.m_ambientLightIntensity * scene.m_ambientAlbedo;
+    Vec4 diffuse, specular;
+
+    /*  Send ambient, diffuse, specular, specularPower, and blinnPhongLighting(boolean) to shader. */
+    glUniform4fv(m_gAmbientLoc, 1, &ambient[0]);
+    glUniform1i(m_gSpecularPowerLoc, scene.m_specularPower);
+
+    for (int i = 0; i < numLights; ++i) {
+        diffuse = scene.m_I[i] * scene.m_diffuseAlbedo;
+        specular = scene.m_I[i] * scene.m_specularAlbedo;
+
+        glUniform4fv(m_gDiffuseLoc[i], 1, &diffuse[i]);
+        glUniform4fv(m_gSpecularLoc[i], 1, &specular[i]);
+        glUniform4fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+    }
+}
 
 void Rendering::Renderer::SendDeferredLightPassProperties(const Scene& scene)
 {
     const int numLights = scene.GetNumLights();
     glUniform1i(m_lNumLightsLoc, numLights);
     glUniform1i(m_lLightPassDebugLoc, m_gLightPassDebug);
-    glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
+    glUniform1i(m_lParallaxMappingOnLoc, m_parallaxMappingOn);
     glUniform1i(m_lBlinnPhongLightingLoc, m_gBlinnPhongLighting);
     glUniform1i(m_lNormalMappingObjTypeLoc, TO_INT(Core::ObjectType::NORMAL_MAPPED_PLANE));
 
@@ -642,18 +660,6 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
-void Rendering::Renderer::SendDiffuseSpecularLightProperty(const Scene& scene, int lightIdx)
-{
-    if (lightIdx >= scene.GetNumLights()) {
-        throw std::runtime_error("SendDiffuseSpecularLightProperty::light index out of range");
-    }
-
-	Vec4 diffuse = scene.m_I[lightIdx] * scene.m_diffuseAlbedo;
-	Vec4 specular = scene.m_I[lightIdx] * scene.m_specularAlbedo;
-
-	glUniform4fv(m_lDiffuseLoc[lightIdx], 1, ValuePtr(diffuse));
-	glUniform4fv(m_lSpecularLoc[lightIdx], 1, ValuePtr(specular));
-}
 
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
@@ -809,19 +815,17 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
         for (int i = 0; i < scene.GetNumLights(); ++i) {
             Vec3 lightPos = scene.GetLightPosition(i);
-            if (ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
+            bool posUpdated{ false }, colorUpdated{ false };
+            if (posUpdated=ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
                 scene.SetLightPosition(lightPos, i);
-                UpdateDeferredGeomLightPosViewFrame(scene);
-                mainCam.moved = true; //forcing to update textures
-                m_shouldUpdateCubeMapForSphere = true;
             }
 
             Vec4 lightColor = scene.GetLightColor(i);
-            if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
+            if (colorUpdated=ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
                 scene.SetLightColor(lightColor, i);
-                SendDiffuseSpecularLightProperty(scene,i);
-                mainCam.moved = true; //forcing to update textures
-                m_shouldUpdateCubeMapForSphere = true;
+            }
+            if (posUpdated || colorUpdated) {
+                SendLightProperties(scene);
             }
         }
     }
@@ -968,8 +972,8 @@ void Renderer::AttachScene(const Core::Scene& scene)
     m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
     SendDeferredLightPassProperties(scene);
 
-    //m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
-    //SendDeferredGeomProperties(scene);
+    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+    SendDeferredGeomProperties(scene);
 
     /*  Drawing using filled mode */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1138,6 +1142,7 @@ void Renderer::Resize(GLFWwindow* window, int w, int h)
 void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
 {
     GLuint prog = m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].GetProgramID();
+    m_gForwardRenderOnLoc = glGetUniformLocation(prog,"forwardRenderOn");
     m_gLightOnLoc = glGetUniformLocation(prog, "lightOn");
     m_gMVMatLoc = glGetUniformLocation(prog, "mvMat");
     m_gNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
@@ -1149,10 +1154,14 @@ void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
     m_gColorTexLoc = glGetUniformLocation(prog, "colorTex");
     m_gNormalTexLoc = glGetUniformLocation(prog, "normalTex");
     m_gBumpTexLoc = glGetUniformLocation(prog, "bumpTex");
+    m_gAmbientLoc = glGetUniformLocation(prog, "ambient");
+    m_gSpecularPowerLoc = glGetUniformLocation(prog, "specularPower");
 
     for (int i = 0; i < NUM_MAX_LIGHTS; ++i) {
         std::string index = std::to_string(i);
         m_gLightPosVFLoc[i]= glGetUniformLocation(prog, ("lightPosVF[" + index + "]").c_str());
+        m_gDiffuseLoc[i] = glGetUniformLocation(prog, ("diffuse[" + index + "]").c_str());
+        m_gSpecularLoc[i] = glGetUniformLocation(prog, ("specular[" + index + "]").c_str());
     }
 }
 
@@ -1236,24 +1245,35 @@ void Renderer::InitRendering() {
 //    }
 //}
 
-void Rendering::Renderer::UpdateDeferredGeomLightPosViewFrame(Core::Scene& scene)
+void Rendering::Renderer::SendLightProperties(Core::Scene& scene, int lightIdx)
 {
-    //if (mainCam.moved)
-    //{
-    //    const int NumLights = scene.GetNumLights();
-    //    for (int i = 0; i < NumLights; ++i) {
-    //        scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
-    //        glUniform3fv(m_lightPosLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-    //    }
-    //}
-    if (mainCam.moved)
-    {
-        const int NumLights = scene.GetNumLights();
-        for (int i = 0; i < NumLights; ++i) {
-            scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
-            glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
-        }
+    if (lightIdx >= scene.GetNumLights()) {
+        throw std::runtime_error("SendLightProperties::light index out of range");
     }
+
+	const int NumLights = scene.GetNumLights();
+    for (int i = 0; i < NumLights; ++i) {
+        scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+        glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+    }
+
+    Vec4 diffuse = scene.m_I[lightIdx] * scene.m_diffuseAlbedo;
+    Vec4 specular = scene.m_I[lightIdx] * scene.m_specularAlbedo;
+
+    glUniform4fv(m_lDiffuseLoc[lightIdx], 1, ValuePtr(diffuse));
+    glUniform4fv(m_lSpecularLoc[lightIdx], 1, ValuePtr(specular));
+    
+    //-----------------------------------------------------------
+    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+	for (int i = 0; i < NumLights; ++i) {
+		//scene.m_lightPosVF[i] = Vec3(m_mainCamViewMat * Vec4(scene.m_lightPosWF[i], 1.0f));
+		glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_lightPosVF[i]));
+	}
+
+    glUniform4fv(m_gDiffuseLoc[lightIdx], 1, ValuePtr(diffuse));
+    glUniform4fv(m_gSpecularLoc[lightIdx], 1, ValuePtr(specular));
+
+    m_shouldUpdateCubeMapForSphere = true;
 }
 
 void Rendering::Renderer::UpdateNumLights(int numLights){
@@ -1420,7 +1440,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
     }
 
 
-    //UpdateDeferredGeomLightPosViewFrame(scene);
+    //UpdatLightPosition(scene);
     //SendProjMat(m_mainCamProjMat, m_gProjMatLoc);
 
 
@@ -1432,6 +1452,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
             continue;
         }        
         glUniform1i(m_gObjectTypeLoc, TO_INT(obj.GetObjType()));
+        glUniform1i(m_gForwardRenderOnLoc, obj.GetObjType()!=Core::ObjectType::DEFERRED_REGULAR);
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED && renderPass == RenderPass::MIRRORTEX_GENERATION) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
@@ -1443,10 +1464,10 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
             }
             else
             {
-                if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
-                    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
-                }
-                else
+                //if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
+                //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                //}
+                //else
                 {
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
@@ -1517,7 +1538,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
 //    //m_shaders[TO_INT(ProgType::FORWARD_PROG)].Use();
 //    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
 //
-//    //UpdateDeferredGeomLightPosViewFrame(scene);
+//    //UpdatLightPosition(scene);
 //    SendProjMat(m_mirrorCamProjMat, m_gProjMatLoc);
 //
 //    ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -1600,7 +1621,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
 //    glViewport(0, 0, resourceManager.m_skyboxFaceSize, resourceManager.m_skyboxFaceSize);
 //
 //    RenderSkybox(m_sphereCamViewMat[faceIdx]);
-//    //UpdateDeferredGeomLightPosViewFrame(scene);
+//    //UpdatLightPosition(scene);
 //
 //
 //    m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
