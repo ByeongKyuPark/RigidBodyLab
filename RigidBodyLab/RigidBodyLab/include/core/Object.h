@@ -17,9 +17,9 @@ namespace Core {
 	// then Check if the object is a deferred rendering type (objectType > 0.5f)
 	enum class ObjectType {
 		DEFERRED_REGULAR=0,  // Normal Objects will be deferred rendered
-		NORMAL_MAPPED_PLANE, // Plane with normal (and possibly parallax) mapping capabilities
-		REFLECTIVE_FLAT,    // Planar Mirror
-		REFLECTIVE_CURVED,  // Spherical Mirror
+		REFLECTIVE_FLAT=1,    // Planar Mirror
+		REFLECTIVE_CURVED=2,  // Spherical Mirror
+		NORMAL_MAPPED_PLANE=3, // Plane with normal (and possibly parallax) mapping capabilities
 		NUM_OBJ_TYPES
 	};
 

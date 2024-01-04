@@ -12,7 +12,7 @@ void Rendering::OrbitalLight::UpdatePosition(float dt) {
 
     Vec3 newPos = Vec3(
         m_lightOrbitOffset.x + cos(m_accumulatedTime + m_lightOrbitOffset.y) * m_orbitalRad,
-        m_lightPosWF.y + sin(m_accumulatedTime + m_lightOrbitOffset.z) * m_orbitalRad,
+        m_lightPosWF.y + sin(m_accumulatedTime) * (m_orbitalRad / 5.f),
         m_lightOrbitOffset.z + sin(m_accumulatedTime + m_lightOrbitOffset.x) * m_orbitalRad
     );
 

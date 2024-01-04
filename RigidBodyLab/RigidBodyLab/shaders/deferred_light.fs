@@ -79,11 +79,11 @@ void main(void) {
         vec4 nrmPack = texture(nrmTex, uvCoord);
         vec3 normal = normalize(nrmPack.xyz);
         vec3 viewDir = normalize(normalize(-fragPos));
-        float objectType = nrmPack.w;
+        //float objectType = nrmPack.w;
 
-        if (objectType > 0.5f) {// check if the object is forward rendered
-            return; //light already computed
-        }
+        //if (objectType > 0.5f) {// check if the object is forward rendered (=planess)
+            //return; //light already computed
+        //}
 
         vec4 intensity = ambient;
         

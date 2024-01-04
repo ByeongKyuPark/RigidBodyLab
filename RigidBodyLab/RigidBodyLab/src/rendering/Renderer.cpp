@@ -288,9 +288,9 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
         return true;
     }
     constexpr float MIN_SPEED_SQRD = 0.001f;
-    constexpr int UPDATE_INTERVAL = 5;
+    constexpr int UPDATE_INTERVAL = 10;
     m_sphereMirrorCubeMapFrameCounter++;
-    if (speedSqrd >= MIN_SPEED_SQRD || m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
+    if (speedSqrd >= MIN_SPEED_SQRD && m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
         m_sphereMirrorCubeMapFrameCounter = 0;
         return true;
     }
@@ -1395,7 +1395,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
             continue;
         }        
         glUniform1i(m_gObjectTypeLoc, TO_INT(obj.GetObjType()));
-        glUniform1i(m_gForwardRenderOnLoc, obj.GetObjType()!=Core::ObjectType::DEFERRED_REGULAR);
+        glUniform1i(m_gForwardRenderOnLoc, false);// obj.GetObjType() != Core::ObjectType::DEFERRED_REGULAR);
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED && renderPass == RenderPass::MIRRORTEX_GENERATION) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
