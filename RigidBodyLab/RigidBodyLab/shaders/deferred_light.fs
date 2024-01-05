@@ -88,7 +88,10 @@ void main(void) {
         if (objectType > 0.7f) {// plane
             return; //light already computed
         }
-        
+        else if(objectType>0.2f){//planar & spherical mirror
+            intensity += vec4(0.27,0.27,0.27,1.f); //brighter (optional, for demonstration purposes)            
+        }
+
         for (int i = 0; i < numLights; ++i) {
             vec3 lightDir = normalize(normalize(lightPosVF[i] - fragPos));
             //diffuse
@@ -104,13 +107,6 @@ void main(void) {
                 intensity += specular[i]* pow(max(dot(viewDir, reflectDir), 0.0), specularPower);
             }
             fragColor *= intensity;
-        }
-
-        if(objectType>0.2f){//planar & spherical mirror
-            if(fragColor.r+fragColor.g+fragColor.b<2.f){
-               intensity+=vec4(0.5,0.5,0.5,0.f); //brighter (optional, for demonstration purposes)
-            }
-        }
-
+        }        
     }
 }

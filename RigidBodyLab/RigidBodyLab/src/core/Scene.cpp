@@ -15,7 +15,7 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.8f,0.8f,0.8f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 4 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
+    : m_ambientLightIntensity{0.5f,0.5f,0.5f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 2 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
 	m_diffuseAlbedo{ 0.9f, 0.9f, 0.9f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
 	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
@@ -240,7 +240,7 @@ void Core::Scene::SetUpOrbitalLights() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
     //rendom offset between -3 and 3
-    for (int i = 1; i < m_numLights; ++i) {
+    for (int i{}; i < m_numLights; ++i) {
         float offsetX = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.f - 3.f;
         float offsetY = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.f - 3.f;
         float offsetZ = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.f - 3.f;
