@@ -11,14 +11,14 @@ void Rendering::OrbitalLight::UpdatePosition(float dt) {
     m_accumulatedTime += dt * m_orbitalSpeed;
 
     Vec3 newPos = Vec3(
-        m_lightOrbitOffset.x + cos(m_accumulatedTime + m_lightOrbitOffset.y) * m_orbitalRad,
+        m_lightOrbitOffset.x + cos(m_accumulatedTime + m_lightOrbitOffset.x) * m_orbitalRad,
         m_lightPosWF.y,
-        m_lightOrbitOffset.z + sin(m_accumulatedTime + m_lightOrbitOffset.x) * m_orbitalRad
+        m_lightOrbitOffset.z + sin(m_accumulatedTime + m_lightOrbitOffset.z) * m_orbitalRad
     );
 
     newPos = RotateAroundAxis(newPos , m_rotationAngle);
     m_lightPosWF = newPos;
-                                //lookit at the center
-    m_lightView = glm::lookAt(m_lightPosWF, glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0)); 
+                                //looking at the center
+    m_lightView = glm::lookAt(m_lightPosWF, glm::vec3(1.0), glm::vec3(0.0, 1.0, 0.0)); 
     m_lightSpaceMat = m_lightProjection * m_lightView;
 }

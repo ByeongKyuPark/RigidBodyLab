@@ -246,12 +246,12 @@ void Core::Scene::SetUpOrbitalLights() {
         float offsetZ = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 6.f - 3.f;
         m_orbitalLights[i].m_lightOrbitOffset = Vec3(offsetX, offsetY, offsetZ);
 
-        // random orbital radius between 0.5 and 20.0
-        float rad = 0.5f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 20.0f;
+        // random orbital radius between 0.5 and 5.0
+        float rad = 0.5f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 5.5f;
         m_orbitalLights[i].m_orbitalRad = rad;
 
-        // random orbital speed between 0.1 and 0.8
-        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.7f;
+        // random orbital speed between 0.1 and 0.5
+        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.4f;
         m_orbitalLights[i].m_orbitalSpeed = speed;
 
         m_orbitalLights[i].m_accumulatedTime = 0.f;
@@ -259,8 +259,7 @@ void Core::Scene::SetUpOrbitalLights() {
         // random rotation axis and angle
         Vec3 axis = Vec3(
             static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX),
-            1.f,
-            //static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX),
+            static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX),
             static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)
         );
         axis = Normalize(axis); 
@@ -275,7 +274,6 @@ void Core::Scene::SetUpOrbitalLights() {
         float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.75f;
         m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
     }
-    m_orbitalLights[0].m_lightOrbitOffset = Vec3{0.1f,0.1f,0.1f};
 }
 
 

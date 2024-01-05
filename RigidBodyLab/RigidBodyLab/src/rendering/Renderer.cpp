@@ -1664,8 +1664,8 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
         if (obj.IsVisible() == false) {
             continue;
         }
-        Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat*obj.GetModelMatrix();
-        glUniformMatrix4fv(m_lShadowDepthTexLoc, 1, GL_FALSE, ValuePtr(mat));
+        Mat4 mat=scene.m_orbitalLights[0].m_lightSpaceMat* obj.GetModelMatrix();
+        glUniformMatrix4fv(m_sLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
         RenderObj(obj);
     }
 

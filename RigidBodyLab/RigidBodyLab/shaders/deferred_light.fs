@@ -67,7 +67,7 @@ void main(void) {
                 }                
                 */
                 float depth = texture(shadowMapDepthTex, uvCoord).r;
-                //depth = linearizeDepth(depth);
+                depth = linearizeDepth(depth);
                 fragColor = vec4(depth, depth, depth, 1.0);
                 break;
 
