@@ -275,6 +275,7 @@ void Core::Scene::SetUpOrbitalLights() {
         float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.75f;
         m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
     }
+    m_orbitalLights[0].m_lightOrbitOffset = Vec3{0.1f,0.1f,0.1f};
 }
 
 

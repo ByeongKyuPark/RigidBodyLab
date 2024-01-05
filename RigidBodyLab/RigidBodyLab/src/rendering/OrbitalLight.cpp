@@ -18,7 +18,7 @@ void Rendering::OrbitalLight::UpdatePosition(float dt) {
 
     newPos = RotateAroundAxis(newPos , m_rotationAngle);
     m_lightPosWF = newPos;
-
+                                //lookit at the center
     m_lightView = glm::lookAt(m_lightPosWF, glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0)); 
     m_lightSpaceMat = m_lightProjection * m_lightView;
 }

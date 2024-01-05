@@ -7,6 +7,7 @@ uniform sampler2D posTex;
 uniform sampler2D nrmTex;
 uniform sampler2D colorTex;
 uniform sampler2D depthTex;
+uniform sampler2D shadowMapDepthTex;
 
 // Light properties
 #define MAX_LIGHTS 10
@@ -54,7 +55,8 @@ void main(void) {
                 fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
                 break;                
             case 5: //  NORMAL_MAPPING (Objects for which normal mapping is applied)            
-                if (fragDepth >= 0.999f) { //background
+                /*
+                if (fragDepth >= 0.999f) { //background                
                     fragColor = vec4(0.f,0.f,0.f, 1.f);
                 }
                 else{
@@ -63,6 +65,10 @@ void main(void) {
                     //mask = mask>0.5 ? 0.f: 1.f;                    
                     fragColor = vec4(mask,mask,0.f, 1.f);//yellow
                 }                
+                */
+                float depth = texture(shadowMapDepthTex, uvCoord).r;
+                //depth = linearizeDepth(depth);
+                fragColor = vec4(depth, depth, depth, 1.0);
                 break;
 
         }

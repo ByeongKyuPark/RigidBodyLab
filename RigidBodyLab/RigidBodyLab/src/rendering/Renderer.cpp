@@ -289,9 +289,10 @@ void Rendering::Renderer::SetUpShadowMappingTextures() {
     glGenFramebuffers(1, &m_shadowMapFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
 
-    glGenTextures(1, &m_sShdowDepthTexID);
-    glBindTexture(GL_TEXTURE_2D, m_sShdowDepthTexID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glGenTextures(1, &m_sShdowMapDepthTexID);
+    glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -300,7 +301,7 @@ void Rendering::Renderer::SetUpShadowMappingTextures() {
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &one);
 
     // attach the texture as the depth component of the FBO
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D, m_sShdowDepthTexID, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D, m_sShdowMapDepthTexID, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
@@ -1026,7 +1027,7 @@ void Renderer::CleanUp()
     glDeleteTextures(1, &m_gPosTexID);
     glDeleteTextures(1, &m_gNrmTexID);
     glDeleteTextures(1, &m_gDepthTexID);
-    glDeleteTextures(1, &m_sShdowDepthTexID);
+    glDeleteTextures(1, &m_sShdowMapDepthTexID);
 
     glDeleteFramebuffers(1, &m_deferredGeomPassFBO);
     glDeleteFramebuffers(1, &m_shadowMapFBO);
@@ -1170,6 +1171,8 @@ void Rendering::Renderer::SetUpDeferredLightUniformLocations() {
 	m_lNrmTexLoc = glGetUniformLocation(prog, "nrmTex");
     m_lTanTexLoc = glGetUniformLocation(prog, "tanTex");
     m_lDepthTexLoc = glGetUniformLocation(prog, "depthTex");
+    m_lShadowDepthTexLoc = glGetUniformLocation(prog, "shadowMapDepthTex");
+
     m_lAmbientLoc = glGetUniformLocation(prog, "ambient");
     m_lSpecularPowerLoc= glGetUniformLocation(prog, "specularPower");
     m_lBlinnPhongLightingLoc = glGetUniformLocation(prog, "blinnPhongLighting");
@@ -1278,6 +1281,7 @@ void Rendering::Renderer::UpdateOrbitalLights(Core::Scene& scene, float dt) {
     for (int i = 0; i < numLights; ++i) {
         glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
     }
+
 }
 
 
@@ -1594,7 +1598,6 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -1649,14 +1652,32 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     /*  This is done separately, as it uses a different shader program for reflection/refraction */
     RenderSphere(scene);
     //----------------------
-    // (3) light pass
+    // (3) shadow mapping
+    m_shaders[TO_INT(ProgType::SHADOW_MAP)].Use();
+    glViewport(0, 0, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    const size_t numObjs = scene.m_objects.size();
+    for (int i{}; i < numObjs; ++i) {
+        const auto& obj = *scene.m_objects[i];
+        if (obj.IsVisible() == false) {
+            continue;
+        }
+        Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat*obj.GetModelMatrix();
+        glUniformMatrix4fv(m_lShadowDepthTexLoc, 1, GL_FALSE, ValuePtr(mat));
+        RenderObj(obj);
+    }
+
+    //----------------------
+    // (4) light pass
     {
-        m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
 
         /*  Bind framebuffer to 0 to render to the screen */
         /*  Disable depth test since we only render flat textures */
         /*  Disable writing to depth buffer */
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
         
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1684,6 +1705,10 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
         glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
         glUniform1i(m_lDepthTexLoc, 3);
 
+        //Bind the shadow depth texture to texture unit 4
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
+        glUniform1i(m_lShadowDepthTexLoc, 4);
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
@@ -1718,10 +1743,14 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
                     glActiveTexture(GL_TEXTURE3);
                     glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
                     break;
-                case TO_INT(DebugType::NORMAL_MAPPING_MASK):
-                    glActiveTexture(GL_TEXTURE2);
-                    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+                case TO_INT(DebugType::SHADOW_MAP_DEPTH):
+                    glActiveTexture(GL_TEXTURE4);
+                    glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
                     break;
+                    //case TO_INT(DebugType::NORMAL_MAPPING_MASK):
+                //    glActiveTexture(GL_TEXTURE2);
+                //    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+                //    break;
                 }
                 glBindVertexArray(quadVAO[i]);
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1738,7 +1767,6 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     //------------------------------------------------------------
     RenderGui(scene, fps);
 
-    //obital lights
     UpdateOrbitalLights(scene, dt);
 
     // Rendering    

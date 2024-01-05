@@ -19,7 +19,7 @@ namespace Rendering {
         OrbitalLight() :m_lightSpaceMat{ 1.f }, m_lightProjection{ 1.f }, m_lightView{1.f}, m_lightOrbitOffset {}, m_lightPosVF{}, m_lightPosWF{}, m_orbitalRad(1.0f), m_rotationAxis{ 0.0f, 1.0f, 0.0f },
             m_orbitalSpeed(1.0f), m_accumulatedTime(0.0f), m_intensity{0.f,0.f,0.f,1.f}, m_rotationAngle(0.0f)  
         {
-            m_lightProjection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+            m_lightProjection = glm::perspective(glm::radians(45.0f), 1.0f, 0.f, 3.0f);
         }
 
         glm::vec3 RotateAroundAxis(const glm::vec3& point, float angleDegrees) const;

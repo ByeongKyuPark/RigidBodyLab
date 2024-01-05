@@ -55,7 +55,8 @@ namespace Rendering {
 		POSITION,
 		NORMAL,
 		DEPTH,
-		NORMAL_MAPPING_MASK,// Objects for which normal mapping is not applied
+		SHADOW_MAP_DEPTH,
+		//NORMAL_MAPPING_MASK,// Objects for which normal mapping is not applied
 		NUM_DEBUGTYPES
 	};
 
@@ -189,6 +190,7 @@ namespace Rendering {
 		GLuint m_lNrmTexLoc;
 		GLuint m_lTanTexLoc;
 		GLuint m_lDepthTexLoc;
+		GLuint m_lShadowDepthTexLoc;
 		GLuint m_lNumLightsLoc;
 		GLuint m_lAmbientLoc;
 		GLuint m_lSpecularPowerLoc;
@@ -225,7 +227,7 @@ namespace Rendering {
 		//(6) shadow map
 		GLuint m_sLightSpaceMatLoc;
 		GLuint m_shadowMapFBO;
-		GLuint m_sShdowDepthTexID;
+		GLuint m_sShdowMapDepthTexID;
 
 	private:
 		void InitImGui();
