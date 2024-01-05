@@ -181,13 +181,13 @@ void Rendering::Renderer::SetUpShaders() {
 
 /******************************************************************************/
 /*!
-\fn     void SetUpGTextures()
+\fn     void SetUpDeferredGeomPassTextures()
 \brief
 Set up the buffers for the outputs of geometry pass, which will then be
 used for lighting computation in light pass.
 */
 /******************************************************************************/
-void Rendering::Renderer::SetUpGTextures()
+void Rendering::Renderer::SetUpDeferredGeomPassTextures()
 {
     /*  Set up 16-bit floating-point, 4-component texture for color output */
      // Albedo (Color)
@@ -283,6 +283,32 @@ void Rendering::Renderer::SetUpLightPassQuads()
             (void*)0            // array buffer offset
         );
     }
+}
+
+void Rendering::Renderer::SetUpShadowMappingTextures() {
+    glGenFramebuffers(1, &m_shadowMapFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
+
+    glGenTextures(1, &m_sShdowDepthTexID);
+    glBindTexture(GL_TEXTURE_2D, m_sShdowDepthTexID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &one);
+
+    // attach the texture as the depth component of the FBO
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,GL_TEXTURE_2D, m_sShdowDepthTexID, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        Logger::Log("Error: Framebuffer is not complete!");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
@@ -933,9 +959,11 @@ void Renderer::AttachScene(const Core::Scene& scene)
     resourceManager.SetUpTextures();
 
     //4. (deferred shading) Set up textures to be written to in geometry pass and read from in light pass
-	SetUpGTextures();
+	SetUpDeferredGeomPassTextures();
 	//5. (deferred shading) Set up full-screen quad for rendering deferred light pass and 4 small quads for debugging
 	SetUpLightPassQuads();
+    //6. (shadow mapping)
+    SetUpShadowMappingTextures();
 
     m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
     SendDeferredLightPassProperties(scene);

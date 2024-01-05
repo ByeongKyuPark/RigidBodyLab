@@ -231,7 +231,6 @@ namespace Rendering {
 		void InitImGui();
 		void InitRendering();
 
-
 		void UpdateNumLights(int numLights);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
@@ -269,8 +268,9 @@ namespace Rendering {
 
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
-		void SetUpGTextures();
+		void SetUpDeferredGeomPassTextures();
 		void SetUpLightPassQuads();
+		void SetUpShadowMappingTextures();
 
 		bool ShouldUpdateSphereCubemap(float speedSqrd);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
