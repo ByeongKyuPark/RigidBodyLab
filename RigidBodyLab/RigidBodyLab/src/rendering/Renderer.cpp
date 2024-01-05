@@ -214,7 +214,7 @@ void Rendering::Renderer::SetUpGTextures()
     glActiveTexture(GL_TEXTURE2 + OFFSET);
     glGenTextures(1, &m_gNrmTexID);
     glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
@@ -1108,7 +1108,6 @@ void Renderer::Resize(GLFWwindow* window, int w, int h)
 void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
 {
     GLuint prog = m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].GetProgramID();
-    m_gForwardRenderOnLoc = glGetUniformLocation(prog,"forwardRenderOn");
     m_gMVMatLoc = glGetUniformLocation(prog, "mvMat");
     m_gNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
     m_gProjMatLoc = glGetUniformLocation(prog, "projMat");
@@ -1394,8 +1393,11 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
         if (obj.IsVisible() == false) {
             continue;
         }        
-        glUniform1i(m_gObjectTypeLoc, TO_INT(obj.GetObjType()));
-        glUniform1i(m_gForwardRenderOnLoc, obj.GetObjType() != Core::ObjectType::REFLECTIVE_FLAT);
+
+        // 1. Deferred Objects: Do not apply lighting effects to cube map textures.
+        // 2. Sphere: Apply lighting effects directly to the sphere's surface.
+        glUniform1f(m_gObjectTypeLoc, renderPass == RenderPass::SPHERETEX_GENERATION ? 0 : static_cast<float>(obj.GetObjType()) / TO_INT(Core::ObjectType::NUM_OBJ_TYPES));
+
         if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_CURVED && renderPass == RenderPass::MIRRORTEX_GENERATION) {//spherical mirror
             continue;           /*  Will use sphere rendering program to apply reflection & refraction textures on sphere */
         }
@@ -1437,9 +1439,9 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                         glUniform1i(m_gNormalMappingOnLoc, true);
                         glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
 
-                        SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_gBumpTexLoc);
-                        //if (m_parallaxMappingOn) {
-                        //}
+                        if (m_parallaxMappingOn) {
+                            SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_gBumpTexLoc);
+                        }
                     }
                     else                       /*  not apply normal mapping / parallax mapping for other objects */
                     {
@@ -1576,7 +1578,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
 
         GLfloat bgColor[4] = { 1.f, 1.2f, 1.f, 1.0f }; 
         glClearBufferfv(GL_COLOR, 0, bgColor);//color
-        glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec4(0.0f)));//pos
+        glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec3(0.0f)));//pos
         glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
         glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
     }

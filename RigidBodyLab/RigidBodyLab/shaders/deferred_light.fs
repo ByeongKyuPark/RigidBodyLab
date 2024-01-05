@@ -52,8 +52,7 @@ void main(void) {
                 // Linearize the depth value for better visualization
                 float linearDepth = linearizeDepth(fragDepth);
                 fragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
-                break;
-                /*
+                break;                
             case 5: //  NORMAL_MAPPING (Objects for which normal mapping is applied)            
                 if (fragDepth >= 0.999f) { //background
                     fragColor = vec4(0.f,0.f,0.f, 1.f);
@@ -63,8 +62,7 @@ void main(void) {
                     //reverse black <-> white
                     //mask = mask>0.5 ? 0.f: 1.f;                    
                     fragColor = vec4(mask,mask,0.f, 1.f);//yellow
-                }
-                */
+                }                
                 break;
 
         }
@@ -79,14 +77,17 @@ void main(void) {
         vec3 fragPos = texture(posTex, uvCoord).xyz;
         vec4 nrmPack = texture(nrmTex, uvCoord);
         vec3 normal = normalize(nrmPack.xyz);
-        vec3 viewDir = normalize(normalize(-fragPos));
-        //float objectType = nrmPack.w;
-
-        //if (objectType > 0.5f) {// check if the object is forward rendered (=planess)
-            //return; //light already computed
-        //}
+        vec3 viewDir = normalize(-fragPos);
+        float objectType = nrmPack.w; //0   : regular deferred object
+                                     //1/4 : planar mirror
+                                     //2/4 : spherical mirror
+                                     //3/4 : normal mapped plane                             
 
         vec4 intensity = ambient;
+
+        if (objectType > 0.7f) {// plane
+            return; //light already computed
+        }
         
         for (int i = 0; i < numLights; ++i) {
             vec3 lightDir = normalize(normalize(lightPosVF[i] - fragPos));
@@ -104,5 +105,12 @@ void main(void) {
             }
             fragColor *= intensity;
         }
+
+        if(objectType>0.2f){//planar & spherical mirror
+            if(fragColor.r+fragColor.g+fragColor.b<2.f){
+               intensity+=vec4(0.5,0.5,0.5,0.f); //brighter (optional, for demonstration purposes)
+            }
+        }
+
     }
 }
