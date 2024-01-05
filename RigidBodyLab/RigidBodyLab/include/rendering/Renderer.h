@@ -109,7 +109,7 @@ namespace Rendering {
 		GLuint m_gNrmTexID;
 		GLuint m_gDepthTexID;
 
-		GLuint m_gFrameBufferID;
+		GLuint m_deferredGeomPassFBO;
 
 		GLuint quadVAO[TO_INT(DebugType::NUM_DEBUGTYPES)];
 		GLuint quadVBO[TO_INT(DebugType::NUM_DEBUGTYPES)];
@@ -222,6 +222,11 @@ namespace Rendering {
 		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
 		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
+		//(6) shadow map
+		GLuint m_sLightSpaceMatLoc;
+		GLuint m_shadowMapFBO;
+		GLuint m_sShdowDepthTexID;
+
 	private:
 		void InitImGui();
 		void InitRendering();
@@ -260,6 +265,7 @@ namespace Rendering {
 		void SetUpSphereUniformLocations();
 		void SetUpDeferredGeomUniformLocations();
 		void SetUpDeferredLightUniformLocations();
+		void SetUpShadowMappingUniformLocations();
 
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();

@@ -18,6 +18,8 @@ namespace Rendering
         //deferred
         DEFERRED_GEOMPASS, 
         DEFERRED_LIGHTPASS,
+        //shadow mapping
+        SHADOW_MAP,
         NUM_PROGTYPES
     };
     enum class ShaderType {

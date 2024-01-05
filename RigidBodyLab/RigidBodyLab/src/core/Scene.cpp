@@ -15,7 +15,7 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.5f,0.5f,0.5f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 2 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
+    : m_ambientLightIntensity{0.5f,0.5f,0.5f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 1 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
 	m_diffuseAlbedo{ 0.9f, 0.9f, 0.9f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
 	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {

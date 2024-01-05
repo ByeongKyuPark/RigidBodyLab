@@ -155,25 +155,27 @@ void Rendering::Renderer::SetUpShaders() {
         auto& shader = m_shaders[TO_INT(pair.first)];
         shader.LoadShader(pair.second.vertexShaderPath, pair.second.fragmentShaderPath);
     }
-    // For SKYBOX_PROG
+
+    // (1) SKYBOX_PROG
     m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
     SetUpSkyBoxUniformLocations();
 
-     //For SPHERE_PROG
+    // (2) SPHERE_PROG
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
     SetUpSphereUniformLocations();
 
-    // FORWARD_PROG
-    //m_shaders[static_cast<int>(ProgType::FORWARD_PROG)].Use();
-    //SetUpForwardUniformLocations();
-
-    // (1) DEFERRED_GEOM 
+    // (3) DEFERRED_GEOM 
 	m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
 	SetUpDeferredGeomUniformLocations();
 
-    // (2) DEFERRED_LIGHT
+    // (4) DEFERRED_LIGHT
+    m_shaders[TO_INT(ProgType::SHADOW_MAP)].Use();
+    SetUpShadowMappingUniformLocations();
+
+    // (5) DEFERRED_LIGHT
 	m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
 	SetUpDeferredLightUniformLocations();
+
 }
 
 
@@ -229,9 +231,9 @@ void Rendering::Renderer::SetUpGTextures()
     For deferred shading, this framebuffer is bounded to store
     the outputs.
     */
-    glGenFramebuffers(1, &m_gFrameBufferID);
+    glGenFramebuffers(1, &m_deferredGeomPassFBO);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
 
     /*  Indicating the attachments to be used for the output buffers.
     Note that the ID of the attachment (e.g. COLOR_ATTACHMENT0) should match
@@ -996,10 +998,11 @@ void Renderer::CleanUp()
     glDeleteTextures(1, &m_gPosTexID);
     glDeleteTextures(1, &m_gNrmTexID);
     glDeleteTextures(1, &m_gDepthTexID);
+    glDeleteTextures(1, &m_sShdowDepthTexID);
 
-    glDeleteFramebuffers(1, &m_gFrameBufferID);
+    glDeleteFramebuffers(1, &m_deferredGeomPassFBO);
+    glDeleteFramebuffers(1, &m_shadowMapFBO);
     glDeleteFramebuffers(1, &resourceManager.m_mirrorFrameBufferID);
-
 }
 
 Rendering::Renderer::Renderer()
@@ -1025,7 +1028,7 @@ Rendering::Renderer::Renderer()
     , m_gPosTexID {}
     , m_gNrmTexID {}
     , m_gDepthTexID {}
-    , m_gFrameBufferID {}
+    , m_deferredGeomPassFBO {}
 {
 	// Initialize GLFW
 	if (!glfwInit()) {
@@ -1064,12 +1067,11 @@ Rendering::Renderer::Renderer()
 	InitRendering();
 	InitImGui();
 
-    //m_shaderFileMap[ProgType::FORWARD_PROG] = { "../RigidBodyLab/shaders/main.vs",  "../RigidBodyLab/shaders/main.fs" };
     m_shaderFileMap[ProgType::SKYBOX_PROG] = { "../RigidBodyLab/shaders/skybox.vs", "../RigidBodyLab/shaders/skybox.fs" };
     m_shaderFileMap[ProgType::SPHERE_PROG] = { "../RigidBodyLab/shaders/sphere.vs", "../RigidBodyLab/shaders/sphere.fs" };
-    //m_shaderFileMap[ProgType::DEFERRED_FORWARD] = { "../RigidBodyLab/shaders/deferred_forward.vs", "../RigidBodyLab/shaders/deferred_forward.fs" };
     m_shaderFileMap[ProgType::DEFERRED_GEOMPASS] = { "../RigidBodyLab/shaders/deferred_geom.vs", "../RigidBodyLab/shaders/deferred_geom.fs" };
     m_shaderFileMap[ProgType::DEFERRED_LIGHTPASS] = { "../RigidBodyLab/shaders/deferred_light.vs", "../RigidBodyLab/shaders/deferred_light.fs" };
+    m_shaderFileMap[ProgType::SHADOW_MAP] = { "../RigidBodyLab/shaders/shadow_depth.vs", "../RigidBodyLab/shaders/shadow_depth.fs" };
 }
 
 Renderer& Rendering::Renderer::GetInstance() {
@@ -1151,6 +1153,11 @@ void Rendering::Renderer::SetUpDeferredLightUniformLocations() {
         m_lSpecularLoc[i] = glGetUniformLocation(prog, ("specular[" + index + "]").c_str());
         m_lLightPosVFLoc[i] = glGetUniformLocation(prog, ("lightPosVF[" + index + "]").c_str());
     }
+}
+
+void Rendering::Renderer::SetUpShadowMappingUniformLocations() {
+    GLuint prog = m_shaders[TO_INT(ProgType::SHADOW_MAP)].GetProgramID();
+    m_sLightSpaceMatLoc = glGetUniformLocation(prog, "lightSpaceMat");
 }
 
 
@@ -1540,7 +1547,7 @@ void Renderer::RenderToMirrorTexture(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::RenderToScreen(Core::Scene& scene)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
     RenderObjects(RenderPass::NORMAL,scene);
 }
 
@@ -1570,7 +1577,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
         m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
 
         // Bind G-buffer framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, m_gFrameBufferID);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
