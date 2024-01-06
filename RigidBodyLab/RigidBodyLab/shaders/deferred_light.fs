@@ -20,6 +20,7 @@ uniform int numLights;
 uniform int specularPower;  
 uniform int blinnPhongLighting;  // 1 for active, 0 for inactive
 uniform int normalMappingObjType; // Object type for normal mapping
+uniform mat4 lightSpaceMat;
 
 in vec2 uvCoord;
 out vec4 fragColor;
@@ -32,7 +33,9 @@ out vec4 fragColor;
 float linearizeDepth(float depth) {
     float near = 0.02f; // Near plane distance
     float far = 1.f; // Far plane distance
+    depth = depth * 2.0 - 1.0; // Back to NDC 
     return near * far / (far - depth * (far - near));
+    return (2.0 * near * far) / (far + near - depth * (far - near));    
 }
 
 void main(void) {
@@ -66,9 +69,15 @@ void main(void) {
                     fragColor = vec4(mask,mask,0.f, 1.f);//yellow
                 }                
                 */
+                /*
+                float depth = texture(shadowMapDepthTex, uvCoord).r;
+                depth = linearizeDepth(depth);                
+                fragColor = vec4(depth, depth, depth, 1.0);
+                */
                 float depth = texture(shadowMapDepthTex, uvCoord).r;
                 depth = linearizeDepth(depth);
-                fragColor = vec4(depth, depth, depth, 1.0);
+
+                fragColor = vec4(vec3(depth),1.0);
                 break;
 
         }

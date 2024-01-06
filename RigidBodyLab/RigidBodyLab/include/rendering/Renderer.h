@@ -184,6 +184,7 @@ namespace Rendering {
 		/* (2) deferred light Locs */
 		GLuint m_lLightPassQuadLoc;
 		GLuint m_lLightPassDebugLoc;
+		GLuint m_lLightSpaceMatLoc;
 		GLuint m_lColorTexLoc;
 		GLuint m_lNormalMappingObjTypeLoc;
 		GLuint m_lPosTexLoc;

@@ -1163,7 +1163,7 @@ void Rendering::Renderer::SetUpDeferredGeomUniformLocations()
 void Rendering::Renderer::SetUpDeferredLightUniformLocations() {
 	GLuint prog = m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].GetProgramID();
     //m_lLightPassQuadLoc = glGetUniformLocation(prog, "");
-    //TODO::delete tex locs
+    m_lLightSpaceMatLoc = glGetUniformLocation(prog, "lightSpaceMat");
 	m_lLightPassDebugLoc = glGetUniformLocation(prog, "lightPassDebug");
 	m_lColorTexLoc = glGetUniformLocation(prog, "colorTex");
     m_lNumLightsLoc = glGetUniformLocation(prog, "numLights");
@@ -1712,6 +1712,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
+        glUniformMatrix4fv(m_lLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(scene.m_orbitalLights[0].m_lightSpaceMat));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         if (m_buffersDisplay)
