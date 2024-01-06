@@ -15,7 +15,7 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_ambientLightIntensity{0.5f,0.5f,0.5f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 1 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
+    : m_ambientLightIntensity{0.3f,0.3f,0.3f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 1 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
 	m_diffuseAlbedo{ 0.9f, 0.9f, 0.9f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
 	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
@@ -200,9 +200,7 @@ void Core::Scene::SetUpScene() {
 
     //(3) MIRROR
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
-    Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
-    std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
-    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
+    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
     //(4) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
@@ -250,8 +248,8 @@ void Core::Scene::SetUpOrbitalLights() {
         float rad = 7.f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 5.f;
         m_orbitalLights[i].m_orbitalRad = rad;
 
-        // random orbital speed between 0.1 and 0.6
-        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.5f;
+        // random orbital speed between 0.1 and 0.3
+        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.2f;
         m_orbitalLights[i].m_orbitalSpeed = speed;
 
         m_orbitalLights[i].m_accumulatedTime = 0.f;
@@ -260,9 +258,9 @@ void Core::Scene::SetUpOrbitalLights() {
         m_orbitalLights[i].m_rotationAngle = angle;
 
         // random light intensity for each color channel
-        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *0.75f;
-        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.75f;
-        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.75f;
+        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
         m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
     }
 }

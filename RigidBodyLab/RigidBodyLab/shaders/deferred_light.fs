@@ -69,7 +69,7 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
 
     
     float shadow = 0.0;
-    float bias = 0.002;
+    float bias = 0.005;
 
     // Sample the shadow map multiple times around the projected coordinates
     // PCF kernel size (e.g., 3x3)
