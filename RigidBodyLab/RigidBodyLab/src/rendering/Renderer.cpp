@@ -280,22 +280,22 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) 
     }
 
     static bool isFirstUpdateAfterLanding = true;
-    constexpr float MIN_SPEED_SQRD = 0.001f;
+    constexpr float MIN_SPEED_SQRD = 0.01f;
 
     // update at least once after landing on the plane
     if (isFirstUpdateAfterLanding && speedSqrd < MIN_SPEED_SQRD) {
         isFirstUpdateAfterLanding = false;
         return true;
     }
-    constexpr float FPS_THRESHOLD = 45.f;
-    constexpr int UPDATE_INTERVAL = 10;
+    constexpr float FPS_THRESHOLD = 40.f;
+    constexpr int UPDATE_INTERVAL = 15;
 
     m_sphereMirrorCubeMapFrameCounter++;
-    if (fps >= FPS_THRESHOLD){
-        if(speedSqrd >= MIN_SPEED_SQRD  && m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL){
+    if (fps >= FPS_THRESHOLD 
+        && speedSqrd >= MIN_SPEED_SQRD  
+        && m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL){
             m_sphereMirrorCubeMapFrameCounter = 0;
             return true;
-        }
     }
     return false;
 }
