@@ -196,13 +196,17 @@ void Core::Scene::SetUpScene() {
 
     //(2) VASE
     constexpr float VASE_SCL = 3.f;
-    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
+    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_3, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{1.f,0.f,0.f} });
 
-    //(3) MIRROR
+    //(3) teapot
+    constexpr float TEAPOT_SCL = 2.f;
+    CreateObject("teapot", MeshID::TEAPOT, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ TEAPOT_SCL,TEAPOT_SCL,TEAPOT_SCL }, { -4.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+
+    //(4) MIRROR
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
     m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
-    //(4) SPHERE
+    //(5) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 }
@@ -258,9 +262,10 @@ void Core::Scene::SetUpOrbitalLights() {
         m_orbitalLights[i].m_rotationAngle = angle;
 
         // random light intensity for each color channel
-        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        const float minIntensity = 0.3f;
+        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)*0.5f + minIntensity;
+        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)*0.5f + minIntensity;
+        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)*0.5f + minIntensity;
         m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
     }
 }
