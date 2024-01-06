@@ -1269,9 +1269,17 @@ void Rendering::Renderer::UpdateGuiToObjectIndexMap(const Core::Scene& scene) {
 // Function to update light positions
 void Rendering::Renderer::UpdateOrbitalLights(Core::Scene& scene, float dt) {
 
+    Vec4 diffuse, specular;
+
     const int numLights = scene.GetNumLights();
     for (int i{}; i < numLights; ++i){
-        scene.m_orbitalLights[i].UpdatePosition(dt);
+        //update position & color
+        scene.m_orbitalLights[i].Update(dt);
+
+        diffuse = scene.m_orbitalLights[i].m_intensity * scene.m_diffuseAlbedo;
+        specular = scene.m_orbitalLights[i].m_intensity * scene.m_specularAlbedo;
+        glUniform4fv(m_lDiffuseLoc[i], 1, &diffuse[i]);
+        glUniform4fv(m_lSpecularLoc[i], 1, &specular[i]);
 
         scene.m_orbitalLights[i].m_lightPosVF = Vec3(m_mainCamViewMat * Vec4(scene.m_orbitalLights[i].m_lightPosWF, 1.0f));
         glUniform3fv(m_lLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
@@ -1280,6 +1288,8 @@ void Rendering::Renderer::UpdateOrbitalLights(Core::Scene& scene, float dt) {
     m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
     for (int i = 0; i < numLights; ++i) {
         glUniform3fv(m_gLightPosVFLoc[i], 1, ValuePtr(scene.m_orbitalLights[i].m_lightPosVF));
+        glUniform4fv(m_gDiffuseLoc[i], 1, &diffuse[i]);
+        glUniform4fv(m_gSpecularLoc[i], 1, &specular[i]);
     }
 
 }
