@@ -76,7 +76,6 @@ namespace Rendering {
 
 		int m_sphereMirrorCubeMapFrameCounter;
 		float m_sphereRefIndex;
-		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
 
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
@@ -245,12 +244,15 @@ namespace Rendering {
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
 		
-		void RenderObjects(RenderPass renderPass, Core::Scene& scene, int faceIdx=-1);
+		void RenderObjects(RenderPass renderPass, const Core::Scene& scene, int faceIdx=-1);
 		
-		void RenderToSphereCubeMapTexture(Scene& scene);
-		void RenderToMirrorTexture(Scene& scene);
-		void RenderToScreen(Scene& scene);
+		void RenderToSphereCubeMapTexture(const Scene& scene);
+		void RenderToMirrorTexture(const Scene& scene);
+		void RenderToScreen(const Scene& scene);
 		void RenderGui(Scene& scene, float fps);
+		void RenderGeometryPass(const Scene& scene, float fps);
+		void RenderLightPass(const Scene& scene);
+		void RenderShadowMap(Scene& scene);
 
 		void ComputeMainCamObjMVMats(const Core::Scene& scene);
 		void ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene);
@@ -275,7 +277,7 @@ namespace Rendering {
 		void SetUpLightPassQuads();
 		void SetUpShadowMappingTextures();
 
-		bool ShouldUpdateSphereCubemap(float speedSqrd);
+		bool ShouldUpdateSphereCubemap(float speedSqrd, float fps);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 		static void WindowDeleter(GLFWwindow* window);

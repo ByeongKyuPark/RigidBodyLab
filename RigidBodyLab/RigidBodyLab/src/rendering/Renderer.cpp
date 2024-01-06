@@ -47,45 +47,6 @@ void Renderer::SetUpSkyBoxUniformLocations()
     m_skyboxTexCubeLoc = glGetUniformLocation(prog, "texCube");
 }
 
-/******************************************************************************/
-/*!
-\fn     void SetUpMainUniformLocations(GLuint prog)
-\brief
-        Look up the locations of uniform variables in the main shader program.
-\param  prog
-        The given shader program ID.
-*/
-/******************************************************************************/
-//void Renderer::SetUpForwardUniformLocations()
-//{
-//    GLuint prog = m_shaders[TO_INT(ProgType::FORWARD_PROG)].GetProgramID();
-//    m_mainMVMatLoc = glGetUniformLocation(prog, "mvMat");
-//    m_mainNMVMatLoc = glGetUniformLocation(prog, "nmvMat");
-//    m_mainProjMatLoc = glGetUniformLocation(prog, "projMat");
-//
-//    m_textureLoc = glGetUniformLocation(prog, "colorTex");
-//
-//    m_numLightsLoc = glGetUniformLocation(prog, "numLights");
-//    m_lightOnLoc = glGetUniformLocation(prog, "lightOn");
-//
-//    m_ambientLoc = glGetUniformLocation(prog, "ambient");
-//    m_specularPowerLoc = glGetUniformLocation(prog, "specularPower");
-//
-//    m_bumpTexLoc = glGetUniformLocation(prog, "bumpTex");
-//    m_normalTexLoc = glGetUniformLocation(prog, "normalTex");
-//    m_normalMappingOnLoc = glGetUniformLocation(prog, "normalMappingOn");
-//    m_parallaxMappingOnLoc = glGetUniformLocation(prog, "parallaxMappingOn");
-//
-//    for (int i = 0; i < NUM_MAX_LIGHTS; ++i) {
-//        std::string index = std::to_string(i);
-//
-//        m_lightPosLoc[i] = glGetUniformLocation(prog, ("lightPosVF[" + index + "]").c_str());
-//        m_diffuseLoc[i] = glGetUniformLocation(prog, ("diffuse[" + index + "]").c_str());
-//        m_specularLoc[i] = glGetUniformLocation(prog, ("specular[" + index + "]").c_str());
-//    }
-//
-//}
-
 
 /******************************************************************************/
 /*!
@@ -312,16 +273,29 @@ void Rendering::Renderer::SetUpShadowMappingTextures() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd) {
+bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) {
+
     if (m_shouldUpdateCubeMapForSphere) {
         return true;
     }
+
+    static bool isFirstUpdateAfterLanding = true;
     constexpr float MIN_SPEED_SQRD = 0.001f;
-    constexpr int UPDATE_INTERVAL = 10;
-    m_sphereMirrorCubeMapFrameCounter++;
-    if (speedSqrd >= MIN_SPEED_SQRD && m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL) {
-        m_sphereMirrorCubeMapFrameCounter = 0;
+
+    // update at least once after landing on the plane
+    if (isFirstUpdateAfterLanding && speedSqrd < MIN_SPEED_SQRD) {
+        isFirstUpdateAfterLanding = false;
         return true;
+    }
+    constexpr float FPS_THRESHOLD = 45.f;
+    constexpr int UPDATE_INTERVAL = 10;
+
+    m_sphereMirrorCubeMapFrameCounter++;
+    if (fps >= FPS_THRESHOLD){
+        if(speedSqrd >= MIN_SPEED_SQRD  && m_sphereMirrorCubeMapFrameCounter >= UPDATE_INTERVAL){
+            m_sphereMirrorCubeMapFrameCounter = 0;
+            return true;
+        }
     }
     return false;
 }
@@ -657,6 +631,161 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
     m_sphereCamProjMat = Perspective(fov, aspectRatio, nearPlane, mainCam.farPlane);
 }
 
+void Renderer::RenderGeometryPass(const Scene& scene, float fps) {
+
+	m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
+
+	// Bind G-buffer framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, drawBuffers);
+
+	GLfloat bgColor[4] = { 1.f, 1.2f, 1.f, 1.0f };
+	glClearBufferfv(GL_COLOR, 0, bgColor);//color
+	glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec3(0.0f)));//pos
+	glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
+	glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
+
+    //(2) rendering objects 
+    if (scene.m_sphere &&
+        (ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared(),fps) == true))
+    {
+        ComputeSphereCamMats(scene);
+
+        /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
+            rendering straight to the GPU texture object, similar to what we do for the
+            2D mirror texture below.
+            However, some graphics drivers don't seem to implement the framebuffer cubemap texture properly.
+            So we do the cubemap texture generation manually here: copy the framebuffer to CPU texture data,
+            then copy that data to the GPU texture object.
+        */
+        RenderToSphereCubeMapTexture(scene);
+
+        m_shouldUpdateCubeMapForSphere = false;
+    }
+
+    /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
+        whenever the mirror is visible and camera is moving
+    */
+    if (m_mirrorVisible && (mainCam.moved || mirrorCam.moved)) {
+        RenderToMirrorTexture(scene);
+    }
+
+    /*  Render the scene, except the sphere to the screen */
+    RenderToScreen(scene);
+    /*  This is done separately, as it uses a different shader program for reflection/refraction */
+    RenderSphere(scene);
+}
+
+void Renderer::RenderShadowMap(Scene& scene) {
+    m_shaders[TO_INT(ProgType::SHADOW_MAP)].Use();
+    glViewport(0, 0, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    const size_t numObjs = scene.m_objects.size();
+    for (int i{}; i < numObjs; ++i) {
+        const auto& obj = *scene.m_objects[i];
+        if (obj.IsVisible() == false) {
+            continue;
+        }
+        Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat * obj.GetModelMatrix();
+        glUniformMatrix4fv(m_sLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
+        RenderObj(obj);
+    }
+}
+
+void Renderer::RenderLightPass(const Scene& scene) {
+    /*  Bind framebuffer to 0 to render to the screen */
+    /*  Disable depth test since we only render flat textures */
+    /*  Disable writing to depth buffer */
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    // Bind the color texture to texture unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+    glUniform1i(m_lColorTexLoc, 0);
+
+    // Bind the position texture to texture unit 1
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
+    glUniform1i(m_lPosTexLoc, 1);
+
+    // Bind the normal texture to texture unit 2
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+    glUniform1i(m_lNrmTexLoc, 2);
+
+    //Bind the depth texture to texture unit 3
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+    glUniform1i(m_lDepthTexLoc, 3);
+
+    //Bind the shadow depth texture to texture unit 4
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
+    glUniform1i(m_lShadowDepthTexLoc, 4);
+
+    glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
+    glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
+    Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat * Inverse(mainCam.ViewMat());
+    glUniformMatrix4fv(m_lLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    if (m_buffersDisplay)
+    {
+        for (int i = TO_INT(DebugType::COLOR); i < TO_INT(DebugType::NUM_DEBUGTYPES); ++i)
+        {
+            glUniform1i(m_lLightPassDebugLoc, i);
+            /*  Send corresponding quads to shader for rendering
+                debugging minimaps.
+                Appropriate flag (COLOR/POSITION/NORMAL/DEPTH) should
+                also be sent to shader to tell it which buffer to
+                display
+            */
+            switch (i)
+            {
+            case TO_INT(DebugType::COLOR):
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
+                break;
+            case TO_INT(DebugType::POSITION):
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
+                break;
+            case TO_INT(DebugType::NORMAL):
+                glActiveTexture(GL_TEXTURE2);
+                glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
+                break;
+            case TO_INT(DebugType::DEPTH):
+                glActiveTexture(GL_TEXTURE3);
+                glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
+                break;
+            case TO_INT(DebugType::SHADOW_MAP_DEPTH):
+                glActiveTexture(GL_TEXTURE4);
+                glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
+                break;
+            }
+            glBindVertexArray(quadVAO[i]);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+
+    /*  Enable depth test again for rendering objects in the next frame */
+    glEnable(GL_DEPTH_TEST);
+
+    /*  Enable writing to depth buffer */
+    glDepthMask(GL_TRUE);
+}
 
 void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
 
@@ -813,11 +942,6 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         }
 
         for (int i = 0; i < scene.GetNumLights(); ++i) {
-            //Vec3 lightPos = scene.GetLightPosition(i);
-            //bool posUpdated{ false }, colorUpdated{ false };
-            //if (posUpdated=ImGui::SliderFloat3(("Light " + std::to_string(i) + " Position").c_str(), &lightPos.x, -10.0f, 10.0f)) {
-            //    scene.SetLightPosition(lightPos, i);
-            //}
 
             Vec4 lightColor = scene.GetLightColor(i);
             if (ImGui::ColorEdit3(("Light " + std::to_string(i) + " Color").c_str(), &lightColor.x)) {
@@ -1035,7 +1159,7 @@ void Renderer::CleanUp()
 }
 
 Rendering::Renderer::Renderer()
-    : m_window{ nullptr,WindowDeleter }, m_fps(0)
+    : m_window{ nullptr,WindowDeleter }
     , m_sphereRef(RefType::REFLECTION_ONLY)
     , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
     , m_shouldUpdateCubeMapForSphere{ true }
@@ -1128,8 +1252,6 @@ void Renderer::Resize(GLFWwindow* window, int w, int h)
 
     // Update the viewport and any relevant projection matrices
     glViewport(0, 0, w, h);
-
-    // TODO:: any additional resizing code for the camera ...
 
     if (window) {
         glfwSetWindowSize(window, w, h);
@@ -1409,7 +1531,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
         We need this flag because each pass only render certain objects.
 */
 /******************************************************************************/
-void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int faceIdx)
+void Renderer::RenderObjects(RenderPass renderPass, const Core::Scene& scene, int faceIdx)
 {
     /*  We need to set this here because the onscreen rendering will use a bigger viewport than
         the rendering of sphere/mirror reflection/refraction texture
@@ -1452,16 +1574,16 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
         }
         else
         {
-            //if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
-            //{
-            //    continue;           /*  Not drawing objects behind mirror & mirror itself */
-            //}
-            //else
+            if (renderPass == RenderPass::MIRRORTEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT))
             {
-                //if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
-                //    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
-                //}
-                //else
+                continue;           /*  Not drawing objects behind mirror & mirror itself */
+            }
+            else
+            {
+                if (renderPass == RenderPass::SPHERETEX_GENERATION && (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)) {
+                    continue;           /*  Not drawing mirror when generating reflection/refraction texture for sphere to avoid inter-reflection */
+                }
+                else
                 {
                     if (obj.GetObjType() == Core::ObjectType::REFLECTIVE_FLAT)
                     {
@@ -1488,7 +1610,8 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
                         glUniform1i(m_gNormalMappingOnLoc, true);
                         glUniform1i(m_gParallaxMappingOnLoc, m_parallaxMappingOn);
 
-                        if (m_parallaxMappingOn) {
+                        //either plane itself or reflected plane on the mirror
+                        if (m_parallaxMappingOn || renderPass==RenderPass::MIRRORTEX_GENERATION) {
                             SendObjTexID(resourceManager.m_bumpTexID, TO_INT(ActiveTexID::BUMP), m_gBumpTexLoc);
                         }
                     }
@@ -1528,7 +1651,7 @@ void Renderer::RenderObjects(RenderPass renderPass, Core::Scene& scene, int face
         Buffers to store the 6 faces of the cubemap texture.
 */
 /******************************************************************************/
-void Renderer::RenderToSphereCubeMapTexture(Core::Scene& scene)
+void Renderer::RenderToSphereCubeMapTexture(const Core::Scene& scene)
 {
     /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
         rendering straight to the GPU cubemap texture object, similar to what we do for the
@@ -1573,7 +1696,7 @@ void Renderer::RenderToSphereCubeMapTexture(Core::Scene& scene)
         already bound to mirrorFrameBufferID in SetUpMirrorTexture function.
 */
 /******************************************************************************/
-void Renderer::RenderToMirrorTexture(Core::Scene& scene)
+void Renderer::RenderToMirrorTexture(const Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, ResourceManager::GetInstance().m_mirrorFrameBufferID);
     RenderObjects(RenderPass::MIRRORTEX_GENERATION,scene);
@@ -1587,7 +1710,7 @@ void Renderer::RenderToMirrorTexture(Core::Scene& scene)
         Render the scene to the default framebuffer.
 */
 /******************************************************************************/
-void Renderer::RenderToScreen(Core::Scene& scene)
+void Renderer::RenderToScreen(const Core::Scene& scene)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
     RenderObjects(RenderPass::NORMAL,scene);
@@ -1605,6 +1728,7 @@ void Renderer::RenderToScreen(Core::Scene& scene)
 /******************************************************************************/
 void Renderer::Render(Core::Scene& scene, float fps, float dt)
 {
+    // update matrix
     ComputeMainCamMats(scene);
     ComputeMirrorCamMats(scene);
 
@@ -1612,173 +1736,16 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    //(1) Geometry Pass
-    {
-
-        m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
-
-        // Bind G-buffer framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGeomPassFBO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-        glDrawBuffers(3, drawBuffers);
-
-        GLfloat bgColor[4] = { 1.f, 1.2f, 1.f, 1.0f }; 
-        glClearBufferfv(GL_COLOR, 0, bgColor);//color
-        glClearBufferfv(GL_COLOR, 1, glm::value_ptr(glm::vec3(0.0f)));//pos
-        glClearBufferfv(GL_COLOR, 2, glm::value_ptr(glm::vec4(0.0f)));//normal
-        glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
-    }
-
-	//-------------------
-    //(2) rendering objects 
-    if (scene.m_sphere &&
-        (ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared()) == true))
-    {
-        ComputeSphereCamMats(scene);
-
-        /*  Theoretically the rendering to cubemap texture can be done in the same way as 2D texture:
-            rendering straight to the GPU texture object, similar to what we do for the
-            2D mirror texture below.
-            However, some graphics drivers don't seem to implement the framebuffer cubemap texture properly.
-            So we do the cubemap texture generation manually here: copy the framebuffer to CPU texture data,
-            then copy that data to the GPU texture object.
-        */
-        RenderToSphereCubeMapTexture(scene);
-
-        m_shouldUpdateCubeMapForSphere = false;
-    }
-
-    /*  The texture for planar reflection is view-dependent, so it needs to be rendered on the fly,
-        whenever the mirror is visible and camera is moving
-    */
-    if (m_mirrorVisible && (mainCam.moved || mirrorCam.moved)) {
-        RenderToMirrorTexture(scene);
-    }
-
-    /*  Render the scene, except the sphere to the screen */
-    RenderToScreen(scene);
-    /*  This is done separately, as it uses a different shader program for reflection/refraction */
-    RenderSphere(scene);
-    //----------------------
-    // (3) shadow mapping
-    m_shaders[TO_INT(ProgType::SHADOW_MAP)].Use();
-    glViewport(0, 0, Camera::DISPLAY_SIZE, Camera::DISPLAY_SIZE);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    const size_t numObjs = scene.m_objects.size();
-    for (int i{}; i < numObjs; ++i) {
-        const auto& obj = *scene.m_objects[i];
-        if (obj.IsVisible() == false) {
-            continue;
-        }
-        Mat4 mat=scene.m_orbitalLights[0].m_lightSpaceMat* obj.GetModelMatrix();
-        glUniformMatrix4fv(m_sLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
-        RenderObj(obj);
-    }
-
-    //----------------------
-    // (4) light pass
-    {
-
-        /*  Bind framebuffer to 0 to render to the screen */
-        /*  Disable depth test since we only render flat textures */
-        /*  Disable writing to depth buffer */
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        m_shaders[TO_INT(ProgType::DEFERRED_LIGHTPASS)].Use();
-        
-        glClearColor(0.f, 0.f, 0.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDisable(GL_DEPTH_TEST);
-        glDepthMask(GL_FALSE);
-
-        // Bind the color texture to texture unit 0
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_gColorTexID);        
-        glUniform1i(m_lColorTexLoc, 0);
-
-        // Bind the position texture to texture unit 1
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
-        glUniform1i(m_lPosTexLoc,1);
-
-        // Bind the normal texture to texture unit 2
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-        glUniform1i(m_lNrmTexLoc, 2);
-        
-         //Bind the depth texture to texture unit 3
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-        glUniform1i(m_lDepthTexLoc, 3);
-
-        //Bind the shadow depth texture to texture unit 4
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
-        glUniform1i(m_lShadowDepthTexLoc, 4);
-
-        glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
-        glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
-        Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat * Inverse(mainCam.ViewMat());
-        glUniformMatrix4fv(m_lLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-        if (m_buffersDisplay)
-        {
-            for (int i = TO_INT(DebugType::COLOR); i < TO_INT(DebugType::NUM_DEBUGTYPES); ++i)
-            {
-                glUniform1i(m_lLightPassDebugLoc, i);
-                /*  Send corresponding quads to shader for rendering
-                    debugging minimaps.
-                    Appropriate flag (COLOR/POSITION/NORMAL/DEPTH) should
-                    also be sent to shader to tell it which buffer to
-                    display
-                */
-                switch (i)
-                {
-                case TO_INT(DebugType::COLOR):
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, m_gColorTexID);
-                    break;
-                case TO_INT(DebugType::POSITION):
-                    glActiveTexture(GL_TEXTURE1);
-                    glBindTexture(GL_TEXTURE_2D, m_gPosTexID);
-                    break;
-                case TO_INT(DebugType::NORMAL):
-                    glActiveTexture(GL_TEXTURE2);
-					glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-                    break;
-                case TO_INT(DebugType::DEPTH):
-                    glActiveTexture(GL_TEXTURE3);
-                    glBindTexture(GL_TEXTURE_2D, m_gDepthTexID);
-                    break;
-                case TO_INT(DebugType::SHADOW_MAP_DEPTH):
-                    glActiveTexture(GL_TEXTURE4);
-                    glBindTexture(GL_TEXTURE_2D, m_sShdowMapDepthTexID);
-                    break;
-                    //case TO_INT(DebugType::NORMAL_MAPPING_MASK):
-                //    glActiveTexture(GL_TEXTURE2);
-                //    glBindTexture(GL_TEXTURE_2D, m_gNrmTexID);
-                //    break;
-                }
-                glBindVertexArray(quadVAO[i]);
-                glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            }
-        }
-
-        /*  Enable depth test again for rendering objects in the next frame */
-        glEnable(GL_DEPTH_TEST);
-
-        /*  Enable writing to depth buffer */
-        glDepthMask(GL_TRUE);
-    }
-
-    //------------------------------------------------------------
+    // (1) Geometry Pass
+    RenderGeometryPass(scene,fps);
+    // (2) shadow mapping
+    RenderShadowMap(scene);
+    // (3) light pass
+    RenderLightPass(scene);
+    // (4) GUI
     RenderGui(scene, fps);
 
+    // Update lights here to reduce frame buffer swaps by 1
     UpdateOrbitalLights(scene, dt);
 
     // Rendering    
