@@ -9,10 +9,12 @@ void Core::Projectile::Activate(const Vector3& position) {
         }
 		m_isActive = true;
         m_object->GetCollider()->SetCollisionEnabled(true);
+        m_object->SetVisibility(true);
     }
 }
 
 void Core::Projectile::Deactivate() {
     m_isActive = false;
     m_object->GetCollider()->SetCollisionEnabled(false);
+    m_object->SetVisibility(false);
 }

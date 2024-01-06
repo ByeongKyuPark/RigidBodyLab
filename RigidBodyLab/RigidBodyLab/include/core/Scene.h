@@ -2,6 +2,7 @@
 
 #include <core/Object.h>
 #include <core/Projectile.h>
+#include <rendering/OrbitalLight.h>
 #include <physics/CollisionData.h>
 #include <physics/CollisionManager.h>
 #include <vector>
@@ -13,7 +14,7 @@ namespace Core {
     using Physics::CollisionManager;
 
     class Scene {
-        static constexpr int NUM_LIGHTS = 1;
+    public:
         static constexpr int NUM_PROJECTILES = 50;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
@@ -22,14 +23,16 @@ namespace Core {
             lighting. In this frame, the vertex positions are not too large, hence the computation
             is normally more accurate.
         */
-        Vec3 m_lightPosWF[NUM_LIGHTS];
-        Vec3 m_lightPosVF[NUM_LIGHTS];
 
-        Vec4 m_I;
+        //lights
+        std::vector<OrbitalLight> m_orbitalLights; 
+
+        Vec4 m_ambientLightIntensity;
         Vec4 m_ambientAlbedo;
         Vec4 m_diffuseAlbedo;
         Vec4 m_specularAlbedo;
-        int m_specularPower;
+        int m_specularPower;      //regular objects
+        int m_numLights;
 
         CollisionManager m_collisionManager;
         //Special objects require seperate rendering 
@@ -41,8 +44,8 @@ namespace Core {
         //so as not to alter the whole rendering process. 
         //the key is to manage these projectile objects effectively within the existing structure just for the demo.
         void SetUpProjectiles();
-        void SetUpLight(float height);
         void SetUpScene();
+        void SetUpOrbitalLights();
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
 
@@ -52,11 +55,18 @@ namespace Core {
         Scene();
 
         void Update(float dt);
+        int AddLight();
+        int RemoveLight();
+
+        void SetLightPosition(const Vector3& lightPos, int lightIdx=0);
+        void SetLightColor(const Vec4& color, int lightIdx = 0);
 
         Core::Object& GetObject(size_t index);
         const Core::Object& GetObject(size_t index) const;
-        const Vec3* GetLightPositionsWF() const { return m_lightPosWF; }
-        const Vec4& GetIntensity() const { return m_I; }
+        //const std::vector<Vec3>& GetLightPositionsWF() const { return m_lightPosWF; }
+        const Vec4& GetLightColor(int idx) const;
+        const Vec3& GetLightPosition(int lightIdx) const;
+        int GetNumLights()const { return m_numLights; }
         /**
          * Creates and returns a pointer to a new Object with the specified parameters.
          *
@@ -88,9 +98,10 @@ namespace Core {
             ColliderConfig colliderConfig,
             const Vector3& position = Vector3{ 0.f,0.f,0.f },
             float mass = 1.f,
-            const Quaternion & orientation = Quaternion{},
-            ObjectType objType = ObjectType::REGULAR,
-            bool isCollisionEnabled=true
+            const Quaternion& orientation = Quaternion{},
+            ObjectType objType = ObjectType::DEFERRED_REGULAR,
+            bool isCollisionEnabled = true,
+            bool isVisible = true
             );
 
         void ShootProjectile(const Vector3& position);

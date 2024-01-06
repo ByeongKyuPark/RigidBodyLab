@@ -6,7 +6,7 @@
 #include <core/Scene.h>
 #include <unordered_map>
 #include <vector>
-#include <rendering/Shader.h>
+#include <cmath> // sin, cos
 #include <array>
 
 using Core::Scene;
@@ -21,7 +21,10 @@ namespace Rendering {
 	enum class RenderPass {
 		SPHERETEX_GENERATION = 0,
 		MIRRORTEX_GENERATION,
-		NORMAL
+		//FORWARD
+		NORMAL,
+		NUM_RENDERPASS
+		//DEFERRED_LIGHT
 	};
 
 	/*  For toggling the reflection/refraction of the sphere */
@@ -37,7 +40,24 @@ namespace Rendering {
 	enum class ActiveTexID {
 		COLOR = 0,
 		NORMAL,
-		BUMP
+		BUMP,
+		//G-buffer textures
+		G_ALBEDO,    // G-buffer Albedo (or diffuse) texture
+		G_POSITION,  // G-buffer Position texture
+		G_NORMAL,    // G-buffer Normal texture
+		G_DEPTH      // G-buffer Depth texture
+	};
+
+	enum class DebugType
+	{
+		MAIN,
+		COLOR,
+		POSITION,
+		NORMAL,
+		DEPTH,
+		SHADOW_MAP_DEPTH,
+		//NORMAL_MAPPING_MASK,// Objects for which normal mapping is not applied
+		NUM_DEBUGTYPES
 	};
 
 	class ResourceManager;
@@ -45,6 +65,9 @@ namespace Rendering {
 
 	//in OpenGL, a rendering context can only be active on one thread at a time, making multi - threading complex and potentially inefficient.The sequential nature of OpenGL's state machine also means that the order of operations is crucial, and multi-threading can disrupt this order, leading to unintended consequences in rendering outcomes.	
 	class Renderer {
+	public:
+		static constexpr int NUM_MAX_LIGHTS = 30;
+	private:
 		std::unordered_map<ProgType, ShaderInfo> m_shaderFileMap;  // Central map for shader file paths
 		std::array <Shader, TO_INT(ProgType::NUM_PROGTYPES) > m_shaders;
 		//custom deleter
@@ -53,12 +76,14 @@ namespace Rendering {
 
 		int m_sphereMirrorCubeMapFrameCounter;
 		float m_sphereRefIndex;
-		float m_fps;                  // Frame rate
 		RefType m_sphereRef;          // Current reflection/refraction type for the objects
 
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
 		bool m_shouldUpdateCubeMapForSphere;
+
+		//deferred light
+		//deferred geom
 
 		/******************************************************************************/
 		/*  Graphics-related variables                                                */
@@ -71,11 +96,116 @@ namespace Rendering {
 		std::unordered_map<int, Mat4> m_mainCamMVMat;
 		std::unordered_map<int, Mat4> m_mainCamNormalMVMat;
 
-		/*  Mirror camera */
-		Mat4 m_mirrorCamViewMat;
-		Mat4 m_mirrorCamProjMat;
-		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
-		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
+		/*  For clearing depth buffer */
+		GLfloat one = 1.0f;
+
+		bool m_buffersDisplay = true;
+
+		/*  Location of bump/normal textures */
+		/*  For indicating whether object has normal map, and parallax mapping status */
+
+		GLuint m_gColorTexID;
+		GLuint m_gPosTexID;
+		GLuint m_gNrmTexID;
+		GLuint m_gDepthTexID;
+
+		GLuint m_deferredGeomPassFBO;
+
+		GLuint quadVAO[TO_INT(DebugType::NUM_DEBUGTYPES)];
+		GLuint quadVBO[TO_INT(DebugType::NUM_DEBUGTYPES)];
+		GLfloat quadBuff[TO_INT(DebugType::NUM_DEBUGTYPES)][8] =
+		{
+			/*  Full-screen quad, used for full-screen rendering */
+			{
+				-1.0f, -1.0f,
+				1.0f, -1.0f,
+				-1.0f, 1.0f,
+				1.0f, 1.0f
+			},
+			/*  First bottom minimap */
+			{
+				-1.0f, -1.0f,
+				-0.6f, -1.0f,
+				-1.0f, -0.5f,
+				-0.6f, -0.5f
+			},
+			/*  Second bottom minimap */
+			{
+				-0.6f, -1.0f,
+				-0.2f, -1.0f,
+				-0.6f, -0.5f,
+				-0.2f, -0.5f
+			},
+			/*  Third bottom minimap */
+			{
+				-0.2f, -1.0f,
+				0.2f, -1.0f,
+				-0.2f, -0.5f,
+				0.2f, -0.5f
+			},
+			/*  Forth bottom minimap */
+			{
+				0.2f, -1.0f,
+				0.6f, -1.0f,
+				0.2f, -0.5f,
+				0.6f, -0.5f
+			},
+			/*  Fifth bottom minimap */
+			{
+				0.6f, -1.0f,
+				1.0f, -1.0f,
+				0.6f, -0.5f,
+				1.0f, -0.5f
+			}
+		};
+
+		/* (1) deferred geometry Locs */
+		GLuint m_gMVMatLoc;
+		GLuint m_gNMVMatLoc;
+		GLuint m_gProjMatLoc;
+		GLuint m_gNumLightsLoc;
+		GLuint m_gAmbientLoc;
+		GLuint m_gObjectTypeLoc;
+		GLuint m_gNormalMappingOnLoc;
+		GLuint m_gForwardRenderOnLoc;
+		GLuint m_gParallaxMappingOnLoc;
+		GLuint m_gColorTexLoc;
+		GLuint m_gNormalTexLoc;
+		GLuint m_gBumpTexLoc;
+		GLuint m_gSpecularPowerLoc;
+		GLuint m_gLightPosVFLoc[NUM_MAX_LIGHTS];
+		GLuint m_gDiffuseLoc[NUM_MAX_LIGHTS];
+		GLuint m_gSpecularLoc[NUM_MAX_LIGHTS];
+		GLuint m_gLightcolorLoc[NUM_MAX_LIGHTS];
+		int m_gLightPassDebug = 0;
+		bool m_gBlinnPhongLighting = true;
+
+		/* (2) deferred light Locs */
+		GLuint m_lLightPassQuadLoc;
+		GLuint m_lLightPassDebugLoc;
+		GLuint m_lLightSpaceMatLoc;
+		GLuint m_lColorTexLoc;
+		GLuint m_lNormalMappingObjTypeLoc;
+		GLuint m_lPosTexLoc;
+		GLuint m_lNrmTexLoc;
+		GLuint m_lTanTexLoc;
+		GLuint m_lDepthTexLoc;
+		GLuint m_lShadowDepthTexLoc;
+		GLuint m_lNumLightsLoc;
+		GLuint m_lAmbientLoc;
+		GLuint m_lSpecularPowerLoc;
+		GLuint m_lParallaxMappingOnLoc;
+		GLuint m_lBlinnPhongLightingLoc;  // 1 for active, 0 for inactive
+		GLuint m_lLightPosVFLoc[NUM_MAX_LIGHTS];
+		GLuint m_lDiffuseLoc[NUM_MAX_LIGHTS];
+		GLuint m_lSpecularLoc[NUM_MAX_LIGHTS];
+		GLuint m_lLightcolorLoc[NUM_MAX_LIGHTS];
+
+		//(3) sphere mirror
+		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
+		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
+		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
+		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
 
 		/*  Sphere cameras - we need 6 of them to generate the texture cubemap */
 		Mat4 m_sphereCamProjMat;
@@ -83,51 +213,46 @@ namespace Rendering {
 		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamMVMat;
 		std::unordered_map<int, std::array<Mat4, TO_INT(CubeFaceID::NUM_FACES)>> m_sphereCamNormalMVMat;
 
-		/*  For clearing depth buffer */
-		GLfloat one = 1.0f;
+		//(4) planar mirror
+		/*  Mirror camera */
+		Mat4 m_mirrorCamViewMat;
+		Mat4 m_mirrorCamProjMat;
+		std::unordered_map<int, Mat4> m_mirrorCamMVMat;
+		std::unordered_map<int, Mat4> m_mirrorCamNormalMVMat;
 
-		/*  Locations of the variables in the shader. */
-		/*  Locations of transform matrices */
-		GLint m_mainMVMatLoc, m_mainNMVMatLoc, m_mainProjMatLoc;  /*  used for main program */
+		//(5) skybox
 		GLint m_skyboxViewMatLoc;                             /*  used for skybox program */
-		GLint m_sphereMVMatLoc, m_sphereNMVMatLoc, m_sphereProjMatLoc, m_sphereViewMatLoc;  /*  used for sphere program */
-
-		/*  Location of color textures */
-		GLint m_textureLoc;                       /*  Normal object texture */
-		GLint m_sphereTexCubeLoc;                 /*  Texture cubemap for the sphere reflection/refraction */
 		GLint m_skyboxTexCubeLoc;                 /*  Texture cubemap for the skybox background rendering */
 
-		GLint m_sphereRefLoc;                     /*  For sending reflection/refraction status */
-		GLint m_sphereRefIndexLoc;                     /*  For sending refractive index of the sphere */
+		//(6) shadow map
+		GLuint m_sLightSpaceMatLoc;
+		GLuint m_shadowMapFBO;
+		GLuint m_sShdowMapDepthTexID;
 
-		/*  Location of bump/normal textures */
-		GLint m_normalTexLoc, m_bumpTexLoc;
-
-		/*  For indicating whether object has normal map, and parallax mapping status */
-		GLint m_normalMappingOnLoc, m_parallaxMappingOnLoc;
-
-		/*  Location of light data */
-		GLint m_numLightsLoc, m_lightPosLoc;
-		GLint m_lightOnLoc;
-		GLint m_ambientLoc, m_diffuseLoc, m_specularLoc, m_specularPowerLoc;
 	private:
 		void InitImGui();
 		void InitRendering();
 
-		void UpdateLightPosViewFrame(Scene& scene);
+		void UpdateNumLights(int numLights);
 		// Function to update the mapping when objects are added/removed
 		void UpdateGuiToObjectIndexMap(const Core::Scene& scene);
+
+		// Function to update light positions
+		void UpdateOrbitalLights(Core::Scene& scene, float dt);
 
 		void RenderSkybox(const Mat4& viewMat);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
-		void RenderObjsBgMainCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgMirrorCam(RenderPass renderPass, Core::Scene& scene);
-		void RenderObjsBgSphereCam(int faceIdx, RenderPass renderPass, Core::Scene& scene);
-		void RenderToSphereCubeMapTexture(Scene& scene);
-		void RenderToMirrorTexture(Scene& scene);
-		void RenderToScreen(Scene& scene);
+		
+		void RenderObjects(RenderPass renderPass, const Core::Scene& scene, int faceIdx=-1);
+		
+		void RenderToSphereCubeMapTexture(const Scene& scene);
+		void RenderToMirrorTexture(const Scene& scene);
+		void RenderToScreen(const Scene& scene);
 		void RenderGui(Scene& scene, float fps);
+		void RenderGeometryPass(const Scene& scene, float fps);
+		void RenderLightPass(const Scene& scene);
+		void RenderShadowMap(Scene& scene);
 
 		void ComputeMainCamObjMVMats(const Core::Scene& scene);
 		void ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene);
@@ -135,15 +260,24 @@ namespace Rendering {
 		void ComputeMainCamMats(const Scene& scene);
 		void ComputeMirrorCamMats(const Scene& scene);
 		void ComputeSphereCamMats(const Scene& scene);
+		
+		void SendLightColors(Scene& scene, int lightIdx=0);
+		void SendDeferredLightPassProperties(const Scene& scene);
+		void SendDeferredGeomProperties(const Scene& scene);
+		
+		void SetUpSkyBoxUniformLocations();
+		void SetUpSphereUniformLocations();
+		void SetUpDeferredGeomUniformLocations();
+		void SetUpDeferredLightUniformLocations();
+		void SetUpShadowMappingUniformLocations();
 
-		void SendLightProperties(const Scene& scene);
-		void SetUpSkyBoxUniformLocations(GLuint prog);
-		void SetUpMainUniformLocations(GLuint prog);
-		void SetUpSphereUniformLocations(GLuint prog);
 		void SetUpVertexData(Mesh& mesh);
 		void SetUpShaders();
+		void SetUpDeferredGeomPassTextures();
+		void SetUpLightPassQuads();
+		void SetUpShadowMappingTextures();
 
-		bool ShouldUpdateSphereCubemap(float speedSqrd);
+		bool ShouldUpdateSphereCubemap(float speedSqrd, float fps);
 		// GLFW's window handling doesn't directly support smart pointers since the GLFW API is a C API that expects raw pointers. 
 		// therefore, provided a custom deleter for the std::unique_ptr to properly handle GLFW window destruction.
 		static void WindowDeleter(GLFWwindow* window);
@@ -167,7 +301,7 @@ namespace Rendering {
 
 		// Methods for the Renderer class
 		void AttachScene(const Scene& scene);
-		void Render(Scene& scene, float fps);
+		void Render(Scene& scene, float fps, float dt);
 
 		bool ShouldClose()const { return glfwWindowShouldClose(m_window.get()); }
 		void CleanUp();

@@ -311,7 +311,7 @@ Set up texture object for rendering sphere reflection/refraction.
 */
 /******************************************************************************/
 
-void Rendering::ResourceManager::SetUpSphereTexture()
+void Rendering::ResourceManager::SetUpSphereCubeMapTexture()
 {
     glGenTextures(1, &m_sphereTexID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_sphereTexID);
@@ -328,6 +328,7 @@ void Rendering::ResourceManager::SetUpSphereTexture()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    //this helps in smoothing out the discontinuities at the edges of the cube map faces.
 }
 
 /******************************************************************************/

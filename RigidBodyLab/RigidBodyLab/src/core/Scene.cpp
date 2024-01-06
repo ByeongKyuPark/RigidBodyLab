@@ -1,5 +1,6 @@
 #include <core/Scene.h>
 #include <rendering/Camera.h>
+#include <rendering/Renderer.h>
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
 #include <core/Transform.h>
@@ -14,12 +15,21 @@
 using namespace Physics;
 
 Core::Scene::Scene() 
-    : m_I{ 0.6f, 0.6f, 0.6f, 1.0f }, m_ambientAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f },
-m_diffuseAlbedo{ 0.6f, 0.6f, 0.6f, 1.0f }, m_specularAlbedo{ 1.0f, 1.0f, 1.0f, 1.0f },
-m_specularPower{ 10 }, m_lightPosVF{ Vec3{}, }, m_lightPosWF{ Vec3{}, }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{nullptr}
+    : m_ambientLightIntensity{0.3f,0.3f,0.3f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 1 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
+	m_diffuseAlbedo{ 0.9f, 0.9f, 0.9f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
+	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
 {
     SetUpScene();
     SetUpProjectiles();
+    SetUpOrbitalLights();
+}
+
+void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
+{
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("SetLightColor::light index out of rage");
+    }
+    m_orbitalLights[lightIdx].m_intensity = lightColor;
 }
 
 void Core::Scene::Update(float dt) {
@@ -41,6 +51,19 @@ void Core::Scene::Update(float dt) {
     }
 }
 
+int Core::Scene::AddLight() {
+    if (m_numLights < Renderer::NUM_MAX_LIGHTS) {
+        m_numLights++;
+    }
+    return m_numLights;
+}
+int Core::Scene::RemoveLight() {
+    if (m_numLights > 0) {
+        m_numLights--;
+    }
+    return m_numLights;
+}
+
 Core::Object& Core::Scene::GetObject(size_t index) {
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
@@ -48,6 +71,22 @@ Core::Object& Core::Scene::GetObject(size_t index) {
 const Core::Object& Core::Scene::GetObject(size_t index) const{
     return *(m_objects.at(index)); // 'at' for bounds checking
 }
+
+const Vec3& Core::Scene::GetLightPosition(int lightIdx) const {
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("GetLightPosition::light index out of rage");
+    }
+    return m_orbitalLights[lightIdx].m_lightPosWF;
+}
+
+const Vec4& Core::Scene::GetLightColor(int lightIdx) const {
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("GetLightColor:: light index out of range");
+    }
+    return m_orbitalLights[lightIdx].m_intensity;
+}
+
+
 
 /**
  * Creates and returns a pointer to a new Object with the specified parameters.
@@ -72,7 +111,7 @@ const Core::Object& Core::Scene::GetObject(size_t index) const{
  *   For a box collider - ColliderConfig colliderConfig = Vec3{1.f, 1.f, 1.f};
  *   For a sphere collider - ColliderConfig colliderConfig = 1.0f;
  */
-Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation, ObjectType objType, bool isCollisionEnabled )
+Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageID textureID, ColliderType colliderType, ColliderConfig colliderConfig, const Vector3& position, float mass, const Quaternion& orientation, ObjectType objType, bool isCollisionEnabled , bool isVisible)
 {
     // Fetch the mesh and texture
     auto mesh = ResourceManager::GetInstance().GetMesh(meshID);
@@ -94,7 +133,8 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             textureID,
             std::move(collider),
             std::make_unique<RigidBody>(Transform{ position, orientation }, mass, colliderType), 
-            objType
+            objType, 
+            isVisible
             ));
     }
     else {
@@ -104,7 +144,8 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
             textureID,
             std::move(collider),
             Transform{ position, orientation }, 
-            objType
+            objType,
+            isVisible
         ));
     }
     
@@ -136,18 +177,22 @@ void Core::Scene::SetUpScene() {
     using Core::Transform;
 
     constexpr float BASE_POS_Y = 0.f;
-    constexpr float BASE_SCL_Y = 2.f;//7.5
+    constexpr float BASE_SCL_Y = 5.f;//7.5
     constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
     ResourceManager& resourceManager = ResourceManager::GetInstance();
 
     //default objects for the demo scene
-    
+
+    //Vec3 basePos{ 0, BASE_POS_Y, 0 };
+    //Vec3 baseSize = Vec3(5.f, 5.f, 5.f);
+    //CreateObject("plane", MeshID::SPHERE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{}, ObjectType::DEFERRED_REGULAR);
+
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
     Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
-    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::MAPPABLE_PLANE);
+    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
     //(2) VASE
     constexpr float VASE_SCL = 3.f;
@@ -155,15 +200,11 @@ void Core::Scene::SetUpScene() {
 
     //(3) MIRROR
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
-    Transform mirrorTransform{ {0.75f, MIRROR_POS_Y, -1.5f} ,Quaternion{180,Vector3{0.f,1.f,0.f}} };
-    std::unique_ptr<RigidBody> mirrorRigidBody = std::make_unique<RigidBody>(mirrorTransform);
-    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {4.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
+    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
     //(4) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
-
-    SetUpLight(baseSize.x);
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -191,6 +232,37 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 
     // resolve stored collisions
     m_collisionManager.ResolveCollision(dt);
+}
+
+void Core::Scene::SetUpOrbitalLights() {
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    //rendom offset between -1 and 1
+    for (int i{}; i < m_numLights; ++i) {
+        float offsetX = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f - 1.f;
+        float offsetY = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f + 7.f;//1~3
+        float offsetZ = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.f - 1.f;
+        m_orbitalLights[i].m_lightOrbitOffset = Vec3(offsetX,offsetY,offsetZ);
+
+        // random orbital radius between 7.0 and 12.0
+        float rad = 7.f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 5.f;
+        m_orbitalLights[i].m_orbitalRad = rad;
+
+        // random orbital speed between 0.1 and 0.3
+        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.2f;
+        m_orbitalLights[i].m_orbitalSpeed = speed;
+
+        m_orbitalLights[i].m_accumulatedTime = 0.f;
+
+        float angle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 360.f; // in degrees
+        m_orbitalLights[i].m_rotationAngle = angle;
+
+        // random light intensity for each color channel
+        float intensityR = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        float intensityG = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        float intensityB = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        m_orbitalLights[i].m_intensity = Vec4(intensityR, intensityG, intensityB, 1.f);
+    }
 }
 
 
@@ -242,14 +314,18 @@ void Core::Scene::SetUpProjectiles() {
             { mainCam.GetPos().x, mainCam.GetPos().y, mainCam.GetPos().z },
             0.5f, // mass
             Quaternion{},
-            Core::ObjectType::REGULAR,
-            false // turn off collision
+            Core::ObjectType::DEFERRED_REGULAR,
+            false, // turn off collision
+            false // not visible by default
         );
         m_projectiles.emplace_back(projectile);
     }
 }
 
-
-void Core::Scene::SetUpLight(float height){
-    m_lightPosWF[0] = Vec3(0, height, 0);
+void Core::Scene::SetLightPosition(const Vector3& lightPos, int lightIdx)
+{
+    if (lightIdx >= m_numLights) {
+        throw std::runtime_error("SetLightPosition::light index out of rage");
+    }
+    m_orbitalLights[lightIdx].m_lightPosWF = lightPos;
 }

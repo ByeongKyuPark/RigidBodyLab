@@ -1,11 +1,8 @@
 #version 330 core
 
 uniform samplerCube texCube;
-
 uniform mat4 viewMat;
-
 uniform int sphereRef;
-
 uniform float sphereRefIndex;
 
 in vec3 view, normal;
