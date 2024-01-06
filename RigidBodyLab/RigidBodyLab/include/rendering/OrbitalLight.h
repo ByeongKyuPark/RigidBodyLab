@@ -19,7 +19,7 @@ namespace Rendering {
         OrbitalLight() :m_lightSpaceMat{ 1.f }, m_lightProjection{ 1.f }, m_lightView{1.f}, m_lightOrbitOffset {}, m_lightPosVF{}, m_lightPosWF{}, m_orbitalRad(1.0f),
             m_orbitalSpeed(1.0f), m_accumulatedTime(0.0f), m_intensity{0.f,0.f,0.f,1.f}, m_rotationAngle(0.0f)  
         {
-            m_lightProjection = glm::perspective(glm::radians(45.0f), 1.0f, 0.2f, 20.0f);
+            m_lightProjection = glm::perspective(glm::radians(160.0f), 1.0f, 0.1f, 100.0f);
         }
 
         void UpdatePosition(float dt);

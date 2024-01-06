@@ -1712,7 +1712,8 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
 
         glBindVertexArray(quadVAO[TO_INT(DebugType::MAIN)]);
         glUniform1i(m_lLightPassDebugLoc, TO_INT(DebugType::MAIN));
-        glUniformMatrix4fv(m_lLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(scene.m_orbitalLights[0].m_lightSpaceMat));
+        Mat4 mat = scene.m_orbitalLights[0].m_lightSpaceMat * Inverse(mainCam.ViewMat());
+        glUniformMatrix4fv(m_lLightSpaceMatLoc, 1, GL_FALSE, ValuePtr(mat));
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         if (m_buffersDisplay)

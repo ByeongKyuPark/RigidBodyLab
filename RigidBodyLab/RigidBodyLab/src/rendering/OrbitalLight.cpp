@@ -2,7 +2,7 @@
 using namespace Rendering;
 
 void Rendering::OrbitalLight::UpdatePosition(float dt) {
-    m_accumulatedTime += dt * m_orbitalSpeed;
+    m_accumulatedTime += dt * m_orbitalSpeed*0.1;
 
     // calc new position in a circular orbit around the Y-axis
     float x = cos(m_accumulatedTime) * m_orbitalRad;
