@@ -682,7 +682,7 @@ void Rendering::Renderer::RenderGui(Scene& scene, float fps) {
         glUniform1i(m_lParallaxMappingOnLoc, parallaxMappingOn);
     }
 
-    ImGui::Checkbox("Display Deferred Rendering Textures", &m_buffersDisplay);
+    ImGui::Checkbox("Display Debug Windows", &m_buffersDisplay);
 
     // obj List GUI
     static int selectedObject = -1;

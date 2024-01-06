@@ -250,8 +250,8 @@ void Core::Scene::SetUpOrbitalLights() {
         float rad = 7.f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 5.f;
         m_orbitalLights[i].m_orbitalRad = rad;
 
-        // random orbital speed between 0.1 and 1.1
-        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 1.f;
+        // random orbital speed between 0.1 and 0.6
+        float speed = 0.1f + static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 0.5f;
         m_orbitalLights[i].m_orbitalSpeed = speed;
 
         m_orbitalLights[i].m_accumulatedTime = 0.f;

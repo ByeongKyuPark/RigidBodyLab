@@ -31,21 +31,13 @@ out vec4 fragColor;
 //since most of the depth values are concentrated near the near plane, most fragments will have depth values very close to 1.0.
 //therefore, this function maps the depth values such that they are more evenly distributed between the near and far planes.
 float linearizeDepth(float depth) {
-    float near = 0.02f; // Near plane distance
-    float far = 1.f; // Far plane distance
-    depth = depth * 2.0 - 1.0; // Back to NDC 
-    return near * far / (far - depth * (far - near));
-    return (2.0 * near * far) / (far + near - depth * (far - near));    
-}
-
-float linearizeDepth2(float depth) {
     float near = 0.005f; // Near plane distance
     float far = 10.f; // Far plane distance
     depth = depth * 2.0 - 1.0; // Back to NDC 
-    return near * far / (far - depth * (far - near));
+    //return near * far / (far - depth * (far - near));
     return (2.0 * near * far) / (far + near - depth * (far - near));    
 }
-
+/*
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
     // perform perspective divide
@@ -54,17 +46,48 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     projCoords = projCoords * 0.5 + 0.5;
     // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(shadowMapDepthTex, projCoords.xy).r; 
-    closestDepth = linearizeDepth2(closestDepth);
+    closestDepth = linearizeDepth(closestDepth);
 
     // get depth of current fragment from light's perspective
     float currentDepth = linearizeDepth(projCoords.z);
     // check whether current frag pos is in shadow
-    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
-
-    //return shadow;    
+    
+    float bias = 0.1;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    
+    return shadow;    
     //return currentDepth;
-    return closestDepth;
+    //return closestDepth;
 }
+*/
+float ShadowCalculation(vec4 fragPosLightSpace) {
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    float currentDepth = linearizeDepth(projCoords.z);
+
+    
+    float shadow = 0.0;
+    float bias = 0.01;
+
+    // Sample the shadow map multiple times around the projected coordinates
+    // PCF kernel size (e.g., 3x3)
+    const int kernelSize = 3;
+    float texelSize = 1.0 / textureSize(shadowMapDepthTex, 0).x;
+
+    for(int x = -kernelSize / 2; x <= kernelSize / 2; ++x) {
+        for(int y = -kernelSize / 2; y <= kernelSize / 2; ++y) {
+            float pcfDepth = texture(shadowMapDepthTex, projCoords.xy + vec2(x, y) * texelSize).r;
+            pcfDepth = linearizeDepth(pcfDepth);
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    
+    shadow /= float((kernelSize + 1) * (kernelSize + 1));
+    return shadow;
+}
+
 
 void main(void) {
     float fragDepth = texture(depthTex, uvCoord).r;
@@ -102,10 +125,18 @@ void main(void) {
                 depth = linearizeDepth(depth);                
                 fragColor = vec4(depth, depth, depth, 1.0);
                 */
+                /*
                 float depth = texture(shadowMapDepthTex, uvCoord).r;
                 depth = linearizeDepth(depth);
 
                 fragColor = vec4(vec3(depth),1.0);
+                */
+                vec3 fragPos = texture(posTex, uvCoord).xyz;
+                vec4 fragPosLightSpace = lightSpaceMat * vec4(fragPos, 1.0);        
+                float shadow = ShadowCalculation(fragPosLightSpace);      
+                //fragColor = fragPosLightSpace;
+                fragColor =vec4(vec3(1.f-shadow),1.f);
+                
                 break;
 
         }
@@ -129,14 +160,19 @@ void main(void) {
         vec4 fragPosLightSpace = lightSpaceMat * vec4(fragPos, 1.0);        
         float shadow = ShadowCalculation(fragPosLightSpace);      
         //fragColor = fragPosLightSpace;
-        fragColor =vec4(vec3(shadow),1.f);
+        //fragColor =vec4(vec3(1.f-shadow),1.f);
 
-        return;
+        //return;
+
+        // Calculate shadow factor: 0 for full shadow, 1 for fully lit
+        float shadowFactor = 1.0 - shadow;
         
         //vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color; 
         vec4 intensity = ambient ;
 
         if (objectType > 0.7f) {// plane
+            fragColor*=shadowFactor;
+
             return; //light already computed
         }
         else if(objectType>0.2f){//planar & spherical mirror
@@ -146,16 +182,16 @@ void main(void) {
         for (int i = 0; i < numLights; ++i) {
             vec3 lightDir = normalize(normalize(lightPosVF[i] - fragPos));
             //diffuse
-            intensity += diffuse[i]* max(dot(normal, lightDir), 0.0);
+            intensity +=shadowFactor*diffuse[i]* max(dot(normal, lightDir), 0.0);
 
             //specular
             if(blinnPhongLighting==1){//blinn phong
                 vec3 H = normalize(lightDir+viewDir);
-                intensity += specular[i]* pow(max(dot(H, normal), 0.0), specularPower);
+                intensity += shadowFactor*specular[i]* pow(max(dot(H, normal), 0.0), specularPower);
             }
             else{//normal phong
                 vec3 reflectDir = reflect(-lightDir, normal);
-                intensity += specular[i]* pow(max(dot(viewDir, reflectDir), 0.0), specularPower);
+                intensity += shadowFactor*specular[i]* pow(max(dot(viewDir, reflectDir), 0.0), specularPower);
             }
             fragColor *= intensity;
         }        
