@@ -312,22 +312,11 @@ void Physics::CollisionManager::CheckCollision(Core::Object* obj1, Core::Object*
 }
 
 void Physics::CollisionManager::ResolveCollision(float dt) {
-    ThreadPool& pool = ThreadPool::GetInstance();
-    m_resolveFutures.clear();
 
     for (int i = 0; i < m_iterationLimit; ++i) {
         for (auto& contact : m_collisions) {
-            // enqueue each collision resolution as a separate task
-            m_resolveFutures.push_back(
-                pool.enqueue([this, &contact, dt]() {
-                    SequentialImpulse(contact, dt);
-                    })
-            );
+			SequentialImpulse(contact, dt);
         }
-    }
-    // wait for all collision resolution tasks to complete
-    for (auto& future : m_resolveFutures) {
-        future.get();
     }
 }
 

@@ -4,7 +4,7 @@
 #include <physics/Collider.h>
 #include <physics/RigidBody.h>
 #include <core/Transform.h>
-#include <utilities/ThreadPool.h>
+//#include <utilities/ThreadPool.h>
 #include <memory>//std::make_unique
 #include <string>
 #include <random>
@@ -39,15 +39,15 @@ void Core::Scene::Update(float dt) {
     ApplyNarrowPhaseAndResolveCollisions(dt);
 
     // integrate (multi-threading)
-    ThreadPool& pool = ThreadPool::GetInstance();
+    //ThreadPool& pool = ThreadPool::GetInstance();
     for (const auto& obj : m_objects) {
 
         Core::Object* rawObjPtr = obj.get();
 
         // enqueue the task
-        pool.enqueue([rawObjPtr, dt]() {
+        //pool.enqueue([rawObjPtr, dt]() {
             rawObjPtr->Integrate(dt);
-            });
+            //});
     }
 }
 
@@ -220,7 +220,7 @@ void Core::Scene::ApplyBroadPhase()
 void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 {
     m_collisionManager.Reset();
-    ThreadPool& pool = ThreadPool::GetInstance();
+    //ThreadPool& pool = ThreadPool::GetInstance();
     const size_t objSize = m_objects.size();
 
     
@@ -228,9 +228,9 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 	for (size_t i{}; i < objSize; ++i) {
 		for (size_t j{ i + 1 }; j < objSize; ++j) {
 			// enqueue collision checks
-            pool.enqueue([this, i, j]() {
+            //pool.enqueue([this, i, j]() {
                 m_collisionManager.CheckCollision(m_objects[i].get(), m_objects[j].get());
-                });
+                //});
 		}
 	}    
 
