@@ -177,7 +177,7 @@ void Core::Scene::SetUpScene() {
     using Core::Transform;
 
     constexpr float BASE_POS_Y = 0.f;
-    constexpr float BASE_SCL_Y = 5.f;//7.5
+    constexpr float BASE_SCL_Y = 1.5f;//7.5
     constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
@@ -191,22 +191,26 @@ void Core::Scene::SetUpScene() {
 
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    Vec3 baseSize = Vec3(30.0f, BASE_SCL_Y,20.0f);
+    Vec3 baseSize = Vec3(20.0f, BASE_SCL_Y,16.0f);
     CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
-    //(2) VASE
+    //(2) grim reaper
     constexpr float VASE_SCL = 3.f;
-    CreateObject("vase", MeshID::VASE, ImageID::POTTERY_TEX_3, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper", MeshID::GRIM_REAPER, ImageID::RIPPLE, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
 
-    //(3) teapot
-    constexpr float TEAPOT_SCL = 2.f;
-    CreateObject("teapot", MeshID::TEAPOT, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ TEAPOT_SCL,TEAPOT_SCL,TEAPOT_SCL }, { -4.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+    //(3) cat
+    constexpr float CAT_SCL = 1.f;
+    CreateObject("cat", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -4.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
 
-    //(4) MIRROR
+    //(4) character
+    constexpr float CHARACTER_SCL = 2.f;
+    CreateObject("character", MeshID::CHARACTER, ImageID::WOOD_TEX_1, ColliderType::BOX, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 2.5f, 4.5f, 1.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+
+    //(5) MIRROR
     Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
     m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
-    //(5) SPHERE
+    //(6) SPHERE
     constexpr float SPHERE_RAD = 3.5f;
     m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
 }
@@ -284,8 +288,8 @@ void Core::Scene::SetUpProjectiles() {
     std::mt19937 gen(rd());
 
     // Adjust the range to exclude the Plane mesh
-    std::uniform_int_distribution<> meshDist(0, static_cast<int>(MeshID::NUM_MESHES) - 2);
-    std::uniform_int_distribution<> imageDist(0, static_cast<int>(ImageID::NUM_IMAGES) - 3);//removed the mirror textures (the last 2) 
+    std::uniform_int_distribution<> meshDist(0, static_cast<int>(MeshID::GOURD));
+    std::uniform_int_distribution<> imageDist(0, static_cast<int>(ImageID::POTTERY_TEX_3));
 
     for (int i{}; i < NUM_PROJECTILES; ++i) {
         MeshID randomMeshID = static_cast<MeshID>(meshDist(gen));

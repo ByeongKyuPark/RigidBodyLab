@@ -18,8 +18,8 @@ namespace Rendering {
 		DODECAHEDRON,
 		GOURD,
 		CAT,
-		MODEL,
-		DEATH,
+		CHARACTER,
+		GRIM_REAPER,
 		NUM_MESHES
 	};
 
@@ -33,6 +33,7 @@ namespace Rendering {
 		POTTERY_TEX_1,
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
+		RIPPLE,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -68,7 +69,8 @@ namespace Rendering {
 			"../RigidBodyLab/images/wood_2.jpg",
 			"../RigidBodyLab/images/pottery.jpg",
 			"../RigidBodyLab/images/pottery_2.png",
-			"../RigidBodyLab/images/pottery_3.jpg"
+			"../RigidBodyLab/images/pottery_3.jpg",
+			"../RigidBodyLab/images/ripple.jpg"
 		};
 		
 		/*  For bump/normal texture */
