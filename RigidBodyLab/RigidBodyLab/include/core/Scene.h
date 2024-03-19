@@ -17,6 +17,7 @@ namespace Core {
     public:
         static constexpr int NUM_PROJECTILES = 50;
         static constexpr float Y_THRESHOLD = -25.0f; //either remove or reload objects that fall below this threshold
+        static constexpr float PLANE_SHRINK_SPEED = 0.02f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;
@@ -39,7 +40,7 @@ namespace Core {
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
         const Core::Object* m_sphere;//spherical mirror (or refraction)
-
+        Core::Object* m_plane; //shrink over time
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 
@@ -49,6 +50,7 @@ namespace Core {
         void SetUpOrbitalLights();
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
+        void ShrinkPlaneOverTime(float dt);
 
         friend class Renderer;
 
@@ -108,5 +110,8 @@ namespace Core {
         void ShootProjectile(const Vector3& position);
         void ReloadProjectiles();
         void RemoveObjectsBelowThreshold();
+        void RemoveProjectiles();
+        void RemoveAndNullifySpecialObjects();
+
     };
 }

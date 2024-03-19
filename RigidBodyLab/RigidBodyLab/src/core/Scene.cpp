@@ -33,8 +33,9 @@ void Core::Scene::SetLightColor(const Vec4& lightColor, int lightIdx)
 }
 
 void Core::Scene::Update(float dt) {
-    ApplyBroadPhase();
-
+    //ApplyBroadPhase();
+    ShrinkPlaneOverTime(dt);
+    
     // narrow phase collision detection and resolution
     ApplyNarrowPhaseAndResolveCollisions(dt);
 
@@ -170,11 +171,16 @@ void Core::Scene::ReloadProjectiles() {
 }
 
 void Scene::RemoveObjectsBelowThreshold() {
+    RemoveProjectiles();
+    RemoveAndNullifySpecialObjects();    
+}
+
+void Core::Scene::RemoveProjectiles(){
     // deactivate projectiles that fall below the threshold
     // first, mark projectiles for removal (as projectiles is also an object, need to delete from the projectiles first)
     for (auto& projectile : m_projectiles) {
         if (projectile.m_object->GetPosition().y < Y_THRESHOLD) {
-            projectile.m_hasKnockedOff=true;
+            projectile.m_hasKnockedOff = true;
         }
     }
 
@@ -183,11 +189,28 @@ void Scene::RemoveObjectsBelowThreshold() {
         [](const Projectile& projectile) {
             return projectile.m_hasKnockedOff;
         }), m_projectiles.end());
+}
 
-    // remove deactivated objects
+void Core::Scene::RemoveAndNullifySpecialObjects() {
+    for (auto& obj : m_objects) {
+        if (obj->GetPosition().y < Y_THRESHOLD) {
+            // check if the object is the sphere or mirror and nullify accordingly
+            if (obj.get() == m_mirror) {
+                m_mirror = nullptr; 
+            }
+            else if (obj.get() == m_sphere) {
+                m_sphere = nullptr;
+            }
+            else if (obj.get() == m_plane) {
+                m_plane = nullptr;
+            }
+        }
+    }
+
+    // after handling special objects, remove objects below the threshold
     m_objects.erase(std::remove_if(m_objects.begin(), m_objects.end(),
         [](const std::unique_ptr<Core::Object>& obj) {
-            return obj->GetPosition().y < Y_THRESHOLD;
+            return !obj || obj->GetPosition().y < Y_THRESHOLD;
         }),
         m_objects.end());
 }
@@ -199,6 +222,7 @@ void Core::Scene::SetUpScene() {
     using Core::Transform;
 
     constexpr float BASE_POS_Y = 0.f;
+    constexpr float BASE_SCL = 40.f;
     constexpr float BASE_SCL_Y = 1.5f;//7.5
     constexpr float MIRROR_POS_Y = 8.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
@@ -213,8 +237,8 @@ void Core::Scene::SetUpScene() {
 
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
-    Vec3 baseSize = Vec3(20.0f, BASE_SCL_Y,16.0f);
-    CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
+    Vec3 baseSize = Vec3(BASE_SCL, BASE_SCL_Y, BASE_SCL);
+    m_plane=CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
     //(2) grim reaper
     constexpr float VASE_SCL = 3.f;
@@ -265,6 +289,23 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
     //deactivate knocked off objects
     RemoveObjectsBelowThreshold();
 }
+void Core::Scene::ShrinkPlaneOverTime(float dt) {
+    Physics::Collider* collider = m_plane->GetCollider();
+
+    if (auto scale = std::get_if<Vec3>(&collider->GetScale())) {
+        // if the collider is a BoxCollider, scale is a Vec3
+        Vec3 shrinkAmount = (*scale) *(PLANE_SHRINK_SPEED * dt); // calc the amount to shrink based on dt
+        Vec3 newScale = (*scale) - shrinkAmount; // subtract the shrink amount from the current scale
+        collider->SetScale(2.f*newScale); 
+    }
+    else if (auto radius = std::get_if<float>(&collider->GetScale())) {
+        // if the collider is a SphereCollider, scale is a float representing the radius
+        float shrinkAmount = (*radius) * (PLANE_SHRINK_SPEED * dt); // calc the amount to shrink based on dt
+        float newRadius = (*radius) - shrinkAmount; // subtract the shrink amount from the current radius
+        collider->SetScale(2.f*newRadius); 
+    }
+}
+
 
 void Core::Scene::SetUpOrbitalLights() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
@@ -338,7 +379,7 @@ void Core::Scene::SetUpProjectiles() {
             colliderType,
             colliderConfig,
             { mainCam.GetPos().x, mainCam.GetPos().y, mainCam.GetPos().z },
-            0.5f, // mass
+            1.5f, // mass
             Quaternion{},
             Core::ObjectType::DEFERRED_REGULAR,
             false, // turn off collision

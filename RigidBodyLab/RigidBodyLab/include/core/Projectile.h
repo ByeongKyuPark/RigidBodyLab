@@ -4,7 +4,7 @@
 namespace Core {
 
     struct Projectile {
-        constexpr static float INITIAL_SPEED = 2.f;
+        constexpr static float INITIAL_SPEED = 3.5f;
 
         bool m_isActive;
         bool m_hasKnockedOff;
