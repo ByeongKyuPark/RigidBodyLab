@@ -16,6 +16,7 @@ namespace Core {
     class Scene {
     public:
         static constexpr int NUM_PROJECTILES = 50;
+        static constexpr float Y_THRESHOLD = -25.0f; //either remove or reload objects that fall below this threshold
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;
@@ -106,5 +107,6 @@ namespace Core {
 
         void ShootProjectile(const Vector3& position);
         void ReloadProjectiles();
+        void RemoveObjectsBelowThreshold();
     };
 }

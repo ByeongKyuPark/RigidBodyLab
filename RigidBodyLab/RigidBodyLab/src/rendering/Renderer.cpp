@@ -288,7 +288,7 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) 
         return true;
     }
     constexpr float FPS_THRESHOLD = 40.f;
-    constexpr int UPDATE_INTERVAL = 15;
+    constexpr int UPDATE_INTERVAL = 25;
 
     m_sphereMirrorCubeMapFrameCounter++;
     if (fps >= FPS_THRESHOLD 

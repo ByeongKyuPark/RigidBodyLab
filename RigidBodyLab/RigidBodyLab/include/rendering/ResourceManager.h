@@ -11,12 +11,12 @@ namespace Rendering {
 	enum class MeshID {
 		CUBE = 0,
 		VASE,
-		PLANE,
 		SPHERE,
 		TEAPOT,
 		DIAMOND,
 		DODECAHEDRON,
 		GOURD,
+		PLANE,
 		CAT,
 		CHARACTER,
 		GRIM_REAPER,

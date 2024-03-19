@@ -41,13 +41,12 @@ void Core::Scene::Update(float dt) {
     // integrate (multi-threading)
     //ThreadPool& pool = ThreadPool::GetInstance();
     for (const auto& obj : m_objects) {
-
-        Core::Object* rawObjPtr = obj.get();
-
         // enqueue the task
         //pool.enqueue([rawObjPtr, dt]() {
-            rawObjPtr->Integrate(dt);
-            //});
+        if (obj.get()->IsVisible() == true) {
+            obj.get()->Integrate(dt);
+        }
+        //});
     }
 }
 
@@ -170,6 +169,29 @@ void Core::Scene::ReloadProjectiles() {
     }
 }
 
+void Scene::RemoveObjectsBelowThreshold() {
+    // deactivate projectiles that fall below the threshold
+    // first, mark projectiles for removal (as projectiles is also an object, need to delete from the projectiles first)
+    for (auto& projectile : m_projectiles) {
+        if (projectile.m_object->GetPosition().y < Y_THRESHOLD) {
+            projectile.m_hasKnockedOff=true;
+        }
+    }
+
+    // then, remove knocked off projectiles
+    m_projectiles.erase(std::remove_if(m_projectiles.begin(), m_projectiles.end(),
+        [](const Projectile& projectile) {
+            return projectile.m_hasKnockedOff;
+        }), m_projectiles.end());
+
+    // remove deactivated objects
+    m_objects.erase(std::remove_if(m_objects.begin(), m_objects.end(),
+        [](const std::unique_ptr<Core::Object>& obj) {
+            return obj->GetPosition().y < Y_THRESHOLD;
+        }),
+        m_objects.end());
+}
+
 void Core::Scene::SetUpScene() {
     using Physics::BoxCollider;
     using Physics::SphereCollider;
@@ -226,7 +248,6 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
     m_collisionManager.Reset();
     //ThreadPool& pool = ThreadPool::GetInstance();
     const size_t objSize = m_objects.size();
-
     
     // detect collisions in parallel
 	for (size_t i{}; i < objSize; ++i) {
@@ -240,6 +261,9 @@ void Core::Scene::ApplyNarrowPhaseAndResolveCollisions(float dt)
 
     // resolve stored collisions
     m_collisionManager.ResolveCollision(dt);
+
+    //deactivate knocked off objects
+    RemoveObjectsBelowThreshold();
 }
 
 void Core::Scene::SetUpOrbitalLights() {
@@ -277,8 +301,7 @@ void Core::Scene::SetUpOrbitalLights() {
 
 
 
-//Integrated the projectiles directly into the m_objects vector within the Scene class,
-//so as not to alter the whole rendering process. 
+//Integrated the projectiles directly into the m_objects vector within the Scene class to not alter the whole rendering process. 
 //the key is to manage these projectile objects effectively within the existing structure just for the demo.
 void Core::Scene::SetUpProjectiles() {
     static constexpr float PROJECTILE_SCL = 1.f;
@@ -293,12 +316,6 @@ void Core::Scene::SetUpProjectiles() {
 
     for (int i{}; i < NUM_PROJECTILES; ++i) {
         MeshID randomMeshID = static_cast<MeshID>(meshDist(gen));
-
-        // If the mesh is Plane or greater, increment the ID to skip Plane
-        if (randomMeshID >= MeshID::PLANE) {
-            randomMeshID = static_cast<MeshID>(static_cast<int>(randomMeshID) + 1);
-        }
-
         ImageID randomImageID = static_cast<ImageID>(imageDist(gen));
 
         ColliderType colliderType;
