@@ -17,6 +17,9 @@ namespace Rendering {
 		DIAMOND,
 		DODECAHEDRON,
 		GOURD,
+		CAT,
+		MODEL,
+		DEATH,
 		NUM_MESHES
 	};
 
@@ -58,7 +61,7 @@ namespace Rendering {
 		
 		int m_skyboxFaceSize;
 
-		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { 
+		static constexpr char* OBJ_TEXTURES_PATH[TO_INT(ImageID::NUM_IMAGES)] = { 
 			"../RigidBodyLab/images/stone.png", 
 			"../RigidBodyLab/images/stone2.jpg",
 			"../RigidBodyLab/images/wood.png",
@@ -69,10 +72,29 @@ namespace Rendering {
 		};
 		
 		/*  For bump/normal texture */
-		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
+		static constexpr char* BUMP_TEXTURE_PATH = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
-		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
-
+		static constexpr char* SKYBOX_TEXTURE_PATH = "../RigidBodyLab/images/skybox.jpg";
+		static constexpr char* SEPARATE_SKYBOX_TEXTURE_PATH[6] = {
+			"../RigidBodyLab/images/MarriottMadisonWest/posx.jpg", // Right
+			"../RigidBodyLab/images/MarriottMadisonWest/negx.jpg", // Left
+			"../RigidBodyLab/images/MarriottMadisonWest/posy.jpg", // Top
+			"../RigidBodyLab/images/MarriottMadisonWest/negy.jpg", // Bottom
+			"../RigidBodyLab/images/MarriottMadisonWest/posz.jpg", // Back
+			"../RigidBodyLab/images/MarriottMadisonWest/negz.jpg"  // Front
+		};
+		void FlipImageVertically(unsigned char* imageData, int width, int height, int numComponents)
+		{
+			int rowSize = width * numComponents;
+			auto* tempRow = new unsigned char[rowSize];
+			for (int y = 0; y < height / 2; ++y)
+			{
+				memcpy(tempRow, &imageData[y * rowSize], rowSize);
+				memcpy(&imageData[y * rowSize], &imageData[(height - 1 - y) * rowSize], rowSize);
+				memcpy(&imageData[(height - 1 - y) * rowSize], tempRow, rowSize);
+			}
+			delete[] tempRow;
+		}
 		friend class Renderer;
 	public:
         ResourceManager();
@@ -102,6 +124,8 @@ namespace Rendering {
 		void SetTextureParameters(GLenum textureType);
 		void SetUpPlanarMirrorTexture();
 		void SetUpSkyBoxTexture();
+		void SetUpSeparateSkyBoxTexture();
+
 		void SetUpSphereCubeMapTexture();
 
 		void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,

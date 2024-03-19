@@ -23,6 +23,9 @@ ResourceManager::ResourceManager()
     m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
     m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
     m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
+    m_meshes[TO_INT(MeshID::CAT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/cat.obj"));
+    m_meshes[TO_INT(MeshID::MODEL)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj"));
+    m_meshes[TO_INT(MeshID::DEATH)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj"));
 }
 
 ResourceManager& ResourceManager::GetInstance()
@@ -55,7 +58,8 @@ void Rendering::ResourceManager::SetUpTextures() {
     SetUpBaseBumpNormalTextures();
 
     /*  Set up skybox texture for background rendering */
-    SetUpSkyBoxTexture();
+    //SetUpSkyBoxTexture();
+    SetUpSeparateSkyBoxTexture();
 
     /*  Set up texture object for mirror reflection. This texture object hasn't stored any data yet.
         We will render the reflected data for this texture on the fly.
@@ -85,9 +89,9 @@ void Rendering::ResourceManager::SetUpObjTextures()
 	for (int i{}; i < NUM_IMGS; ++i)
 		if (i != TO_INT(ImageID::MIRROR_TEX) && i != TO_INT(ImageID::SPHERE_TEX))
 		{
-			imgData = stbi_load(objTexFile[i], &imgWidth, &imgHeight, &numComponents, 0);
+			imgData = stbi_load(OBJ_TEXTURES_PATH[i], &imgWidth, &imgHeight, &numComponents, 0);
 			if (!imgData) {
-				std::cerr << "Reading " << objTexFile[i] << " failed.\n";
+				std::cerr << "Reading " << OBJ_TEXTURES_PATH[i] << " failed.\n";
 				exit(1);
 			}
 
@@ -128,8 +132,8 @@ void ResourceManager::SetUpBaseBumpNormalTextures() {
     int imgWidth, imgHeight, numComponents;
 
     unsigned char* bumpImgData;
-    if (ReadImageFile(bumpTexFile, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
-        std::cerr << "Reading " << bumpTexFile << " failed.\n";
+    if (ReadImageFile(BUMP_TEXTURE_PATH, &bumpImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
+        std::cerr << "Reading " << BUMP_TEXTURE_PATH << " failed.\n";
         exit(1);
     }
 
@@ -237,8 +241,8 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
     int imgWidth, imgHeight, numComponents;
     unsigned char* cubeImgData{ nullptr };
 
-    if (ReadImageFile(skyboxTexFile, &cubeImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
-        std::cerr << "Reading " << skyboxTexFile << " failed.\n";
+    if (ReadImageFile(SKYBOX_TEXTURE_PATH, &cubeImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
+        std::cerr << "Reading " << SKYBOX_TEXTURE_PATH << " failed.\n";
         exit(1);
     }
 
@@ -299,6 +303,49 @@ void Rendering::ResourceManager::SetUpSkyBoxTexture()
     //for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
     //    free(cubeFace[f].get());
     //}
+
+    InitSphericalMirrorTexture();
+}
+
+//loads 6 separate skybox face textures
+void Rendering::ResourceManager::SetUpSeparateSkyBoxTexture()
+{
+    glGenTextures(1, &m_skyboxTexID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxTexID);
+
+    int width, height, numComponents;
+    for (int i = 0; i < 6; ++i)
+    {
+        unsigned char* imageData = nullptr;
+        if (ReadImageFile(SEPARATE_SKYBOX_TEXTURE_PATH[i], &imageData, &width, &height, &numComponents) == 0)
+        {
+            std::cerr << "Reading " << SEPARATE_SKYBOX_TEXTURE_PATH[i] << " failed.\n";
+            exit(1);
+        }
+        
+        if (i == 0) {// use the first one, assuming square textures for skybox faces
+            m_skyboxFaceSize = width; 
+        }
+
+        FlipImageVertically(imageData, width, height, numComponents);
+
+        GLuint internalFormat = (numComponents == 3) ? GL_RGB8 : GL_RGBA8;
+        GLuint format = (numComponents == 3) ? GL_RGB : GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+
+        free(imageData); // free the imageData after uploading to GPU
+    }
+
+    // set texture parameters
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    // generate mipmaps for the cubemap
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     InitSphericalMirrorTexture();
 }

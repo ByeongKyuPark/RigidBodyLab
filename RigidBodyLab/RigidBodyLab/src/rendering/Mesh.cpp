@@ -3,6 +3,7 @@
 #endif
 
 #include <rendering/Mesh.h>
+#include <algorithm>//std::all_of
 
 using namespace Rendering;
 using Math::Matrix4;
@@ -418,99 +419,110 @@ Mesh Rendering::Mesh::LoadOBJMesh(char* filename)
         exit(1);
     }
 
-    int posID = 0;
-
-    while (!feof(fp))
-    {
-        if (readDataLine(lineBuf, &numLines, fp, MAX_LINE_LEN))
+	int posID = 0;
+	while (readDataLine(lineBuf, &numLines, fp, MAX_LINE_LEN))
+	{
+        // trim newline and carriage return characters from the end of lineBuf
+        size_t len = strlen(lineBuf);
+        if (len > 0 && (lineBuf[len - 1] == '\n' || lineBuf[len - 1] == '\r'))
         {
-            if (lineBuf[0] == 'v')
+            lineBuf[len - 1] = '\0';
+            if (len > 1 && lineBuf[len - 2] == '\r')
             {
-                char dataType[MAX_LINE_LEN + 1];
-                float x, y, z;
-                sscanf_s(lineBuf, "%s %f %f %f", dataType, sizeof(dataType), &x, &y, &z);
-
-                Vertex v;
-                if (!strcmp(dataType, "v"))
-                {
-                    v.pos = Vec3(x, y, z);
-                    // Update bounding box extents
-                    minPoint = Min(minPoint, v.pos);
-                    maxPoint = Max(maxPoint, v.pos);
-
-                    if (posID >= mesh.numVertices)
-                    {
-                        mesh.vertexBuffer.push_back(v);
-                        ++mesh.numVertices;
-                    }
-                    else
-                        mesh.vertexBuffer[posID].pos = v.pos;
-
-                    ++posID;
-                }
+                lineBuf[len - 2] = '\0';
             }
-            else if (lineBuf[0] == 'f')
-            {
-                ++mesh.numTris;
-
-                std::vector<char*> faceData;
-                char* tokWS, * ptrFront, * ptrRear;
-                char* ct;
-
-                tokWS = strtok_s(lineBuf, " ", &ct);
-                tokWS = strtok_s(NULL, " ", &ct);
-                while (tokWS != NULL)
-                {
-                    faceData.push_back(tokWS);
-                    tokWS = strtok_s(NULL, " ", &ct);
-                }
-
-                if (faceData.size() > 3)
-                {
-                    std::cerr << "Only triangulated mesh is accepted.\n";
-                    exit(1);
-                }
-
-                for (int i = 0; i < (int)faceData.size(); i++)
-                {
-                    int vertNum;
-
-                    ptrFront = strchr(faceData[i], '/');
-                    if (ptrFront == NULL)
-                    {
-                        vertNum = atoi(faceData[i]) - 1;
-                        mesh.indexBuffer.push_back(vertNum);
-                        ++mesh.numIndices;
-                    }
-                    else
-                    {
-                        char* tokFront, * tokRear, * cF;
-                        ptrRear = strrchr(faceData[i], '/');
-                        tokFront = strtok_s(faceData[i], "/", &cF);
-                        vertNum = atoi(tokFront) - 1;
-
-                        if (ptrRear == ptrFront)
-                        {
-                            mesh.indexBuffer.push_back(vertNum);
-                            ++mesh.numIndices;
-                        }
-                        else
-                        {
-                            if (ptrRear != ptrFront + 1)
-                            {
-                                tokRear = strtok_s(NULL, "/", &cF);
-                            }
-
-                            tokRear = strtok_s(NULL, "/", &cF);
-                            mesh.indexBuffer.push_back(vertNum);
-                            ++mesh.numIndices;
-                        }
-                    }
-                }
-            }
-
         }
-    }
+
+        // skip empty lines or lines with only whitespace characters
+        if (strlen(lineBuf) == 0 || std::all_of(lineBuf, lineBuf + strlen(lineBuf), isspace))
+            continue;
+
+		if (lineBuf[0] == 'v')
+		{
+			char dataType[MAX_LINE_LEN + 1];
+			float x, y, z;
+			sscanf_s(lineBuf, "%s %f %f %f", dataType, sizeof(dataType), &x, &y, &z);
+
+			Vertex v;
+			if (!strcmp(dataType, "v"))
+			{
+				v.pos = Vec3(x, y, z);
+				// Update bounding box extents
+				minPoint = Min(minPoint, v.pos);
+				maxPoint = Max(maxPoint, v.pos);
+
+				if (posID >= mesh.numVertices)
+				{
+					mesh.vertexBuffer.push_back(v);
+					++mesh.numVertices;
+				}
+				else
+					mesh.vertexBuffer[posID].pos = v.pos;
+
+				++posID;
+			}
+		}
+		else if (lineBuf[0] == 'f')
+		{
+			++mesh.numTris;
+
+			std::vector<char*> faceData;
+			char* tokWS, * ptrFront, * ptrRear;
+			char* ct;
+
+			tokWS = strtok_s(lineBuf, " ", &ct);
+			tokWS = strtok_s(NULL, " ", &ct);
+			while (tokWS != NULL)
+			{
+				faceData.push_back(tokWS);
+				tokWS = strtok_s(NULL, " ", &ct);
+			}
+
+			if (faceData.size() > 3)
+			{
+				std::cerr << "Only triangulated mesh is accepted.\n";
+				exit(1);
+			}
+
+			for (int i = 0; i < (int)faceData.size(); i++)
+			{
+				int vertNum;
+
+				ptrFront = strchr(faceData[i], '/');
+				if (ptrFront == NULL)
+				{
+					vertNum = atoi(faceData[i]) - 1;
+					mesh.indexBuffer.push_back(vertNum);
+					++mesh.numIndices;
+				}
+				else
+				{
+					char* tokFront, * tokRear, * cF;
+					ptrRear = strrchr(faceData[i], '/');
+					tokFront = strtok_s(faceData[i], "/", &cF);
+					vertNum = atoi(tokFront) - 1;
+
+					if (ptrRear == ptrFront)
+					{
+						mesh.indexBuffer.push_back(vertNum);
+						++mesh.numIndices;
+					}
+					else
+					{
+						if (ptrRear != ptrFront + 1)
+						{
+							tokRear = strtok_s(NULL, "/", &cF);
+						}
+
+						tokRear = strtok_s(NULL, "/", &cF);
+						mesh.indexBuffer.push_back(vertNum);
+						++mesh.numIndices;
+					}
+				}
+			}
+		}
+
+	}
 
     if (fp)
         if (fclose(fp))
