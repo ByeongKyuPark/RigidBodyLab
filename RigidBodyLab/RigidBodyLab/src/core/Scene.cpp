@@ -244,14 +244,14 @@ void Core::Scene::SetUpScene() {
     m_plane=CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::OBB, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
     //(2) grim reaper
-    constexpr float GRIM_REAPER_SCL = 4.f;
+    constexpr float GRIM_REAPER_SCL = 5.f;
     CreateObject("grim reaper(L) 1", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 2", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ -45.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 3", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 10.0f }, 1.f, Quaternion{-135.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 4", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 5", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, -10.0f }, 1.f, Quaternion{ 0.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 6", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ -90.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 7", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 18.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(L) 7", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} });
     CreateObject("grim reaper(L) 8", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ 90.f,Vector3{0.f,1.f,0.f} });
 
     //(3) cat
@@ -261,15 +261,14 @@ void Core::Scene::SetUpScene() {
     CreateObject("cat 3", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ -135.f,Vector3{0.f,1.f,0.f} });
     CreateObject("cat 4", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
 
-    //(4) character
+    //(5) girl
     constexpr float CHARACTER_SCL = 3.f;
-    CreateObject("character(R) 1", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -5.0f, 4.5f, -12.0f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(R) 2", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 5.0f, 4.5f, -12.0f }, 1.f, Quaternion{ 100.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 1", MeshID::GIRL_RIGHTY, ImageID::WHITE_PAPER, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ -150.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 2", MeshID::GIRL_RIGHTY, ImageID::WHITE_PAPER, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, 5.0f }, 1.f, Quaternion{ -80.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::WHITE_PAPER, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -5.0f, 4.5f, 12.0f }, 1.f, Quaternion{ -30.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(R) 4", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, 5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
-    CreateObject("character(L) 1", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 5.0f, 4.5f, 12.0f }, 1.f, Quaternion{ 150.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(L) 2", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -5.0f, 4.5f, 12.0f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(L) 3", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.f, 4.5f, 5.f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(L) 4", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.5f, 4.5f, -5.f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
@@ -279,7 +278,7 @@ void Core::Scene::SetUpScene() {
 
     //(6) IDOL
     constexpr float IDOL_SCL = 9.f;
-    m_idol = CreateObject("idol", MeshID::GRIM_REAPER_LEFTY, ImageID::SPHERE_TEX, ColliderType::OBB, Vector3{ IDOL_SCL,IDOL_SCL,IDOL_SCL }, { -0.5f, 5.3f, 0.5f }, 5.f, Quaternion{}, ObjectType::REFLECTIVE_CURVED);
+    m_idol = CreateObject("idol", MeshID::GRIM_REAPER_LEFTY, ImageID::SPHERE_TEX, ColliderType::OBB, Vector3{ IDOL_SCL,IDOL_SCL,IDOL_SCL }, { -0.5f, 5.3f, 0.5f }, 15.f, Quaternion{}, ObjectType::REFLECTIVE_CURVED);
 }
 
 void Core::Scene::ApplyBroadPhase()

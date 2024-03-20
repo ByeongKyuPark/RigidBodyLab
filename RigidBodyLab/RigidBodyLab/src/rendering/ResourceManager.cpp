@@ -36,6 +36,7 @@ ResourceManager::ResourceManager()
     m_meshes[TO_INT(MeshID::CAT)]->m_boundingBox.extents.x *= 2.f;
  
     m_meshes[TO_INT(MeshID::GIRL_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj"));
+    //m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.y *= 1.f;
     m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.x *= 0.5f;
     m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.z *= 0.5f;
 

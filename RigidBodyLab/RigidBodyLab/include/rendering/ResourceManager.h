@@ -36,7 +36,7 @@ namespace Rendering {
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
 		RIPPLE,
-		CROSSHAIR,
+		WHITE_PAPER,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -74,7 +74,7 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg",
 			"../RigidBodyLab/images/ripple.jpg",
-			"../RigidBodyLab/images/crosshair.png"
+			"../RigidBodyLab/images/white_paper.jpg"
 		};
 		
 		/*  For bump/normal texture */
