@@ -17,7 +17,7 @@ namespace Physics {
     class CollisionManager {
     private:
         std::vector<CollisionData> m_collisions;
-        mutable std::mutex m_mutex;  
+        //mutable std::mutex m_mutex;  
 
         float m_friction;
         float m_objectRestitution;
@@ -94,7 +94,7 @@ namespace Physics {
             : m_friction(10.f), m_objectRestitution(0.7f), m_groundRestitution(0.6f),
             m_iterationLimit(3), m_penetrationTolerance(0.0005f), m_closingSpeedTolerance(0.0005f) {}
 
-        void Reset() { m_collisions.clear(); }
+        void Reset();
 
         void CheckCollision(Core::Object* obj1, Core::Object* obj2);
         void ResolveCollision(float dt);

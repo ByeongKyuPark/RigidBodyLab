@@ -264,6 +264,11 @@ void Physics::CollisionManager::FindCollisionFeaturesBoxBox(const BoxCollider* b
     AddCollision(collisionData);
 }
 
+void Physics::CollisionManager::Reset() { 
+
+    m_collisions.clear(); 
+}
+
 void Physics::CollisionManager::CheckCollision(Core::Object* obj1, Core::Object* obj2) {
     const Collider* collider1 = obj1->GetCollider();
     const Collider* collider2 = obj2->GetCollider();
@@ -516,12 +521,12 @@ void Physics::CollisionManager::SequentialImpulse(CollisionData& contact, float 
 }
 
 void Physics::CollisionManager::AddCollision(const CollisionData& data) {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    //std::lock_guard<std::mutex> lock(m_mutex);
     m_collisions.push_back(data);
 }
 
 std::vector<Physics::CollisionData> Physics::CollisionManager::GetCollisions() const{
-    std::lock_guard<std::mutex> lock(m_mutex);
+    //std::lock_guard<std::mutex> lock(m_mutex);
     return m_collisions;
 }
 

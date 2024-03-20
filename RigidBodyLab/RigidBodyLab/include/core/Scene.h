@@ -14,9 +14,8 @@ namespace Core {
     using Physics::CollisionManager;
 
     class Scene {
-    public:
         static constexpr int NUM_PROJECTILES = 50;
-        static constexpr float Y_THRESHOLD = -25.0f; //either remove or reload objects that fall below this threshold
+        static constexpr float Y_THRESHOLD = -10.0f; //either remove or reload objects that fall below this threshold
         static constexpr float PLANE_SHRINK_SPEED = 0.025f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
@@ -39,8 +38,9 @@ namespace Core {
         CollisionManager m_collisionManager;
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
-        const Core::Object* m_idol;//spherical mirror (or refraction)
+        Core::Object* m_idol;//idol (spherical mirror)
         Core::Object* m_plane; //shrinks over time
+        int m_numGirls{ 3 };
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 
@@ -52,6 +52,8 @@ namespace Core {
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
         void ShrinkPlaneOverTime(float dt);
         MeshID GetRandomIdolMeshID()const;
+        void RestoreTrueIdentities();
+        bool OnlyFollowersLeft()const { return m_numGirls <= 0; }
 
         friend class Renderer;
 

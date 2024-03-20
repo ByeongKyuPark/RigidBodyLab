@@ -44,6 +44,7 @@ namespace Rendering
         Vec3 GetPos()const { return pos; }
         Vec3 GetUpVec()const { return upVec; }
         Vec3 GetLookAtVec() const { return lookAt; }
+        int GetAlpha()const { return alpha; }
 
         int GetWidth() const { return width; }
         int GetHeight() const { return height; }

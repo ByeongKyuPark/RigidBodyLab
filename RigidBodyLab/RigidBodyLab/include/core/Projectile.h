@@ -4,9 +4,9 @@
 namespace Core {
 
     struct Projectile {
-        static constexpr float INITIAL_SPEED = 30.f;
-        static constexpr float PROJECTILE_MASS = 2.f;
-        static constexpr float PROJECTILE_Y_OFFSET = 0.1f;//put projectiles slightly up so that it does not hide the camera
+        static constexpr float INITIAL_SPEED = 50.f;
+        static constexpr float PROJECTILE_MASS = 1.f;
+        static constexpr float PROJECTILE_Y_OFFSET = 0.05f;//put projectiles slightly up so that it does not block the scene
 
         bool m_isActive;
         bool m_hasKnockedOff;

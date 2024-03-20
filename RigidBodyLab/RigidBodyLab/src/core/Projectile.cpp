@@ -31,8 +31,7 @@ Vec3 Core::Projectile::CalculateInitialVelocity() {
     Vec3 forwardDirection = Normalize(lookAtVec - camPos);
 
     // scale down the up vector's influence for a more horizontal launch
-    constexpr float UP_VECTOR_SCL_DOWN_FACTOR = 0.2f;
-
+    const float UP_VECTOR_SCL_DOWN_FACTOR = 0.25f;
     Vec3 launchDirection = Normalize(forwardDirection + upVec * UP_VECTOR_SCL_DOWN_FACTOR);
 
     Vec3 initialVelocity = launchDirection * INITIAL_SPEED;

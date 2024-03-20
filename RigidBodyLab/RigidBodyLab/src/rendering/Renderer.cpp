@@ -280,15 +280,15 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) 
     }
 
     static bool isFirstUpdateAfterLanding = true;
-    constexpr float MIN_SPEED_SQRD = 0.1f;
+    constexpr float MIN_SPEED_SQRD = 1.f;
 
     // update at least once after landing on the plane
     if (isFirstUpdateAfterLanding && speedSqrd < MIN_SPEED_SQRD) {
         isFirstUpdateAfterLanding = false;
         return true;
     }
-    constexpr float FPS_THRESHOLD = 50.f;
-    constexpr int UPDATE_INTERVAL = 100;
+    constexpr float FPS_THRESHOLD = 60.f;
+    constexpr int UPDATE_INTERVAL = 200;
 
     m_sphereMirrorCubeMapFrameCounter++;
     if (fps >= FPS_THRESHOLD 
@@ -1161,7 +1161,7 @@ void Renderer::CleanUp()
 Rendering::Renderer::Renderer()
     : m_window{ nullptr,WindowDeleter }
     , m_sphereRef(RefType::REFLECTION_ONLY)
-    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
+    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.15f }//1.33, water by default
     , m_shouldUpdateCubeMapForSphere{ true }
     , m_sphereMirrorCubeMapFrameCounter{}
 
@@ -1478,8 +1478,10 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
-    if (scene.m_idol == nullptr) {
-        return; // no sphere to render
+    //this runs only once. when all girls got knocked off
+    if (scene.OnlyFollowersLeft() == true && m_sphereRef==RefType::REFLECTION_ONLY) {
+		m_sphereRef = RefType::REFRACTION_ONLY;
+        m_shouldUpdateCubeMapForSphere = true;
     }
 
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
