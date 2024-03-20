@@ -17,7 +17,7 @@ namespace Core {
     public:
         static constexpr int NUM_PROJECTILES = 50;
         static constexpr float Y_THRESHOLD = -25.0f; //either remove or reload objects that fall below this threshold
-        static constexpr float PLANE_SHRINK_SPEED = 0.002f;
+        static constexpr float PLANE_SHRINK_SPEED = 0.025f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;

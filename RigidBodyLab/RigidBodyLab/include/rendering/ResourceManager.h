@@ -9,19 +9,19 @@ namespace Rendering {
 
 	/*  Pre-defined shapes: big flat cube, horizontal cube, vertical cube, sphere */
 	enum class MeshID {
-		CUBE = 0,
+		SPHERE=0,
+		CUBE,
 		VASE,
-		SPHERE,
 		TEAPOT,
 		DIAMOND,
-		DODECAHEDRON,
 		GOURD,
+		DODECAHEDRON,
 		PLANE,
 		CAT,
 		GIRL_RIGHTY,
-		GIRL_LEFTY,
+		//GIRL_LEFTY,
 		GRIM_REAPER_LEFTY,
-		GRIM_REAPER_RIGHTY,
+		//GRIM_REAPER_RIGHTY,
 		NUM_MESHES
 	};
 

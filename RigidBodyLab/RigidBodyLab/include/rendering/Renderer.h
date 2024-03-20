@@ -99,7 +99,7 @@ namespace Rendering {
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
 
-		bool m_buffersDisplay = true;
+		bool m_buffersDisplay{ false };// = true;
 
 		/*  Location of bump/normal textures */
 		/*  For indicating whether object has normal map, and parallax mapping status */

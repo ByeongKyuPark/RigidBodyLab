@@ -1198,7 +1198,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE+Camera::GUI_WIDTH, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE/* + Camera::GUI_WIDTH*/, Camera::DISPLAY_SIZE, "The Idol", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1216,6 +1216,9 @@ Rendering::Renderer::Renderer()
 	glfwSetScrollCallback(m_window.get(), MouseScroll);
 	//Set the user pointer of the GLFW window to point to the Renderer (for the "Keyboard" function in input.cpp)
 	glfwSetWindowUserPointer(m_window.get(), this);
+
+    //hide cursor
+    glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	InitRendering();
 	InitImGui();
@@ -1743,7 +1746,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     // (3) light pass
     RenderLightPass(scene);
     // (4) GUI
-    RenderGui(scene, fps);
+    //RenderGui(scene, fps);
 
     // Update lights here to reduce frame buffer swaps by 1
     UpdateOrbitalLights(scene, dt);

@@ -37,12 +37,14 @@ ResourceManager::ResourceManager()
  
     m_meshes[TO_INT(MeshID::GIRL_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj"));
     m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.x *= 0.5f;
-    
-    m_meshes[TO_INT(MeshID::GIRL_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj", true));
-    m_meshes[TO_INT(MeshID::GIRL_LEFTY)]->m_boundingBox.extents.x *= 0.5f;
-    
+    m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.z *= 0.5f;
+
+    //m_meshes[TO_INT(MeshID::GIRL_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj", true));
+    //m_meshes[TO_INT(MeshID::GIRL_LEFTY)]->m_boundingBox.extents.x *= 0.5f;
+    //m_meshes[TO_INT(MeshID::GIRL_LEFTY)]->m_boundingBox.extents.z *= 0.5f;
+
     m_meshes[TO_INT(MeshID::GRIM_REAPER_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj"));
-    m_meshes[TO_INT(MeshID::GRIM_REAPER_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj", true));
+    //m_meshes[TO_INT(MeshID::GRIM_REAPER_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj", true));
 }
 
 ResourceManager& ResourceManager::GetInstance()

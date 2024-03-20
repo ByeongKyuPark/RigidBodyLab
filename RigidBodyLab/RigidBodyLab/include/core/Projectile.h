@@ -4,9 +4,9 @@
 namespace Core {
 
     struct Projectile {
-        static constexpr float INITIAL_SPEED = 12.f;
-        static constexpr float PROJECTILE_MASS = 5.f;
-        static constexpr float PROJECTILE_Y_OFFSET = 0.2f;//put projectiles slightly up so that it does not hide the camera
+        static constexpr float INITIAL_SPEED = 30.f;
+        static constexpr float PROJECTILE_MASS = 2.f;
+        static constexpr float PROJECTILE_Y_OFFSET = 0.1f;//put projectiles slightly up so that it does not hide the camera
 
         bool m_isActive;
         bool m_hasKnockedOff;
@@ -16,6 +16,7 @@ namespace Core {
 
         void Activate(const Vector3& position);
         void Deactivate();
+        Vec3 CalculateInitialVelocity();
     };
 
 }
