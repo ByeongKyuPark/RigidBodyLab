@@ -402,7 +402,7 @@ bool readDataLine(char* lineBuf, int* lineNum, FILE* fp, int MAX_LINE_LEN);
         The vertex index to be added.
 */
 /******************************************************************************/
-Mesh Rendering::Mesh::LoadOBJMesh(char* filename)
+Mesh Rendering::Mesh::LoadOBJMesh(char* filename, bool flipX)
 {
     Mesh mesh;
     Vec3 minPoint(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -442,6 +442,11 @@ Mesh Rendering::Mesh::LoadOBJMesh(char* filename)
 			char dataType[MAX_LINE_LEN + 1];
 			float x, y, z;
 			sscanf_s(lineBuf, "%s %f %f %f", dataType, sizeof(dataType), &x, &y, &z);
+
+            // flip the x coordinate if flipX is true
+            if (flipX) {
+                x = -x;
+            }
 
 			Vertex v;
 			if (!strcmp(dataType, "v"))

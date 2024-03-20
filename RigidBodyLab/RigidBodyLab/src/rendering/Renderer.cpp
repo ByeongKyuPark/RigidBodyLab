@@ -280,15 +280,15 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) 
     }
 
     static bool isFirstUpdateAfterLanding = true;
-    constexpr float MIN_SPEED_SQRD = 0.01f;
+    constexpr float MIN_SPEED_SQRD = 0.1f;
 
     // update at least once after landing on the plane
     if (isFirstUpdateAfterLanding && speedSqrd < MIN_SPEED_SQRD) {
         isFirstUpdateAfterLanding = false;
         return true;
     }
-    constexpr float FPS_THRESHOLD = 40.f;
-    constexpr int UPDATE_INTERVAL = 25;
+    constexpr float FPS_THRESHOLD = 50.f;
+    constexpr int UPDATE_INTERVAL = 100;
 
     m_sphereMirrorCubeMapFrameCounter++;
     if (fps >= FPS_THRESHOLD 
@@ -578,7 +578,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 {
-    if (!scene.m_sphere) {
+    if (!scene.m_idol) {
         return;
     }
     /*  Compute the lookAt positions for the 6 faces of the sphere cubemap.
@@ -614,7 +614,7 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
-        Vec3 spherePos = { scene.m_sphere->GetPosition().x,scene.m_sphere->GetPosition().y,scene.m_sphere->GetPosition().z };
+        Vec3 spherePos = { scene.m_idol->GetPosition().x,scene.m_idol->GetPosition().y,scene.m_idol->GetPosition().z };
         m_sphereCamViewMat[f] = LookAt(spherePos, spherePos + lookAt[f], upVec[f]);
         ComputeSphericalMirrorCamObjMVMats(f, scene);
     }
@@ -649,8 +649,8 @@ void Renderer::RenderGeometryPass(const Scene& scene, float fps) {
 	glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
 
     //(2) rendering objects 
-    if (scene.m_sphere &&
-        (ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared(),fps) == true))
+    if (scene.m_idol &&
+        (ShouldUpdateSphereCubemap(scene.m_idol->GetRigidBody()->GetLinearVelocity().LengthSquared(),fps) == true))
     {
         ComputeSphereCamMats(scene);
 
@@ -1475,7 +1475,7 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
-    if (scene.m_sphere == nullptr) {
+    if (scene.m_idol == nullptr) {
         return; // no sphere to render
     }
 
@@ -1493,7 +1493,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
     // compute and send the model-view matrix for the sphere
-    Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrix();
+    Mat4 sphereMV = m_mainCamViewMat * scene.m_idol->GetModelMatrix();
     Mat4 sphereNMV = Transpose(Inverse(sphereMV));
     SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
 
@@ -1501,7 +1501,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
 
     // render the sphere
-    RenderObj(*scene.m_sphere);
+    RenderObj(*scene.m_idol);
 }
 
 

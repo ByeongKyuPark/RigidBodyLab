@@ -43,6 +43,7 @@ namespace Rendering
         Mat4 ProjMat() const;
         Vec3 GetPos()const { return pos; }
         Vec3 GetUpVec()const { return upVec; }
+        Vec3 GetLookAtVec() const { return lookAt; }
 
         int GetWidth() const { return width; }
         int GetHeight() const { return height; }

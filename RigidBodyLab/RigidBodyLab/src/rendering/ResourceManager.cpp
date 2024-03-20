@@ -14,21 +14,35 @@ ResourceManager::ResourceManager()
     stbi_set_flip_vertically_on_load(true);
  
     m_meshes[TO_INT(MeshID::CUBE)] = std::make_unique<Mesh>(Mesh::CreateCube(1, 1, 1));
+    
     m_meshes[TO_INT(MeshID::PLANE)] = std::make_unique<Mesh>(Mesh::CreatePlane(1, 1));
+    
     m_meshes[TO_INT(MeshID::SPHERE)] = std::make_unique<Mesh>(Mesh::CreateSphere(16, 16));
+    
     m_meshes[TO_INT(MeshID::VASE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/vase.obj"));
-    m_meshes[TO_INT(MeshID::TEAPOT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/teapot.obj"));
+    
     // adjust the teapot's bounding box. The original model has an elongated shape (oval), so we scale its x-dimension to achieve a more proportionate and visually pleasing appearance.
+    m_meshes[TO_INT(MeshID::TEAPOT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/teapot.obj"));
     m_meshes[TO_INT(MeshID::TEAPOT)]->m_boundingBox.extents.x *= 2.f; 
+    
     m_meshes[TO_INT(MeshID::DIAMOND)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/diamond.obj"));
+    
     m_meshes[TO_INT(MeshID::DODECAHEDRON)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/dodecahedron.obj"));
+    
     m_meshes[TO_INT(MeshID::GOURD)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/gourd.obj"));
-    m_meshes[TO_INT(MeshID::CAT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/cat.obj"));
+    
     // adjust the cat's bounding box. The original model has an elongated shape (oval), so we scale its x-dimension to achieve a more proportionate and visually pleasing appearance.
+    m_meshes[TO_INT(MeshID::CAT)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/cat.obj"));
     m_meshes[TO_INT(MeshID::CAT)]->m_boundingBox.extents.x *= 2.f;
-    m_meshes[TO_INT(MeshID::CHARACTER)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj"));
-    m_meshes[TO_INT(MeshID::CHARACTER)]->m_boundingBox.extents.x *= 0.5f;
-    m_meshes[TO_INT(MeshID::GRIM_REAPER)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj"));
+ 
+    m_meshes[TO_INT(MeshID::GIRL_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj"));
+    m_meshes[TO_INT(MeshID::GIRL_RIGHTY)]->m_boundingBox.extents.x *= 0.5f;
+    
+    m_meshes[TO_INT(MeshID::GIRL_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/model.obj", true));
+    m_meshes[TO_INT(MeshID::GIRL_LEFTY)]->m_boundingBox.extents.x *= 0.5f;
+    
+    m_meshes[TO_INT(MeshID::GRIM_REAPER_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj"));
+    m_meshes[TO_INT(MeshID::GRIM_REAPER_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj", true));
 }
 
 ResourceManager& ResourceManager::GetInstance()

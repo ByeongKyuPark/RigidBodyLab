@@ -18,8 +18,10 @@ namespace Rendering {
 		GOURD,
 		PLANE,
 		CAT,
-		CHARACTER,
-		GRIM_REAPER,
+		GIRL_RIGHTY,
+		GIRL_LEFTY,
+		GRIM_REAPER_LEFTY,
+		GRIM_REAPER_RIGHTY,
 		NUM_MESHES
 	};
 
@@ -34,6 +36,7 @@ namespace Rendering {
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
 		RIPPLE,
+		CROSSHAIR,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -70,7 +73,8 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery.jpg",
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg",
-			"../RigidBodyLab/images/ripple.jpg"
+			"../RigidBodyLab/images/ripple.jpg",
+			"../RigidBodyLab/images/crosshair.png"
 		};
 		
 		/*  For bump/normal texture */

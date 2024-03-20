@@ -83,7 +83,7 @@ namespace Rendering {
         static Mesh CreatePlane(int stacks, int slices);
         static Mesh CreateCube(int length, int height, int width);
         static Mesh CreateSphere(int stacks, int slices);
-        static Mesh LoadOBJMesh(char* filename);
+        static Mesh LoadOBJMesh(char* filename, bool flipX = false);
     };
 
 }

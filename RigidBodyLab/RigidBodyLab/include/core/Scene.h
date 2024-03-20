@@ -17,7 +17,7 @@ namespace Core {
     public:
         static constexpr int NUM_PROJECTILES = 50;
         static constexpr float Y_THRESHOLD = -25.0f; //either remove or reload objects that fall below this threshold
-        static constexpr float PLANE_SHRINK_SPEED = 0.02f;
+        static constexpr float PLANE_SHRINK_SPEED = 0.002f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;
@@ -39,8 +39,8 @@ namespace Core {
         CollisionManager m_collisionManager;
         //Special objects require seperate rendering 
         const Core::Object* m_mirror;//planar mirror
-        const Core::Object* m_sphere;//spherical mirror (or refraction)
-        Core::Object* m_plane; //shrink over time
+        const Core::Object* m_idol;//spherical mirror (or refraction)
+        Core::Object* m_plane; //shrinks over time
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 
@@ -51,6 +51,7 @@ namespace Core {
         void ApplyBroadPhase();
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
         void ShrinkPlaneOverTime(float dt);
+        MeshID GetRandomIdolMeshID()const;
 
         friend class Renderer;
 

@@ -17,7 +17,7 @@ using namespace Physics;
 Core::Scene::Scene() 
     : m_ambientLightIntensity{0.3f,0.3f,0.3f,1.f}, m_ambientAlbedo{ 1.f, 1.f, 1.f, 1.0f }, m_numLights{ 1 }, m_orbitalLights(Renderer::NUM_MAX_LIGHTS),
 	m_diffuseAlbedo{ 0.9f, 0.9f, 0.9f, 1.0f }, m_specularAlbedo{ 1.f, 1.f, 1.f, 1.0f },
-	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_sphere{ nullptr }
+	m_specularPower{ 12 }, m_collisionManager{}, m_mirror{ nullptr }, m_idol{ nullptr }
 {
     SetUpScene();
     SetUpProjectiles();
@@ -118,7 +118,7 @@ Object* Core::Scene::CreateObject(const std::string& name, MeshID meshID, ImageI
 
     std::unique_ptr<Collider> collider;
     // Determine the type of collider to create
-    if (colliderType == ColliderType::BOX) {
+    if (colliderType == ColliderType::OBB) {
         collider = std::make_unique<BoxCollider>(std::get<Vec3>(colliderConfig),isCollisionEnabled);
     }
     else if (colliderType == ColliderType::SPHERE) {
@@ -198,8 +198,8 @@ void Core::Scene::RemoveAndNullifySpecialObjects() {
             if (obj.get() == m_mirror) {
                 m_mirror = nullptr; 
             }
-            else if (obj.get() == m_sphere) {
-                m_sphere = nullptr;
+            else if (obj.get() == m_idol) {
+                m_idol = nullptr;
             }
             else if (obj.get() == m_plane) {
                 m_plane = nullptr;
@@ -224,7 +224,7 @@ void Core::Scene::SetUpScene() {
     constexpr float BASE_POS_Y = 0.f;
     constexpr float BASE_SCL = 40.f;
     constexpr float BASE_SCL_Y = 1.5f;//7.5
-    constexpr float MIRROR_POS_Y = 8.4f;//5.4
+    constexpr float MIRROR_POS_Y = 10.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
     
     ResourceManager& resourceManager = ResourceManager::GetInstance();
@@ -238,27 +238,39 @@ void Core::Scene::SetUpScene() {
     //(1) PLANE
     Vec3 basePos{ 0, BASE_POS_Y, 0 };
     Vec3 baseSize = Vec3(BASE_SCL, BASE_SCL_Y, BASE_SCL);
-    m_plane=CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::BOX, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
+    m_plane=CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::OBB, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
     //(2) grim reaper
-    constexpr float VASE_SCL = 3.f;
-    CreateObject("grim reaper", MeshID::GRIM_REAPER, ImageID::RIPPLE, ColliderType::BOX, Vec3{ VASE_SCL ,VASE_SCL ,VASE_SCL }, { 0.5f, 4.5f, 0.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    constexpr float GRIM_REAPER_SCL = 2.f;
+    CreateObject("grim reaper(L) 1", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 7.5f, 4.5f, 4.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(L) 2", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -5.5f, 4.5f, 4.5f }, 1.f, Quaternion{ 150.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(L) 3", MeshID::GRIM_REAPER_LEFTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -5.5f, 4.5f, -6.5f }, 1.f, Quaternion{ 15.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(R) 1", MeshID::GRIM_REAPER_RIGHTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 6.5f, 4.5f, -3.5f }, 1.f, Quaternion{ 120.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(R) 2", MeshID::GRIM_REAPER_RIGHTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 3.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 0.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("grim reaper(R) 3", MeshID::GRIM_REAPER_RIGHTY, ImageID::RIPPLE, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 6.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
 
     //(3) cat
     constexpr float CAT_SCL = 1.f;
-    CreateObject("cat", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::BOX, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -4.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("cat 1", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -4.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("cat 2", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 8.5f, 4.5f, 6.5f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
 
     //(4) character
     constexpr float CHARACTER_SCL = 2.f;
-    CreateObject("character", MeshID::CHARACTER, ImageID::WOOD_TEX_1, ColliderType::BOX, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 2.5f, 4.5f, 1.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 1", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 4.5f, 4.5f, 5.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 2", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -5.5f, 4.5f, -5.5f }, 1.f, Quaternion{ 100.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 2.5f, 4.5f, 5.5f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
+
+    CreateObject("character(L) 1", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 6.5f, 3.5f, 2.5f }, 1.f, Quaternion{ 150.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(L) 2", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 3.5f, 3.5f, -3.5f }, 1.f, Quaternion{ 30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(L) 3", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 2.5f, 3.5f, 7.5f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
     //(5) MIRROR
-    Vec3 mirrorColliderSize = Vec3{ 7.f,7.f,0.5f };
-    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::BOX, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
+    Vec3 mirrorColliderSize = Vec3{ 7.5f,7.5f,0.5f };
+    m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::OBB, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
-    //(6) SPHERE
-    constexpr float SPHERE_RAD = 3.5f;
-    m_sphere = CreateObject("spherical mirror", MeshID::SPHERE, ImageID::SPHERE_TEX, ColliderType::SPHERE, SPHERE_RAD, { -4.5f, 7.f, -1.5f }, 1.f, Quaternion{},ObjectType::REFLECTIVE_CURVED);
+    //(6) IDOL
+    constexpr float IDOL_SCL = 4.5f;
+    m_idol = CreateObject("idol", MeshID::GRIM_REAPER_LEFTY, ImageID::SPHERE_TEX, ColliderType::OBB, Vector3{ IDOL_SCL,IDOL_SCL,IDOL_SCL }, { -0.5f, 5.3f, 0.5f }, 3.f, Quaternion{}, ObjectType::REFLECTIVE_CURVED);
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -304,6 +316,20 @@ void Core::Scene::ShrinkPlaneOverTime(float dt) {
         float newRadius = (*radius) - shrinkAmount; // subtract the shrink amount from the current radius
         collider->SetScale(2.f*newRadius); 
     }
+}
+
+Rendering::MeshID Core::Scene::GetRandomIdolMeshID() const{
+    static bool seedInitialized = false;
+    if (!seedInitialized) {
+        std::srand(std::time(nullptr)); 
+        seedInitialized = true;
+    }
+
+    int firstSpecialID = static_cast<int>(MeshID::CAT);
+    int lastSpecialID = static_cast<int>(MeshID::GRIM_REAPER_RIGHTY);
+    int randomID = firstSpecialID + std::rand() % (lastSpecialID - firstSpecialID + 1);
+
+    return static_cast<MeshID>(randomID);
 }
 
 
@@ -368,7 +394,7 @@ void Core::Scene::SetUpProjectiles() {
             colliderConfig = PROJECTILE_SCL; // sphere radius
         }
         else {
-            colliderType = ColliderType::BOX;
+            colliderType = ColliderType::OBB;
             colliderConfig = Vec3{ PROJECTILE_SCL, PROJECTILE_SCL, PROJECTILE_SCL }; // box scale
         }
 
@@ -379,7 +405,7 @@ void Core::Scene::SetUpProjectiles() {
             colliderType,
             colliderConfig,
             { mainCam.GetPos().x, mainCam.GetPos().y, mainCam.GetPos().z },
-            1.5f, // mass
+            Projectile::PROJECTILE_MASS, // mass
             Quaternion{},
             Core::ObjectType::DEFERRED_REGULAR,
             false, // turn off collision
