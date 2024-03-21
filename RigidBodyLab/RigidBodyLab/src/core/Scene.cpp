@@ -272,8 +272,8 @@ void Core::Scene::SetUpScene() {
     constexpr float CHARACTER_SCL = 4.f;
     CreateObject("character(R) 1", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, -5.0f }, 0.02f, Quaternion{ -150.f,Vector3{0.f,1.f,0.f} });
     CreateObject("character(R) 2", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, 5.0f }, 0.02f, Quaternion{ -80.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -5.0f, 4.5f, 12.0f }, 0.02f, Quaternion{ -30.f,Vector3{0.f,1.f,0.f} });
-    //CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 4.5f, 4.5f, 0.0f }, 0.02f, Quaternion{ -30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("character(R) 4", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(R) 4", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, 5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
     //CreateObject("character(L) 3", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.f, 4.5f, 5.f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });

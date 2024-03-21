@@ -15,7 +15,7 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_PROJECTILES = 50;
-        static constexpr int NUM_INITIAL_GIRLS = 3;//the # of girl statues on the platform
+        static constexpr int NUM_INITIAL_GIRLS = 4;//the # of girl statues on the platform
         static constexpr float Y_THRESHOLD = -10.0f; //either remove or reload objects that fall below this threshold
         static constexpr float PLANE_SHRINK_SPEED = 0.025f;
 
@@ -41,7 +41,7 @@ namespace Core {
         const Core::Object* m_mirror;//planar mirror
         Core::Object* m_idol;//idol (spherical mirror)
         Core::Object* m_plane; //shrinks over time
-        int m_numGirls{ 3 };
+        int m_numGirls{ NUM_INITIAL_GIRLS };
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 
