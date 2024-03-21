@@ -1,7 +1,7 @@
 # Reflections: A Game Powered by RigidBodyLab Engine
 
-This mini-game, "Reflections," is powered by the RigidBodyLab engine, which is detailed below. It's designed to challenge players to think critically about societal norms, the marginalization of minorities, and the power of stereotypes through engaging gameplay. For a firsthand look at "Reflections" in action, visit [this link](https://www.youtube.com/watch?v=HLXHzttGrXY).
-
+This mini-game, "Reflections," is powered by the RigidBodyLab engine, which is detailed below. It's designed to challenge players to think critically about societal norms, the marginalization of minorities, and the power of stereotypes through engaging gameplay. For a firsthand look at "Reflections" in action, visit 
+ [![Reflections](https://img.youtube.com/vi/HLXHzttGrXY/0.jpg)](https://www.youtube.com/watch?v=HLXHzttGrXY)
 
 # RigidBodyLab: Custom Physics and Graphics Engine
 
