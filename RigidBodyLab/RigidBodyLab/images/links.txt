@@ -1,0 +1,16 @@
+1. textures
+	https://www.artstation.com/artwork/Ga6llW
+
+	https://freestocktextures.com/texture/black-sand-ripples,865.html
+
+	https://pixabay.com/illustrations/background-frame-ornaments-oriental-2659762/
+
+	https://pixabay.com/photos/mosaic-fish-tile-art-ceramic-200864/
+
+	https://www.freepik.com/free-photo/smooth-painted-plaster-wall_1037466.htm#page=2&query=texture%20free&position=11&from_view=keyword&track=ais&uuid=0143af3f-e529-45af-8684-8c7d8fe13b10
+
+2. cubemaps
+	https://opengameart.org/art-search-advanced?field_art_tags_tid=cubemap
+
+3. useful links
+	https://paulbourke.net/panorama/cubemaps/

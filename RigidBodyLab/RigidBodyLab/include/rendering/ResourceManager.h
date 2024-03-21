@@ -9,14 +9,19 @@ namespace Rendering {
 
 	/*  Pre-defined shapes: big flat cube, horizontal cube, vertical cube, sphere */
 	enum class MeshID {
-		CUBE = 0,
+		SPHERE=0,
+		CUBE,
 		VASE,
-		PLANE,
-		SPHERE,
 		TEAPOT,
 		DIAMOND,
-		DODECAHEDRON,
 		GOURD,
+		DODECAHEDRON,
+		PLANE,
+		CAT,
+		GIRL_RIGHTY,
+		//GIRL_LEFTY,
+		GRIM_REAPER_LEFTY,
+		//GRIM_REAPER_RIGHTY,
 		NUM_MESHES
 	};
 
@@ -30,6 +35,8 @@ namespace Rendering {
 		POTTERY_TEX_1,
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
+		GRIM_REAPER_SKIN,
+		GIRL_SKIN,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -58,21 +65,42 @@ namespace Rendering {
 		
 		int m_skyboxFaceSize;
 
-		static constexpr char* objTexFile[TO_INT(ImageID::NUM_IMAGES)] = { 
+		static constexpr char* OBJ_TEXTURES_PATH[TO_INT(ImageID::NUM_IMAGES)] = { 
 			"../RigidBodyLab/images/stone.png", 
 			"../RigidBodyLab/images/stone2.jpg",
 			"../RigidBodyLab/images/wood.png",
 			"../RigidBodyLab/images/wood_2.jpg",
 			"../RigidBodyLab/images/pottery.jpg",
 			"../RigidBodyLab/images/pottery_2.png",
-			"../RigidBodyLab/images/pottery_3.jpg"
+			"../RigidBodyLab/images/pottery_3.jpg",
+			"../RigidBodyLab/images/ripple.jpg",
+			"../RigidBodyLab/images/white_paper.jpg"
 		};
 		
 		/*  For bump/normal texture */
-		static constexpr char* bumpTexFile = "../RigidBodyLab/images/stone_bump.png";
+		static constexpr char* BUMP_TEXTURE_PATH = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
-		static constexpr char* skyboxTexFile = "../RigidBodyLab/images/skybox.jpg";
-
+		static constexpr char* SKYBOX_TEXTURE_PATH = "../RigidBodyLab/images/skybox.jpg";
+		static constexpr char* SEPARATE_SKYBOX_TEXTURE_PATH[6] = {
+			"../RigidBodyLab/images/cubemap/posx.jpg", // Right
+			"../RigidBodyLab/images/cubemap/negx.jpg", // Left
+			"../RigidBodyLab/images/cubemap/posy.jpg", // Top
+			"../RigidBodyLab/images/cubemap/negy.jpg", // Bottom
+			"../RigidBodyLab/images/cubemap/posz.jpg", // Back
+			"../RigidBodyLab/images/cubemap/negz.jpg"  // Front
+		};
+		void FlipImageVertically(unsigned char* imageData, int width, int height, int numComponents)
+		{
+			int rowSize = width * numComponents;
+			auto* tempRow = new unsigned char[rowSize];
+			for (int y = 0; y < height / 2; ++y)
+			{
+				memcpy(tempRow, &imageData[y * rowSize], rowSize);
+				memcpy(&imageData[y * rowSize], &imageData[(height - 1 - y) * rowSize], rowSize);
+				memcpy(&imageData[(height - 1 - y) * rowSize], tempRow, rowSize);
+			}
+			delete[] tempRow;
+		}
 		friend class Renderer;
 	public:
         ResourceManager();
@@ -102,6 +130,8 @@ namespace Rendering {
 		void SetTextureParameters(GLenum textureType);
 		void SetUpPlanarMirrorTexture();
 		void SetUpSkyBoxTexture();
+		void SetUpSeparateSkyBoxTexture();
+
 		void SetUpSphereCubeMapTexture();
 
 		void CopySubTexture(unsigned char* destTex, const unsigned char* srcTex,

@@ -2,6 +2,8 @@
 #include <rendering/Renderer.h>
 #include <utilities/Logger.h>
 #include <memory>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 using Rendering::Renderer;
 using namespace std::chrono;
@@ -23,6 +25,43 @@ void Application::Run() {
     //(in this case, the "this" pointer of the Application instance) with the GLFW window. 
     // later, will retrieve this pointer in the GLFW callback functions to access application's state or methods.
     glfwSetWindowUserPointer(renderer.GetWindow(), this);
+
+    // instruction loop
+    while (!m_gameStarted && !renderer.ShouldClose()) {
+        glfwPollEvents();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("How to Play", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Welcome to Reflections!");
+        ImGui::Text("Controls:");
+        ImGui::BulletText("Use W,A,S,D keys to orbit the camera around the platform.");
+        ImGui::BulletText("Press 'Space' to throw an object towards the center.");
+        ImGui::BulletText("Scroll the mouse wheel up or down to zoom in or out.");
+        ImGui::BulletText("Press 'ESC' to quit the game.");
+
+        ImGui::Text("Objective:");
+        ImGui::BulletText("Stop the platform from shrinking by ensuring all remaining beings are the same type.");
+        ImGui::BulletText("Secret: The key to unity might not be what you expect.");
+        if (ImGui::Button("Play")) {
+            m_gameStarted = true;
+        }
+        ImGui::End();
+
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(renderer.GetWindow(), &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwSwapBuffers(renderer.GetWindow());
+    }
+
+    //hide cursor
+    glfwSetInputMode(renderer.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     m_prevTime = std::chrono::high_resolution_clock::now();
     double accumulator = 0.0;

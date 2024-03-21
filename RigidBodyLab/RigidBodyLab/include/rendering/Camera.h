@@ -43,6 +43,8 @@ namespace Rendering
         Mat4 ProjMat() const;
         Vec3 GetPos()const { return pos; }
         Vec3 GetUpVec()const { return upVec; }
+        Vec3 GetLookAtVec() const { return lookAt; }
+        int GetAlpha()const { return alpha; }
 
         int GetWidth() const { return width; }
         int GetHeight() const { return height; }
@@ -52,7 +54,7 @@ namespace Rendering
         /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
         /*  The steps for rotation */
-        static constexpr int   NUM_STEPS_PI = 36;
+        static constexpr int   NUM_STEPS_PI = 72;
         static constexpr int   NUM_STEPS_TWO_PI = NUM_STEPS_PI * 2;
         static constexpr int   NUM_STEPS_HALF_PI = NUM_STEPS_PI / 2;
         static constexpr int   NUM_STEPS_QUARTER_PI = NUM_STEPS_PI / 4;
@@ -62,12 +64,12 @@ namespace Rendering
         /*  Step for camera angle change */
         static constexpr int CAM_ANGLE_STEP = 1;
         /*  Limit for camera distance from the origin */
-        static constexpr int CAM_MAX_RADIUS = 20;
+        static constexpr int CAM_MAX_RADIUS = 25;
         static constexpr int CAM_MIN_RADIUS = 3;
         static constexpr int CAM_RADIUS_STEP = 1;
         static constexpr int INIT_ALPHA = 5;
-        static constexpr int INIT_BETA = 24;     /*  90 degrees */
-        static constexpr int INIT_RADIUS = 11;
+        static constexpr int INIT_BETA = 30;
+        static constexpr int INIT_RADIUS = 23;
     };
 
 

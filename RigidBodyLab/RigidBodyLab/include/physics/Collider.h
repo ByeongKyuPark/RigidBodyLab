@@ -9,7 +9,7 @@ namespace Physics {
 	using ColliderConfig = std::variant<float, Vec3>; // float for radius, Vec3 for scale
 
 	enum class ColliderType {
-		BOX=0,
+		OBB=0,
 		SPHERE
 	};
 

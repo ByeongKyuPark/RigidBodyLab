@@ -81,7 +81,6 @@ namespace Rendering {
 		bool m_parallaxMappingOn;     // Toggle for parallax mapping
 		bool m_mirrorVisible;
 		bool m_shouldUpdateCubeMapForSphere;
-
 		//deferred light
 		//deferred geom
 
@@ -99,7 +98,7 @@ namespace Rendering {
 		/*  For clearing depth buffer */
 		GLfloat one = 1.0f;
 
-		bool m_buffersDisplay = true;
+		bool m_buffersDisplay{ false };// = true;
 
 		/*  Location of bump/normal textures */
 		/*  For indicating whether object has normal map, and parallax mapping status */
@@ -313,6 +312,7 @@ namespace Rendering {
 
 		void SetParallaxMapping(bool on) { m_parallaxMappingOn = on; }
 		void SetSphereRef(RefType type) { m_sphereRef = type; }
+		void Reset();
 		void SendMirrorTexID();
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }

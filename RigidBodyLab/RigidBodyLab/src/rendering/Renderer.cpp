@@ -280,15 +280,15 @@ bool Rendering::Renderer::ShouldUpdateSphereCubemap(float speedSqrd, float fps) 
     }
 
     static bool isFirstUpdateAfterLanding = true;
-    constexpr float MIN_SPEED_SQRD = 0.01f;
+    constexpr float MIN_SPEED_SQRD = 1.f;
 
     // update at least once after landing on the plane
     if (isFirstUpdateAfterLanding && speedSqrd < MIN_SPEED_SQRD) {
         isFirstUpdateAfterLanding = false;
         return true;
     }
-    constexpr float FPS_THRESHOLD = 40.f;
-    constexpr int UPDATE_INTERVAL = 15;
+    constexpr float FPS_THRESHOLD = 60.f;
+    constexpr int UPDATE_INTERVAL = 200;
 
     m_sphereMirrorCubeMapFrameCounter++;
     if (fps >= FPS_THRESHOLD 
@@ -578,7 +578,7 @@ void Renderer::ComputeMirrorCamMats(const Core::Scene& scene)
 /******************************************************************************/
 void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 {
-    if (!scene.m_sphere) {
+    if (!scene.m_idol) {
         return;
     }
     /*  Compute the lookAt positions for the 6 faces of the sphere cubemap.
@@ -614,7 +614,7 @@ void Renderer::ComputeSphereCamMats(const Core::Scene& scene)
 
     for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
     {
-        Vec3 spherePos = { scene.m_sphere->GetPosition().x,scene.m_sphere->GetPosition().y,scene.m_sphere->GetPosition().z };
+        Vec3 spherePos = { scene.m_idol->GetPosition().x,scene.m_idol->GetPosition().y,scene.m_idol->GetPosition().z };
         m_sphereCamViewMat[f] = LookAt(spherePos, spherePos + lookAt[f], upVec[f]);
         ComputeSphericalMirrorCamObjMVMats(f, scene);
     }
@@ -649,8 +649,8 @@ void Renderer::RenderGeometryPass(const Scene& scene, float fps) {
 	glClearBufferfv(GL_DEPTH, 0, &one);                           //depth
 
     //(2) rendering objects 
-    if (scene.m_sphere &&
-        (ShouldUpdateSphereCubemap(scene.m_sphere->GetRigidBody()->GetLinearVelocity().LengthSquared(),fps) == true))
+    if (scene.m_idol &&
+        (ShouldUpdateSphereCubemap(scene.m_idol->GetRigidBody()->GetLinearVelocity().LengthSquared(),fps) == true))
     {
         ComputeSphereCamMats(scene);
 
@@ -1025,6 +1025,11 @@ GLFWwindow* Rendering::Renderer::GetWindow() const {
     return m_window.get();
 }
 
+void Rendering::Renderer::Reset() { 
+    m_sphereRef = RefType::REFLECTION_ONLY; 
+    m_shouldUpdateCubeMapForSphere = true;
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendMirrorTexID()
@@ -1161,7 +1166,7 @@ void Renderer::CleanUp()
 Rendering::Renderer::Renderer()
     : m_window{ nullptr,WindowDeleter }
     , m_sphereRef(RefType::REFLECTION_ONLY)
-    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.33f }//water by default
+    , m_parallaxMappingOn(true), m_sphereRefIndex{ 1.15f }//1.33, water by default
     , m_shouldUpdateCubeMapForSphere{ true }
     , m_sphereMirrorCubeMapFrameCounter{}
 
@@ -1198,7 +1203,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE+Camera::GUI_WIDTH, Camera::DISPLAY_SIZE, "RigidBodyLab", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE/* + Camera::GUI_WIDTH*/, Camera::DISPLAY_SIZE, "Reflections", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1475,8 +1480,12 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
-    if (scene.m_sphere == nullptr) {
-        return; // no sphere to render
+    if (!scene.m_idol) return;
+
+    //this runs only once. when all girls got knocked off
+    if (scene.OnlyFollowersLeft() == true && m_sphereRef==RefType::REFLECTION_ONLY) {
+		m_sphereRef = RefType::REFRACTION_ONLY;
+        m_shouldUpdateCubeMapForSphere = true;
     }
 
     m_shaders[TO_INT(ProgType::SPHERE_PROG)].Use();
@@ -1493,7 +1502,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     SendViewMat(m_mainCamViewMat, m_sphereViewMatLoc);
 
     // compute and send the model-view matrix for the sphere
-    Mat4 sphereMV = m_mainCamViewMat * scene.m_sphere->GetModelMatrix();
+    Mat4 sphereMV = m_mainCamViewMat * scene.m_idol->GetModelMatrix();
     Mat4 sphereNMV = Transpose(Inverse(sphereMV));
     SendMVMat(sphereMV, sphereNMV, m_sphereMVMatLoc, m_sphereNMVMatLoc);
 
@@ -1501,7 +1510,7 @@ void Renderer::RenderSphere(const Core::Scene& scene)
     SendProjMat(m_mainCamProjMat, m_sphereProjMatLoc);
 
     // render the sphere
-    RenderObj(*scene.m_sphere);
+    RenderObj(*scene.m_idol);
 }
 
 
@@ -1743,7 +1752,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     // (3) light pass
     RenderLightPass(scene);
     // (4) GUI
-    RenderGui(scene, fps);
+    //RenderGui(scene, fps);
 
     // Update lights here to reduce frame buffer swaps by 1
     UpdateOrbitalLights(scene, dt);
