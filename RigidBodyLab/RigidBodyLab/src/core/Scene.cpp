@@ -210,7 +210,9 @@ void Core::Scene::RemoveAndNullifySpecialObjects() {
                 m_plane = nullptr;
             }
             else if (obj.get()->GetImageID() == ImageID::GIRL_SKIN) {
-                --m_numGirls;
+                if (--m_numGirls <= 0 && m_idol) {
+					m_idol->SetMesh(ResourceManager::GetInstance().GetMesh(MeshID::SPHERE));
+                }
             }
         }
     }
