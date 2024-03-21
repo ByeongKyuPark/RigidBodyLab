@@ -44,7 +44,7 @@ void Application::Run() {
         ImGui::Text("Objective:");
         ImGui::BulletText("Stop the platform from shrinking by ensuring all remaining beings are the same type.");
         ImGui::BulletText("Secret: The key to unity might not be what you expect.");
-        if (ImGui::Button("Begin Journey")) {
+        if (ImGui::Button("Play")) {
             m_gameStarted = true;
         }
         ImGui::End();
