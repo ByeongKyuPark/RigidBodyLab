@@ -39,6 +39,7 @@ void Application::Run() {
         ImGui::Text("Controls:");
         ImGui::BulletText("Use W,A,S,D keys to orbit the camera around the platform.");
         ImGui::BulletText("Press 'Space' to throw an object towards the center.");
+        ImGui::BulletText("Scroll the mouse wheel up or down to zoom in or out.");
         ImGui::BulletText("Press 'ESC' to quit the game.");
 
         ImGui::Text("Objective:");
