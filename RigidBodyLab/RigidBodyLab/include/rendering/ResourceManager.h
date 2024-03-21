@@ -82,12 +82,12 @@ namespace Rendering {
 		/*  For environment texture */
 		static constexpr char* SKYBOX_TEXTURE_PATH = "../RigidBodyLab/images/skybox.jpg";
 		static constexpr char* SEPARATE_SKYBOX_TEXTURE_PATH[6] = {
-			"../RigidBodyLab/images/MarriottMadisonWest/posx.jpg", // Right
-			"../RigidBodyLab/images/MarriottMadisonWest/negx.jpg", // Left
-			"../RigidBodyLab/images/MarriottMadisonWest/posy.jpg", // Top
-			"../RigidBodyLab/images/MarriottMadisonWest/negy.jpg", // Bottom
-			"../RigidBodyLab/images/MarriottMadisonWest/posz.jpg", // Back
-			"../RigidBodyLab/images/MarriottMadisonWest/negz.jpg"  // Front
+			"../RigidBodyLab/images/cubemap/posx.jpg", // Right
+			"../RigidBodyLab/images/cubemap/negx.jpg", // Left
+			"../RigidBodyLab/images/cubemap/posy.jpg", // Top
+			"../RigidBodyLab/images/cubemap/negy.jpg", // Bottom
+			"../RigidBodyLab/images/cubemap/posz.jpg", // Back
+			"../RigidBodyLab/images/cubemap/negz.jpg"  // Front
 		};
 		void FlipImageVertically(unsigned char* imageData, int width, int height, int numComponents)
 		{

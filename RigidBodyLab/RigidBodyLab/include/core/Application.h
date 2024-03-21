@@ -3,9 +3,9 @@
 #include <chrono>
 #include <input/InputHandler.h>
 class Application {
-    //std::vector<Scene> m_scenes; for multiple scenes
     Core::Scene m_scene;
     std::unique_ptr<InputHandler> m_inputHandler;
+    bool m_gameStarted{ false };
 
     /*  For displaying FPS */
     std::chrono::high_resolution_clock::time_point m_prevTime;

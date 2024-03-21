@@ -200,7 +200,6 @@ void Core::Scene::RemoveProjectiles(){
 void Core::Scene::RemoveAndNullifySpecialObjects() {
     for (auto& obj : m_objects) {
         if (obj->GetPosition().y < Y_THRESHOLD) {
-            // check if the object is the sphere or mirror and nullify accordingly
             if (obj.get() == m_mirror) {
                 m_mirror = nullptr; 
             }
@@ -447,4 +446,12 @@ void Core::Scene::SetLightPosition(const Vector3& lightPos, int lightIdx)
         throw std::runtime_error("SetLightPosition::light index out of rage");
     }
     m_orbitalLights[lightIdx].m_lightPosWF = lightPos;
+}
+
+void Core::Scene::Reset() {
+    m_numGirls = NUM_INITIAL_GIRLS;
+    m_projectiles.clear();
+    m_objects.clear();
+    SetUpScene();
+    SetUpProjectiles();
 }

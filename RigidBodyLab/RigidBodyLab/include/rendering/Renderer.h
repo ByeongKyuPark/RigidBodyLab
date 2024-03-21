@@ -312,6 +312,7 @@ namespace Rendering {
 
 		void SetParallaxMapping(bool on) { m_parallaxMappingOn = on; }
 		void SetSphereRef(RefType type) { m_sphereRef = type; }
+		void Reset();
 		void SendMirrorTexID();
 
 		bool IsParallaxMappingOn() const { return m_parallaxMappingOn; }

@@ -15,6 +15,7 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_PROJECTILES = 50;
+        static constexpr int NUM_INITIAL_GIRLS = 3;//the # of girl statues on the platform
         static constexpr float Y_THRESHOLD = -10.0f; //either remove or reload objects that fall below this threshold
         static constexpr float PLANE_SHRINK_SPEED = 0.025f;
 
@@ -115,6 +116,6 @@ namespace Core {
         void RemoveObjectsBelowThreshold();
         void RemoveProjectiles();
         void RemoveAndNullifySpecialObjects();
-
+        void Reset();
     };
 }

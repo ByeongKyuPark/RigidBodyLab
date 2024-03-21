@@ -1025,6 +1025,11 @@ GLFWwindow* Rendering::Renderer::GetWindow() const {
     return m_window.get();
 }
 
+void Rendering::Renderer::Reset() { 
+    m_sphereRef = RefType::REFLECTION_ONLY; 
+    m_shouldUpdateCubeMapForSphere = true;
+}
+
 /******************************************************************************/
 /*!
 \fn     void SendMirrorTexID()
@@ -1198,7 +1203,7 @@ Rendering::Renderer::Renderer()
 #endif
 
 	// Create a windowed mode window and its OpenGL context
-	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE/* + Camera::GUI_WIDTH*/, Camera::DISPLAY_SIZE, "The Idol", nullptr, nullptr);
+	GLFWwindow* rawWindow = glfwCreateWindow(Camera::DISPLAY_SIZE/* + Camera::GUI_WIDTH*/, Camera::DISPLAY_SIZE, "Reflections", nullptr, nullptr);
 	if (!rawWindow) {
 		glfwTerminate();
 		std::cerr << "Failed to create GLFW window\n";
@@ -1216,9 +1221,6 @@ Rendering::Renderer::Renderer()
 	glfwSetScrollCallback(m_window.get(), MouseScroll);
 	//Set the user pointer of the GLFW window to point to the Renderer (for the "Keyboard" function in input.cpp)
 	glfwSetWindowUserPointer(m_window.get(), this);
-
-    //hide cursor
-    glfwSetInputMode(m_window.get(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	InitRendering();
 	InitImGui();
@@ -1478,6 +1480,8 @@ void Renderer::RenderObj(const Core::Object& obj)
 /******************************************************************************/
 void Renderer::RenderSphere(const Core::Scene& scene)
 {
+    if (!scene.m_idol) return;
+
     //this runs only once. when all girls got knocked off
     if (scene.OnlyFollowersLeft() == true && m_sphereRef==RefType::REFLECTION_ONLY) {
 		m_sphereRef = RefType::REFRACTION_ONLY;
