@@ -36,7 +36,7 @@ namespace Rendering {
 		POTTERY_TEX_1,
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
-		GRIM_REAPER_SKIN,
+		BROWN_SKIN,
 		WHITE_SKIN,
 		YELLOW_SKIN,
 		BLACK_SKIN,
@@ -76,7 +76,7 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery.jpg",
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg",
-			"../RigidBodyLab/images/ripple.jpg",
+			"../RigidBodyLab/images/brown_paper.jpg",
 			"../RigidBodyLab/images/white_paper.jpg",
 			"../RigidBodyLab/images/yellow_paper.jpg",
 			"../RigidBodyLab/images/black_paper.jpg"

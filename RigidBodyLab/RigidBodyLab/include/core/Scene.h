@@ -15,9 +15,11 @@ namespace Core {
 
     class Scene {
         static constexpr int NUM_PROJECTILES = 50;
-        static constexpr int NUM_INITIAL_GIRLS = 4;//the # of girl statues on the platform
+        static constexpr int NUM_INITIAL_WOMEN = 4;//the # of women statues on the platform
+        static constexpr int NUM_INITIAL_MEN = 8;//the # of men statues on the platform
         static constexpr float Y_THRESHOLD = -10.0f; //either remove or reload objects that fall below this threshold
         static constexpr float PLANE_SHRINK_SPEED = 0.025f;
+        static constexpr float IDOL_EXPANSION_SPEED = 0.2f;
 
         std::vector<std::unique_ptr<Core::Object>> m_objects;
         std::vector<Projectile> m_projectiles;
@@ -41,7 +43,8 @@ namespace Core {
         const Core::Object* m_mirror;//planar mirror
         Core::Object* m_idol;//idol (spherical mirror)
         Core::Object* m_plane; //shrinks over time
-        int m_numGirls{ NUM_INITIAL_GIRLS };
+        int m_numWomen{ NUM_INITIAL_WOMEN };
+        int m_numMen{ NUM_INITIAL_MEN };
     private:
         //Integrated the projectiles directly into the m_objects vector within the Scene class,
         //so as not to alter the whole rendering process. 
@@ -53,8 +56,7 @@ namespace Core {
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
         void ShrinkPlaneOverTime(float dt);
         MeshID GetRandomIdolMeshID()const;
-        void RestoreTrueIdentities();
-        bool OnlyFollowersLeft()const { return m_numGirls <= 0; }
+        bool IsEnd()const { return m_idol==nullptr || m_numWomen <= 0 || m_numMen <= 0; }
 
         friend class Renderer;
 

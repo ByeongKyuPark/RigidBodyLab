@@ -697,6 +697,43 @@ void Renderer::RenderShadowMap(Scene& scene) {
     }
 }
 
+void Rendering::Renderer::RenderHUD(Scene& scene)
+{
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    if (scene.IsEnd()==true) {
+        ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH * 4.8f, Camera::GUI_WIDTH * 2.f));
+    }
+    else {
+        ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH*2.4f, Camera::GUI_WIDTH));
+    }
+
+    ImGui::Begin("Game Status", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+
+
+    // Check if the game has ended and explain the outcome
+    if (scene.IsEnd()) {
+
+        ImGui::Text("Game Over!");
+        if (scene.m_numMen == 0 || scene.m_numWomen == 0) {
+            ImGui::Text("You chose to knock off one gender.");
+            ImGui::Text("The platform stops shrinking,");
+            ImGui::Text("but the monster grows stronger!");
+        }
+        else if (scene.m_idol == nullptr) {
+            ImGui::Text("You knocked off the monster!");
+            ImGui::Text("The platform remains stable,");
+            ImGui::Text("and the monster does not grow.");
+        }
+    }
+    else {
+        // display the current number of men and women
+        ImGui::Text("Surviving Men: %d", scene.m_numMen);
+        ImGui::Text("Surviving Women: %d", scene.m_numWomen);
+    }
+
+    ImGui::End();
+}
+
 void Renderer::RenderLightPass(const Scene& scene) {
     /*  Bind framebuffer to 0 to render to the screen */
     /*  Disable depth test since we only render flat textures */
@@ -1482,8 +1519,8 @@ void Renderer::RenderSphere(const Core::Scene& scene)
 {
     if (!scene.m_idol) return;
 
-    //this runs only once. when all girls got knocked off
-    if (scene.OnlyFollowersLeft() == true && m_sphereRef==RefType::REFLECTION_ONLY) {
+    //this runs only once. when all women or men got knocked off
+    if (scene.IsEnd() == true && m_sphereRef==RefType::REFLECTION_ONLY) {
 		m_sphereRef = RefType::REFRACTION_ONLY;
         m_shouldUpdateCubeMapForSphere = true;
     }
@@ -1753,6 +1790,7 @@ void Renderer::Render(Core::Scene& scene, float fps, float dt)
     RenderLightPass(scene);
     // (4) GUI
     //RenderGui(scene, fps);
+    RenderHUD(scene);
 
     // Update lights here to reduce frame buffer swaps by 1
     UpdateOrbitalLights(scene, dt);

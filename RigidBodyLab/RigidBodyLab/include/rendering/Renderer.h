@@ -252,6 +252,7 @@ namespace Rendering {
 		void RenderGeometryPass(const Scene& scene, float fps);
 		void RenderLightPass(const Scene& scene);
 		void RenderShadowMap(Scene& scene);
+		void RenderHUD(Scene& scene);
 
 		void ComputeMainCamObjMVMats(const Core::Scene& scene);
 		void ComputePlanarMirrorCamObjMVMats(const Core::Scene& scene);

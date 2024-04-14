@@ -50,7 +50,7 @@ namespace Rendering
         int GetHeight() const { return height; }
 
         static constexpr int DISPLAY_SIZE = 1080;
-        static constexpr int GUI_WIDTH = 400;
+        static constexpr int GUI_WIDTH = 110;
         /*  The angles and radius in this file are defined as integers to avoid accumulated imprecision */
 
         /*  The steps for rotation */
@@ -64,7 +64,7 @@ namespace Rendering
         /*  Step for camera angle change */
         static constexpr int CAM_ANGLE_STEP = 1;
         /*  Limit for camera distance from the origin */
-        static constexpr int CAM_MAX_RADIUS = 25;
+        static constexpr int CAM_MAX_RADIUS = 50;
         static constexpr int CAM_MIN_RADIUS = 3;
         static constexpr int CAM_RADIUS_STEP = 1;
         static constexpr int INIT_ALPHA = 5;
