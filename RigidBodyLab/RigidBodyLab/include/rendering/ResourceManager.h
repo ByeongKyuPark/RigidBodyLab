@@ -21,6 +21,7 @@ namespace Rendering {
 		GIRL_RIGHTY,
 		//GIRL_LEFTY,
 		GRIM_REAPER_LEFTY,
+		MALE,
 		//GRIM_REAPER_RIGHTY,
 		NUM_MESHES
 	};
@@ -36,7 +37,9 @@ namespace Rendering {
 		POTTERY_TEX_2,
 		POTTERY_TEX_3,
 		GRIM_REAPER_SKIN,
-		GIRL_SKIN,
+		WHITE_SKIN,
+		YELLOW_SKIN,
+		BLACK_SKIN,
 		MIRROR_TEX,
 		SPHERE_TEX,
 		NUM_IMAGES
@@ -74,7 +77,9 @@ namespace Rendering {
 			"../RigidBodyLab/images/pottery_2.png",
 			"../RigidBodyLab/images/pottery_3.jpg",
 			"../RigidBodyLab/images/ripple.jpg",
-			"../RigidBodyLab/images/white_paper.jpg"
+			"../RigidBodyLab/images/white_paper.jpg",
+			"../RigidBodyLab/images/yellow_paper.jpg",
+			"../RigidBodyLab/images/black_paper.jpg"
 		};
 		
 		/*  For bump/normal texture */
@@ -82,12 +87,18 @@ namespace Rendering {
 		/*  For environment texture */
 		static constexpr char* SKYBOX_TEXTURE_PATH = "../RigidBodyLab/images/skybox.jpg";
 		static constexpr char* SEPARATE_SKYBOX_TEXTURE_PATH[6] = {
-			"../RigidBodyLab/images/cubemap/posx.jpg", // Right
-			"../RigidBodyLab/images/cubemap/negx.jpg", // Left
-			"../RigidBodyLab/images/cubemap/posy.jpg", // Top
-			"../RigidBodyLab/images/cubemap/negy.jpg", // Bottom
-			"../RigidBodyLab/images/cubemap/posz.jpg", // Back
-			"../RigidBodyLab/images/cubemap/negz.jpg"  // Front
+			//"../RigidBodyLab/images/cubemap/posx.jpg", // Right
+			//"../RigidBodyLab/images/cubemap/negx.jpg", // Left
+			//"../RigidBodyLab/images/cubemap/posy.jpg", // Top
+			//"../RigidBodyLab/images/cubemap/negy.jpg", // Bottom
+			//"../RigidBodyLab/images/cubemap/posz.jpg", // Back
+			//"../RigidBodyLab/images/cubemap/negz.jpg"  // Front
+			"../RigidBodyLab/images/skybox/right.png", // Right
+			"../RigidBodyLab/images/skybox/left.png", // Left
+			"../RigidBodyLab/images/skybox/top.png", // Top
+			"../RigidBodyLab/images/skybox/bottom.png", // Bottom
+			"../RigidBodyLab/images/skybox/front.png",  // Front
+			"../RigidBodyLab/images/skybox/back.png" // Back
 		};
 		void FlipImageVertically(unsigned char* imageData, int width, int height, int numComponents)
 		{

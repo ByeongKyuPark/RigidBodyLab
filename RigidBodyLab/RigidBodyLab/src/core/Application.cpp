@@ -34,8 +34,10 @@ void Application::Run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        ImGuiIO& io = ImGui::GetIO();
+        io.FontGlobalScale = 2.f;
+
         ImGui::Begin("How to Play", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("Welcome to Reflections!");
         ImGui::Text("Controls:");
         ImGui::BulletText("Use W,A,S,D keys to orbit the camera around the platform.");
         ImGui::BulletText("Press 'Space' to throw an object towards the center.");
@@ -43,8 +45,11 @@ void Application::Run() {
         ImGui::BulletText("Press 'ESC' to quit the game.");
 
         ImGui::Text("Objective:");
-        ImGui::BulletText("Stop the platform from shrinking by ensuring all remaining beings are the same type.");
-        ImGui::BulletText("Secret: The key to unity might not be what you expect.");
+        ImGui::BulletText("The world is cursed by a monstrous presence\nat the center of the platform.");
+        ImGui::BulletText("The platform continuously shrinks,\nthreatening everyone on it.");
+        ImGui::BulletText("To stop the platform from shrinking, ensure\nall beings on it are of the same gender.");
+        ImGui::BulletText("By throwing objects strategically, you must\nknock off those who disrupt the unity.");
+
         if (ImGui::Button("Play")) {
             m_gameStarted = true;
         }

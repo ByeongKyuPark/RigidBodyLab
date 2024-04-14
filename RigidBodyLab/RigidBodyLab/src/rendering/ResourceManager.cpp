@@ -45,6 +45,7 @@ ResourceManager::ResourceManager()
     //m_meshes[TO_INT(MeshID::GIRL_LEFTY)]->m_boundingBox.extents.z *= 0.5f;
 
     m_meshes[TO_INT(MeshID::GRIM_REAPER_LEFTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj"));
+    m_meshes[TO_INT(MeshID::MALE)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/male.obj"));
     //m_meshes[TO_INT(MeshID::GRIM_REAPER_RIGHTY)] = std::make_unique<Mesh>(Mesh::LoadOBJMesh("../RigidBodyLab/models/death.obj", true));
 }
 

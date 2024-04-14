@@ -209,7 +209,7 @@ void Core::Scene::RemoveAndNullifySpecialObjects() {
             else if (obj.get() == m_plane) {
                 m_plane = nullptr;
             }
-            else if (obj.get()->GetImageID() == ImageID::GIRL_SKIN) {
+            else if (obj.get()->GetName()=="girl") {//hard coded for now.
                 if (--m_numGirls <= 0 && m_idol) {
 					m_idol->SetMesh(ResourceManager::GetInstance().GetMesh(MeshID::SPHERE));
                 }
@@ -232,7 +232,7 @@ void Core::Scene::SetUpScene() {
     using Core::Transform;
 
     constexpr float BASE_POS_Y = 0.f;
-    constexpr float BASE_SCL = 70.f;
+    constexpr float BASE_SCL = 210.f;
     constexpr float BASE_SCL_Y = 1.5f;//7.5
     constexpr float MIRROR_POS_Y = 10.4f;//5.4
     constexpr float MIRROR_SCL = 6.f;
@@ -250,42 +250,42 @@ void Core::Scene::SetUpScene() {
     Vec3 baseSize = Vec3(BASE_SCL, BASE_SCL_Y, BASE_SCL);
     m_plane=CreateObject("plane", MeshID::CUBE, ImageID::STONE_TEX_1, ColliderType::OBB, baseSize, { 0, BASE_POS_Y, 0 }, 0.f, Quaternion{},ObjectType::NORMAL_MAPPED_PLANE);
 
-    //(2) grim reaper
+    //(2) male
     constexpr float GRIM_REAPER_SCL = 5.f;
-    CreateObject("grim reaper(L) 1", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 2", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ -45.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 3", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 10.0f }, 1.f, Quaternion{-135.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 4", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 5", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, -10.0f }, 1.f, Quaternion{ 0.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 6", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ -90.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 7", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("grim reaper(L) 8", MeshID::GRIM_REAPER_LEFTY, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ 90.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 1", MeshID::MALE, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 2", MeshID::MALE, ImageID::GRIM_REAPER_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, -10.0f }, 1.f, Quaternion{ -45.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 3", MeshID::MALE, ImageID::BLACK_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 10.0f }, 1.f, Quaternion{-135.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 4", MeshID::MALE, ImageID::YELLOW_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 5", MeshID::MALE, ImageID::WHITE_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, -14.0f }, 1.f, Quaternion{ 0.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 6", MeshID::MALE, ImageID::YELLOW_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ -90.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 7", MeshID::MALE, ImageID::WHITE_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { 0.0f, 5.0f, 10.0f }, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("male 8", MeshID::MALE, ImageID::BLACK_SKIN, ColliderType::OBB, Vec3{ GRIM_REAPER_SCL ,GRIM_REAPER_SCL ,GRIM_REAPER_SCL }, { -10.0f, 5.0f, 0.0f }, 1.f, Quaternion{ 90.f,Vector3{0.f,1.f,0.f} });
 
     //(3) cat
-    constexpr float CAT_SCL = 1.5f;
-    CreateObject("cat 1", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -5.0f, 3.5f, 5.0f }, 1.f, Quaternion{ -45.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("cat 2", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 5.0f, 3.5f, 5.0f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("cat 3", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ -135.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("cat 4", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
+    //constexpr float CAT_SCL = 1.5f;
+    //CreateObject("cat 1", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -5.0f, 3.5f, 5.0f }, 1.f, Quaternion{ -45.f,Vector3{0.f,1.f,0.f} });
+    //CreateObject("cat 2", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 5.0f, 3.5f, 5.0f }, 1.f, Quaternion{ 45.f,Vector3{0.f,1.f,0.f} });
+    //CreateObject("cat 3", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { -5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ -135.f,Vector3{0.f,1.f,0.f} });
+    //CreateObject("cat 4", MeshID::CAT, ImageID::POTTERY_TEX_1, ColliderType::OBB, Vec3{ CAT_SCL,CAT_SCL,CAT_SCL }, { 5.0f, 3.5f, -5.0f }, 1.f, Quaternion{ 135.f,Vector3{0.f,1.f,0.f} });
 
     //(5) girl
     constexpr float CHARACTER_SCL = 4.f;
-    CreateObject("character(R) 1", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, -5.0f }, 0.02f, Quaternion{ -150.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(R) 2", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, 5.0f }, 0.02f, Quaternion{ -80.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(R) 3", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 4.5f, 4.5f, 0.0f }, 0.02f, Quaternion{ -30.f,Vector3{0.f,1.f,0.f} });
-    CreateObject("character(R) 4", MeshID::GIRL_RIGHTY, ImageID::GIRL_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("girl", MeshID::GIRL_RIGHTY, ImageID::WHITE_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, -5.0f }, 0.02f, Quaternion{ -150.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("girl", MeshID::GIRL_RIGHTY, ImageID::YELLOW_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.0f, 4.5f, 5.0f }, 0.02f, Quaternion{ -80.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("girl", MeshID::GIRL_RIGHTY, ImageID::BLACK_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 4.5f, 4.5f, 0.0f }, 0.02f, Quaternion{ -30.f,Vector3{0.f,1.f,0.f} });
+    CreateObject("girl", MeshID::GIRL_RIGHTY, ImageID::BLACK_SKIN, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, -5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(R) 4", MeshID::GIRL_RIGHTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { 12.0f, 4.5f, 5.0f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
     //CreateObject("character(L) 3", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.f, 4.5f, 5.f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
     //CreateObject("character(L) 4", MeshID::GIRL_LEFTY, ImageID::WOOD_TEX_1, ColliderType::OBB, Vec3{ CHARACTER_SCL,CHARACTER_SCL,CHARACTER_SCL }, { -12.5f, 4.5f, -5.f }, 1.f, Quaternion{ 60.f,Vector3{0.f,1.f,0.f} });
 
     //(5) MIRROR
-    Vec3 mirrorColliderSize = Vec3{ 7.5f,7.5f,0.5f };
+    Vec3 mirrorColliderSize = Vec3{ 7.5f,7.5f,0.35f };
     m_mirror=CreateObject("planar mirror", MeshID::PLANE, ImageID::MIRROR_TEX, ColliderType::OBB, mirrorColliderSize, {0.f, MIRROR_POS_Y, -4.5f}, 1.f, Quaternion{ 180.f,Vector3{0.f,1.f,0.f} },ObjectType::REFLECTIVE_FLAT);
 
     //(6) IDOL
     constexpr float IDOL_SCL = 9.f;
-    m_idol = CreateObject("idol", MeshID::GRIM_REAPER_LEFTY, ImageID::SPHERE_TEX, ColliderType::OBB, Vector3{ IDOL_SCL,IDOL_SCL,IDOL_SCL }, { -0.5f, 5.3f, 0.5f }, 25.f, Quaternion{}, ObjectType::REFLECTIVE_CURVED);
+    m_idol = CreateObject("idol", MeshID::GRIM_REAPER_LEFTY, ImageID::SPHERE_TEX, ColliderType::OBB, Vector3{ IDOL_SCL,IDOL_SCL,IDOL_SCL }, { -0.5f, 5.3f, 0.5f }, 65.f, Quaternion{}, ObjectType::REFLECTIVE_CURVED);
 }
 
 void Core::Scene::ApplyBroadPhase()
@@ -352,7 +352,7 @@ void Core::Scene::RestoreTrueIdentities() {
     m_idol = nullptr;
     for (auto& obj : m_objects) {
         if (obj.get()->GetImageID() == ImageID::GRIM_REAPER_SKIN) {
-            obj.get()->SetImageID(ImageID::GIRL_SKIN);
+            obj.get()->SetImageID(ImageID::WHITE_SKIN);
             obj.get()->SetMesh(ResourceManager::GetInstance().GetMesh(MeshID::GIRL_RIGHTY));
         }
     }
