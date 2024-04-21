@@ -721,8 +721,7 @@ void Rendering::Renderer::RenderHUD(Scene& scene)
         }
         else if (scene.m_idol == nullptr) {
             ImGui::Text("You knocked off the monster!");
-            ImGui::Text("The platform remains stable,");
-            ImGui::Text("and the monster does not grow.");
+            ImGui::Text("The platform remains stable.");
         }
     }
     else {
