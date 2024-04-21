@@ -56,6 +56,7 @@ namespace Core {
         void ApplyNarrowPhaseAndResolveCollisions(float dt);
         void ShrinkPlaneOverTime(float dt);
         MeshID GetRandomIdolMeshID()const;
+        bool IsHappyEnd() const { return m_idol == nullptr && m_numWomen > 0 && m_numMen > 0; }
         bool IsEnd()const { return m_idol==nullptr || m_numWomen <= 0 || m_numMen <= 0; }
 
         friend class Renderer;

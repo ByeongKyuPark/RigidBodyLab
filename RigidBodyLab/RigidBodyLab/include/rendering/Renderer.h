@@ -239,7 +239,7 @@ namespace Rendering {
 		// Function to update light positions
 		void UpdateOrbitalLights(Core::Scene& scene, float dt);
 
-		void RenderSkybox(const Mat4& viewMat);
+		void RenderSkybox(const Mat4& viewMat, bool isHappyEnd);
 		void RenderObj(const Core::Object& obj);
 		void RenderSphere(const Scene& scene);
 		

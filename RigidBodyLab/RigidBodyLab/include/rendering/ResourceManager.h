@@ -59,7 +59,8 @@ namespace Rendering {
 		std::unique_ptr<unsigned char[]> m_sphereCubeMapData[TO_INT(CubeFaceID::NUM_FACES)];
 
 		GLuint m_bumpTexID, m_normalTexID;
-		GLuint m_skyboxTexID;
+		GLuint m_darkSkyboxTexID;
+		GLuint m_brightSkyboxTexID;
 		/*  For generating sphere "reflection/refraction" texture */
 		GLuint m_sphereTexID;
 		/*  For generating mirror "reflection" texture */
@@ -86,19 +87,27 @@ namespace Rendering {
 		static constexpr char* BUMP_TEXTURE_PATH = "../RigidBodyLab/images/stone_bump.png";
 		/*  For environment texture */
 		static constexpr char* SKYBOX_TEXTURE_PATH = "../RigidBodyLab/images/skybox.jpg";
-		static constexpr char* SEPARATE_SKYBOX_TEXTURE_PATH[6] = {
+		static constexpr char* SEPARATE_DARK_SKYBOX_TEXTURE_PATH[6] = {
 			//"../RigidBodyLab/images/cubemap/posx.jpg", // Right
 			//"../RigidBodyLab/images/cubemap/negx.jpg", // Left
 			//"../RigidBodyLab/images/cubemap/posy.jpg", // Top
 			//"../RigidBodyLab/images/cubemap/negy.jpg", // Bottom
 			//"../RigidBodyLab/images/cubemap/posz.jpg", // Back
 			//"../RigidBodyLab/images/cubemap/negz.jpg"  // Front
-			"../RigidBodyLab/images/skybox/right.png", // Right
-			"../RigidBodyLab/images/skybox/left.png", // Left
-			"../RigidBodyLab/images/skybox/top.png", // Top
-			"../RigidBodyLab/images/skybox/bottom.png", // Bottom
-			"../RigidBodyLab/images/skybox/front.png",  // Front
-			"../RigidBodyLab/images/skybox/back.png" // Back
+			"../RigidBodyLab/images/dark_skybox/right.png", // Right
+			"../RigidBodyLab/images/dark_skybox/left.png", // Left
+			"../RigidBodyLab/images/dark_skybox/top.png", // Top
+			"../RigidBodyLab/images/dark_skybox/bottom.png", // Bottom
+			"../RigidBodyLab/images/dark_skybox/front.png",  // Front
+			"../RigidBodyLab/images/dark_skybox/back.png" // Back
+		};
+		static constexpr char* SEPARATE_BRIGHT_SKYBOX_TEXTURE_PATH[6] = {
+			"../RigidBodyLab/images/bright_skybox/posx.jpg", // Right
+			"../RigidBodyLab/images/bright_skybox/negx.jpg", // Left
+			"../RigidBodyLab/images/bright_skybox/posy.jpg", // Top
+			"../RigidBodyLab/images/bright_skybox/negy.jpg", // Bottom
+			"../RigidBodyLab/images/bright_skybox/posz.jpg", // Back
+			"../RigidBodyLab/images/bright_skybox/negz.jpg"  // Front
 		};
 		void FlipImageVertically(unsigned char* imageData, int width, int height, int numComponents)
 		{
@@ -122,6 +131,7 @@ namespace Rendering {
 		void ResourceManager::SetMesh(MeshID id, std::unique_ptr<Mesh> newMesh);
 		GLuint GetTexture(ImageID id);
 		void SetUpTextures();
+		GLuint GetSkyBoxTexID(bool isHappyEnd) const;
     private:
 		/**
 		 * Initializes the cube map texture data for the spherical mirror.

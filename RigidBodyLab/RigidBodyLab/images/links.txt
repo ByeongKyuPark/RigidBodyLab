@@ -11,6 +11,7 @@
 
 2. cubemaps
 	https://opengameart.org/art-search-advanced?field_art_tags_tid=cubemap
+	https://opengameart.org/art-search-advanced?field_art_tags_tid=skyboxes
 
 3. useful links
 	https://paulbourke.net/panorama/cubemaps/

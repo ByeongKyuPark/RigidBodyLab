@@ -98,6 +98,10 @@ in the scene.
 */
 /******************************************************************************/
 
+GLuint Rendering::ResourceManager::GetSkyBoxTexID(bool isHappyEnd) const{
+    return isHappyEnd ? m_brightSkyboxTexID : m_darkSkyboxTexID;
+}
+
 void Rendering::ResourceManager::SetUpObjTextures()
 {
 	glGenTextures(TO_INT(ImageID::NUM_IMAGES), m_textureIDs.data());
@@ -257,90 +261,132 @@ void Rendering::ResourceManager::InitSphericalMirrorTexture() {
 Set up the cubemap texture from the skybox image.
 */
 /******************************************************************************/
-void Rendering::ResourceManager::SetUpSkyBoxTexture()
+//void Rendering::ResourceManager::SetUpSkyBoxTexture()
+//{
+//    int imgWidth, imgHeight, numComponents;
+//    unsigned char* cubeImgData{ nullptr };
+//
+//    if (ReadImageFile(SKYBOX_TEXTURE_PATH, &cubeImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
+//        std::cerr << "Reading " << SKYBOX_TEXTURE_PATH << " failed.\n";
+//        exit(1);
+//    }
+//
+//
+//    m_skyboxFaceSize = imgHeight / 3;
+//    int imgSizeBytes = sizeof(unsigned char) * m_skyboxFaceSize * m_skyboxFaceSize * numComponents;
+//
+//    // allocate memory for each cube face and copy subtextures
+//    std::unique_ptr<unsigned char[]> cubeFace[TO_INT(CubeFaceID::NUM_FACES)];
+//    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
+//        cubeFace[f] = std::make_unique<unsigned char[]>(imgSizeBytes);
+//    }
+//
+//    /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
+//    /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
+//    /*  The cubemap layout is as described in the assignment specs */
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 0, false, false, numComponents);
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 0, m_skyboxFaceSize, true, true, numComponents);
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 2 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 2 * m_skyboxFaceSize, false, false, numComponents);
+//    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 3 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
+//
+//    glGenTextures(1, &m_darkSkyboxTexID);
+//    glBindTexture(GL_TEXTURE_CUBE_MAP, m_darkSkyboxTexID);
+//
+//
+//    /*  Copy the 6 textures to the GPU cubemap texture object, and set appropriate texture parameters */
+//    GLuint internalFormat, format;
+//    if (numComponents == 3)
+//    {
+//        internalFormat = GL_RGB8;
+//        format = GL_RGB;
+//    }
+//    else
+//    {
+//        internalFormat = GL_RGBA8;
+//        format = GL_RGBA;
+//    }
+//    // Upload each face of the cubemap
+//    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
+//    {
+//        // GL_TEXTURE_CUBE_MAP_POSITIVE_X + f corresponds to the cube map face target
+//        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, m_skyboxFaceSize, m_skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f].get());
+//    }
+//
+//    // Set the texture parameters
+//    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+//
+//    // Generate mipmaps for the cubemap
+//    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+//
+//    free(cubeImgData);
+//    //for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
+//    //    free(cubeFace[f].get());
+//    //}
+//
+//    InitSphericalMirrorTexture();
+//}
+
+//loads 6 separate skybox face textures
+void Rendering::ResourceManager::SetUpSeparateSkyBoxTexture()
 {
-    int imgWidth, imgHeight, numComponents;
-    unsigned char* cubeImgData{ nullptr };
+    //TODO::
+    //SetUpSkybox(dark_path  , m_darkTexID  );
+    //SetUpSkybox(bright_path, m_brightTexID);
+    //------------------------------------
 
-    if (ReadImageFile(SKYBOX_TEXTURE_PATH, &cubeImgData, &imgWidth, &imgHeight, &numComponents) == 0) {
-        std::cerr << "Reading " << SKYBOX_TEXTURE_PATH << " failed.\n";
-        exit(1);
-    }
+    glGenTextures(1, &m_brightSkyboxTexID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_brightSkyboxTexID);
 
-
-    m_skyboxFaceSize = imgHeight / 3;
-    int imgSizeBytes = sizeof(unsigned char) * m_skyboxFaceSize * m_skyboxFaceSize * numComponents;
-
-    // allocate memory for each cube face and copy subtextures
-    std::unique_ptr<unsigned char[]> cubeFace[TO_INT(CubeFaceID::NUM_FACES)];
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-        cubeFace[f] = std::make_unique<unsigned char[]>(imgSizeBytes);
-    }
-
-    /*  Copy the texture from the skybox image to 6 textures using CopySubTexture */
-    /*  imgWidth is the width of the original image, while skyboxFaceSize is the size of each face */
-    /*  The cubemap layout is as described in the assignment specs */
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::FRONT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BOTTOM)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 0, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::LEFT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 0, m_skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::RIGHT)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 2 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::TOP)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, m_skyboxFaceSize, 2 * m_skyboxFaceSize, false, false, numComponents);
-    CopySubTexture(cubeFace[TO_INT(CubeFaceID::BACK)].get(), cubeImgData, m_skyboxFaceSize, imgWidth, 3 * m_skyboxFaceSize, m_skyboxFaceSize, true, true, numComponents);
-
-    glGenTextures(1, &m_skyboxTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxTexID);
-
-
-    /*  Copy the 6 textures to the GPU cubemap texture object, and set appropriate texture parameters */
-    GLuint internalFormat, format;
-    if (numComponents == 3)
+    int width, height, numComponents;
+    for (int i = 0; i < 6; ++i)
     {
-        internalFormat = GL_RGB8;
-        format = GL_RGB;
-    }
-    else
-    {
-        internalFormat = GL_RGBA8;
-        format = GL_RGBA;
-    }
-    // Upload each face of the cubemap
-    for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f)
-    {
-        // GL_TEXTURE_CUBE_MAP_POSITIVE_X + f corresponds to the cube map face target
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + f, 0, internalFormat, m_skyboxFaceSize, m_skyboxFaceSize, 0, format, GL_UNSIGNED_BYTE, cubeFace[f].get());
+        unsigned char* imageData = nullptr;
+        if (ReadImageFile(SEPARATE_BRIGHT_SKYBOX_TEXTURE_PATH[i], &imageData, &width, &height, &numComponents) == 0)
+        {
+            std::cerr << "Reading " << SEPARATE_BRIGHT_SKYBOX_TEXTURE_PATH[i] << " failed.\n";
+            exit(1);
+        }
+
+        if (i == 0) {// use the first one, assuming square textures for skybox faces
+            m_skyboxFaceSize = width;
+        }
+
+        FlipImageVertically(imageData, width, height, numComponents);
+
+        GLuint internalFormat = (numComponents == 3) ? GL_RGB8 : GL_RGBA8;
+        GLuint format = (numComponents == 3) ? GL_RGB : GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+
+        free(imageData); // free the imageData after uploading to GPU
     }
 
-    // Set the texture parameters
+    // set texture parameters
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    // Generate mipmaps for the cubemap
+    // generate mipmaps for the cubemap
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
-    free(cubeImgData);
-    //for (int f = 0; f < TO_INT(CubeFaceID::NUM_FACES); ++f) {
-    //    free(cubeFace[f].get());
-    //}
+    //----------
+    glGenTextures(1, &m_darkSkyboxTexID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_darkSkyboxTexID);
 
-    InitSphericalMirrorTexture();
-}
-
-//loads 6 separate skybox face textures
-void Rendering::ResourceManager::SetUpSeparateSkyBoxTexture()
-{
-    glGenTextures(1, &m_skyboxTexID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_skyboxTexID);
-
-    int width, height, numComponents;
     for (int i = 0; i < 6; ++i)
     {
         unsigned char* imageData = nullptr;
-        if (ReadImageFile(SEPARATE_SKYBOX_TEXTURE_PATH[i], &imageData, &width, &height, &numComponents) == 0)
+        if (ReadImageFile(SEPARATE_DARK_SKYBOX_TEXTURE_PATH[i], &imageData, &width, &height, &numComponents) == 0)
         {
-            std::cerr << "Reading " << SEPARATE_SKYBOX_TEXTURE_PATH[i] << " failed.\n";
+            std::cerr << "Reading " << SEPARATE_DARK_SKYBOX_TEXTURE_PATH[i] << " failed.\n";
             exit(1);
         }
         

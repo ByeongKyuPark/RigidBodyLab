@@ -701,7 +701,7 @@ void Rendering::Renderer::RenderHUD(Scene& scene)
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     if (scene.IsEnd()==true) {
-        ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH * 4.8f, Camera::GUI_WIDTH * 2.f));
+        ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH * 4.8f, Camera::GUI_WIDTH*2.f));
     }
     else {
         ImGui::SetNextWindowSize(ImVec2(Camera::GUI_WIDTH*2.4f, Camera::GUI_WIDTH));
@@ -1181,7 +1181,7 @@ void Renderer::CleanUp()
     glDeleteTextures(TO_INT(ImageID::NUM_IMAGES), resourceManager.m_textureIDs.data());
     glDeleteTextures(1, &resourceManager.m_bumpTexID);
     glDeleteTextures(1, &resourceManager.m_normalTexID);
-    glDeleteTextures(1, &resourceManager.m_skyboxTexID);
+    glDeleteTextures(1, &resourceManager.m_darkSkyboxTexID);
     glDeleteTextures(1, &resourceManager.m_mirrorTexID);
     glDeleteTextures(1, &resourceManager.m_sphereTexID);
 
@@ -1474,13 +1474,13 @@ void Renderer::WindowDeleter(GLFWwindow* window) {
         The view transform matrix to define the orientation of our camera.
 */
 /******************************************************************************/
-void Renderer::RenderSkybox(const Mat4& viewMat)
+void Renderer::RenderSkybox(const Mat4& viewMat, bool isHappyEnd)
 {
     glClearBufferfv(GL_DEPTH, 0, &one);
 
     m_shaders[TO_INT(ProgType::SKYBOX_PROG)].Use();
 
-    SendCubeTexID(ResourceManager::GetInstance().m_skyboxTexID, m_skyboxTexCubeLoc);
+    SendCubeTexID(ResourceManager::GetInstance().GetSkyBoxTexID(isHappyEnd),m_skyboxTexCubeLoc);
     SendViewMat(viewMat, m_skyboxViewMatLoc);
 
     /*  Just trigger the skybox shaders, which hard-code the full-screen quad drawing */
@@ -1584,19 +1584,19 @@ void Renderer::RenderObjects(RenderPass renderPass, const Core::Scene& scene, in
     ResourceManager& resourceManager = ResourceManager::GetInstance();
     if (renderPass == RenderPass::NORMAL) {
         glViewport(0, 0, mainCam.width, mainCam.height);
-        RenderSkybox(m_mainCamViewMat);
+        RenderSkybox(m_mainCamViewMat,scene.IsHappyEnd());
         m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
         SendProjMat(m_mainCamProjMat, m_gProjMatLoc);
     }
     else if (renderPass == RenderPass::MIRRORTEX_GENERATION) {
         glViewport(0, 0, mirrorCam.width, mirrorCam.height);
-        RenderSkybox(m_mirrorCamViewMat);
+        RenderSkybox(m_mirrorCamViewMat, scene.IsHappyEnd());
         m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
         SendProjMat(m_mirrorCamProjMat, m_gProjMatLoc);
     }
     else if (renderPass == RenderPass::SPHERETEX_GENERATION) {
         glViewport(0, 0, resourceManager.m_skyboxFaceSize, resourceManager.m_skyboxFaceSize);
-        RenderSkybox(m_sphereCamViewMat[faceIdx]);
+        RenderSkybox(m_sphereCamViewMat[faceIdx], scene.IsHappyEnd());
         m_shaders[TO_INT(ProgType::DEFERRED_GEOMPASS)].Use();
         SendProjMat(m_sphereCamProjMat, m_gProjMatLoc);
     }
